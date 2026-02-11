@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnergyFi — Energy STO DeFi Architecture</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-color: #30363d;
+            --neon-cyan: #00f5ff;
+            --neon-magenta: #ff00ff;
+            --neon-lime: #39ff14;
+            --neon-amber: #ffa500;
+            --neon-purple: #8b5cf6;
+            --neon-red: #ef4444;
+            /* Layer Colors */
+            --flutter-color: #027DFD;
+            --avalanche-color: #E84142;
+            --contract-color: #8b5cf6;
+            --ai-color: #00f5ff;
+            --oracle-color: #f97316;
+            --strikon-color: #10b981;
+            --defi-color: #ff00ff;
+            --wallet-color: #fbbf24;
+            --production-color: #238636;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(232, 65, 66, 0.12), rgba(139, 92, 246, 0.1), rgba(0, 245, 255, 0.08));
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--avalanche-color), var(--neon-purple), var(--neon-cyan));
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #E84142, #8b5cf6, #00f5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header .tagline {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title svg { width: 24px; height: 24px; opacity: 0.7; }
+
+        /* Architecture Diagram */
+        .architecture-section { margin-bottom: 3rem; }
+
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .architecture-svg { width: 100%; min-width: 950px; height: 580px; }
+
+        .architecture-svg .layer-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .architecture-svg .layer-node:hover { filter: brightness(1.2); }
+
+        .architecture-svg .connection {
+            stroke-dasharray: 5, 5;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash { to { stroke-dashoffset: -100; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        /* Module Cards */
+        .modules-section { margin-bottom: 3rem; }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--module-color);
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--module-color);
+        }
+
+        .module-card.flutter { --module-color: var(--flutter-color); }
+        .module-card.contract { --module-color: var(--contract-color); }
+        .module-card.ai { --module-color: var(--ai-color); }
+        .module-card.oracle { --module-color: var(--oracle-color); }
+        .module-card.defi { --module-color: var(--defi-color); }
+        .module-card.wallet { --module-color: var(--wallet-color); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--module-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .card-name { font-size: 1.25rem; font-weight: 600; }
+
+        .card-path {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-badge.mvp {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--neon-purple);
+            border: 1px solid var(--neon-purple);
+        }
+
+        .status-badge.core {
+            background: rgba(35, 134, 54, 0.2);
+            color: var(--production-color);
+            border: 1px solid var(--production-color);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tag {
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 245, 255, 0.15);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', Monaco, monospace;
+        }
+
+        .features-list {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .features-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .feature-item {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .feature-item::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--module-color);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Tech Stack */
+        .tech-section { margin-bottom: 3rem; }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .tech-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .tech-items { display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .tech-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .tech-item-info { flex: 1; }
+        .tech-item-name { font-size: 0.9rem; font-weight: 500; }
+        .tech-item-version { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Data Flow Section */
+        .flow-section { margin-bottom: 3rem; }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+        }
+
+        .flow-step {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .flow-step:last-child::after { content: ''; }
+
+        .flow-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+        }
+
+        .flow-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .flow-desc { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Integration Diagram */
+        .integration-section { margin-bottom: 3rem; }
+
+        .integration-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .integration-svg { width: 100%; min-width: 800px; height: 500px; }
+
+        /* Smart Contract Section */
+        .contract-section { margin-bottom: 3rem; }
+
+        .contract-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .contract-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+        }
+
+        .contract-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--neon-purple);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .contract-card-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer a { color: var(--neon-cyan); text-decoration: none; }
+
+        @media (max-width: 900px) {
+            .flow-grid { grid-template-columns: repeat(2, 1fr); }
+            .flow-step::after { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            header h1 { font-size: 1.75rem; }
+            .modules-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>EnergyFi</h1>
+            <p class="subtitle">Energy STO DeFi Platform on Avalanche</p>
+            <p class="tagline">Tokenize Real Energy Assets · AI-Powered Valuation · P2P Trading</p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">STO</span>
+                    <span class="stat-label">Security Token</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">P2P</span>
+                    <span class="stat-label">DeFi Trading</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">AI</span>
+                    <span class="stat-label">Valuation Engine</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">AVAX</span>
+                    <span class="stat-label">Avalanche C-Chain</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">Flutter</span>
+                    <span class="stat-label">Cross-Platform</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">ERC-3643</span>
+                    <span class="stat-label">Compliant Token</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- System Architecture Diagram -->
+        <section class="architecture-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                System Architecture
+            </h2>
+            <div class="architecture-diagram">
+                <svg class="architecture-svg" viewBox="0 0 950 560">
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5"/>
+                        </pattern>
+                        <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#E84142"/>
+                            <stop offset="50%" style="stop-color:#8b5cf6"/>
+                            <stop offset="100%" style="stop-color:#00f5ff"/>
+                        </linearGradient>
+                        <marker id="arrowRight" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+                        </marker>
+                        <marker id="arrowDown" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+                        </marker>
+                        <marker id="arrowUp" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 10 0 L 0 5 L 10 10 z" fill="#8b949e"/>
+                        </marker>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="2" result="blur"/>
+                            <feMerge>
+                                <feMergeNode in="blur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+
+                    <!-- Layer 1: Flutter Mobile App -->
+                    <g class="layer-node" transform="translate(50, 20)">
+                        <rect width="850" height="90" rx="16" fill="#161b22" stroke="#027DFD" stroke-width="2.5"/>
+                        <text x="425" y="30" text-anchor="middle" fill="#027DFD" font-weight="700" font-size="17">📱 Flutter Mobile App</text>
+                        <!-- Sub modules -->
+                        <g transform="translate(30, 42)">
+                            <rect width="150" height="38" rx="6" fill="#21262d" stroke="#027DFD" stroke-width="1"/>
+                            <text x="75" y="16" text-anchor="middle" fill="#027DFD" font-size="10" font-weight="600">Portfolio Dashboard</text>
+                            <text x="75" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Token Holdings & P&L</text>
+                        </g>
+                        <g transform="translate(200, 42)">
+                            <rect width="150" height="38" rx="6" fill="#21262d" stroke="#027DFD" stroke-width="1"/>
+                            <text x="75" y="16" text-anchor="middle" fill="#027DFD" font-size="10" font-weight="600">STO Marketplace</text>
+                            <text x="75" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Browse & Trade Tokens</text>
+                        </g>
+                        <g transform="translate(370, 42)">
+                            <rect width="150" height="38" rx="6" fill="#21262d" stroke="#027DFD" stroke-width="1"/>
+                            <text x="75" y="16" text-anchor="middle" fill="#027DFD" font-size="10" font-weight="600">AI Insights</text>
+                            <text x="75" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Valuation & Analytics</text>
+                        </g>
+                        <g transform="translate(540, 42)">
+                            <rect width="130" height="38" rx="6" fill="#21262d" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="65" y="16" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">Wallet</text>
+                            <text x="65" y="30" text-anchor="middle" fill="#6e7681" font-size="8">WalletConnect</text>
+                        </g>
+                        <g transform="translate(690, 42)">
+                            <rect width="130" height="38" rx="6" fill="#21262d" stroke="#10b981" stroke-width="1"/>
+                            <text x="65" y="16" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">KYC Module</text>
+                            <text x="65" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Compliance Gate</text>
+                        </g>
+                        <circle cx="830" cy="20" r="6" fill="#238636" style="animation: pulse 2s infinite"/>
+                    </g>
+
+                    <!-- Connection Arrows: Flutter → Avalanche -->
+                    <g>
+                        <path d="M 475 115 L 475 150" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowDown)"/>
+                        <text x="495" y="138" fill="#6e7681" font-size="9">JSON-RPC / REST</text>
+                        <path d="M 425 150 L 425 115" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowUp)"/>
+                        <text x="345" y="138" fill="#6e7681" font-size="9">Events / Tx</text>
+                    </g>
+
+                    <!-- Layer 2: Avalanche Blockchain -->
+                    <g class="layer-node" transform="translate(50, 155)">
+                        <rect width="850" height="155" rx="16" fill="#161b22" stroke="#E84142" stroke-width="2.5"/>
+                        <text x="425" y="28" text-anchor="middle" fill="#E84142" font-weight="700" font-size="17">⛰️ Avalanche C-Chain (Smart Contracts)</text>
+
+                        <!-- Smart Contract boxes -->
+                        <g transform="translate(30, 42)">
+                            <rect width="160" height="95" rx="8" fill="#21262d" stroke="#8b5cf6" stroke-width="1.5"/>
+                            <text x="80" y="22" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="600">EnergyToken</text>
+                            <text x="80" y="38" text-anchor="middle" fill="#6e7681" font-size="8">ERC-3643 Compliant</text>
+                            <line x1="10" y1="48" x2="150" y2="48" stroke="#30363d" stroke-width="0.5"/>
+                            <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">mint() / transfer()</text>
+                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">dividendClaim()</text>
+                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">complianceCheck()</text>
+                        </g>
+                        <g transform="translate(210, 42)">
+                            <rect width="160" height="95" rx="8" fill="#21262d" stroke="#ff00ff" stroke-width="1.5"/>
+                            <text x="80" y="22" text-anchor="middle" fill="#ff00ff" font-size="11" font-weight="600">EnergyDEX</text>
+                            <text x="80" y="38" text-anchor="middle" fill="#6e7681" font-size="8">P2P Order Matching</text>
+                            <line x1="10" y1="48" x2="150" y2="48" stroke="#30363d" stroke-width="0.5"/>
+                            <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">createOrder()</text>
+                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">matchOrder()</text>
+                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">cancelOrder()</text>
+                        </g>
+                        <g transform="translate(390, 42)">
+                            <rect width="160" height="95" rx="8" fill="#21262d" stroke="#f97316" stroke-width="1.5"/>
+                            <text x="80" y="22" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">EnergyOracle</text>
+                            <text x="80" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Oracle Relay Feed</text>
+                            <line x1="10" y1="48" x2="150" y2="48" stroke="#30363d" stroke-width="0.5"/>
+                            <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">submitReport()</text>
+                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">setRelayer()</text>
+                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">latestReport()</text>
+                        </g>
+                        <g transform="translate(570, 42)">
+                            <rect width="160" height="95" rx="8" fill="#21262d" stroke="#10b981" stroke-width="1.5"/>
+                            <text x="80" y="22" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">RevenueVault</text>
+                            <text x="80" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Yield Distribution</text>
+                            <line x1="10" y1="48" x2="150" y2="48" stroke="#30363d" stroke-width="0.5"/>
+                            <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">depositRevenue()</text>
+                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">claimYield()</text>
+                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">rebalance()</text>
+                        </g>
+                        <g transform="translate(750, 42)">
+                            <rect width="120" height="95" rx="8" fill="#21262d" stroke="#fbbf24" stroke-width="1.5"/>
+                            <text x="60" y="22" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">Identity</text>
+                            <text x="60" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Registry</text>
+                            <line x1="10" y1="48" x2="110" y2="48" stroke="#30363d" stroke-width="0.5"/>
+                            <text x="60" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">registerUser()</text>
+                            <text x="60" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">verifyKYC()</text>
+                            <text x="60" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">checkEligible()</text>
+                        </g>
+                    </g>
+
+                    <!-- Connection Arrows: Avalanche → Backend -->
+                    <g>
+                        <path d="M 475 315 L 475 350" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowDown)"/>
+                        <text x="495" y="338" fill="#6e7681" font-size="9">Events / Webhook</text>
+                        <path d="M 425 350 L 425 315" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowUp)"/>
+                        <text x="335" y="338" fill="#6e7681" font-size="9">Oracle Feed</text>
+                    </g>
+
+                    <!-- Layer 3: Backend Services -->
+                    <g class="layer-node" transform="translate(50, 355)">
+                        <rect width="850" height="90" rx="16" fill="#161b22" stroke="#00f5ff" stroke-width="2.5"/>
+                        <text x="425" y="28" text-anchor="middle" fill="#00f5ff" font-weight="700" font-size="17">🤖 AI Backend &amp; Services</text>
+                        <g transform="translate(30, 42)">
+                            <rect width="190" height="38" rx="6" fill="#21262d" stroke="#00f5ff" stroke-width="1"/>
+                            <text x="95" y="16" text-anchor="middle" fill="#00f5ff" font-size="10" font-weight="600">AI Valuation Engine</text>
+                            <text x="95" y="30" text-anchor="middle" fill="#6e7681" font-size="8">APEX — NPV/IRR Analysis</text>
+                        </g>
+                        <g transform="translate(240, 42)">
+                            <rect width="190" height="38" rx="6" fill="#21262d" stroke="#f97316" stroke-width="1"/>
+                            <text x="95" y="16" text-anchor="middle" fill="#f97316" font-size="10" font-weight="600">Oracle Relay Service</text>
+                            <text x="95" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Station Data → On-Chain</text>
+                        </g>
+                        <g transform="translate(450, 42)">
+                            <rect width="190" height="38" rx="6" fill="#21262d" stroke="#8b5cf6" stroke-width="1"/>
+                            <text x="95" y="16" text-anchor="middle" fill="#8b5cf6" font-size="10" font-weight="600">Notification Service</text>
+                            <text x="95" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Trade Alerts & Yields</text>
+                        </g>
+                        <g transform="translate(660, 42)">
+                            <rect width="210" height="38" rx="6" fill="#21262d" stroke="#10b981" stroke-width="1"/>
+                            <text x="105" y="16" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">STRIKON Data Gateway</text>
+                            <text x="105" y="30" text-anchor="middle" fill="#6e7681" font-size="8">Mock → Production Ready</text>
+                        </g>
+                        <circle cx="850" cy="18" r="6" fill="#238636" style="animation: pulse 2s infinite"/>
+                    </g>
+
+                    <!-- Connection: Backend → STRIKON -->
+                    <g>
+                        <path d="M 475 450 L 475 485" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowDown)"/>
+                        <text x="495" y="473" fill="#6e7681" font-size="9">REST API</text>
+                        <path d="M 425 485 L 425 450" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowUp)"/>
+                        <text x="330" y="473" fill="#6e7681" font-size="9">Charging Data</text>
+                    </g>
+
+                    <!-- Layer 4: STRIKON Platform -->
+                    <g class="layer-node" transform="translate(50, 490)">
+                        <rect width="850" height="55" rx="16" fill="#161b22" stroke="#10b981" stroke-width="2.5" stroke-dasharray="8,4"/>
+                        <text x="425" y="25" text-anchor="middle" fill="#10b981" font-weight="700" font-size="16">⚡ STRIKON Platform (Production Data Source)</text>
+                        <text x="425" y="43" text-anchor="middle" fill="#6e7681" font-size="11">130+ Microservices · Real-time Charger Data · DERA · APEX · ATLAS · Revenue Analytics</text>
+                        <text x="45" y="44" fill="#10b981" font-size="9" font-style="italic">Future Integration</text>
+                    </g>
+
+                    <!-- Dashed connection lines showing data flow -->
+                    <line x1="50" y1="290" x2="50" y2="490" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4" class="connection"/>
+                    <line x1="900" y1="290" x2="900" y2="490" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4" class="connection"/>
+
+                    <!-- Legend -->
+                    <g transform="translate(30, 555)">
+                        <rect x="0" y="-8" width="12" height="12" rx="2" fill="#027DFD"/>
+                        <text x="18" y="2" fill="#8b949e" font-size="10">Mobile</text>
+                        <rect x="75" y="-8" width="12" height="12" rx="2" fill="#E84142"/>
+                        <text x="93" y="2" fill="#8b949e" font-size="10">Blockchain</text>
+                        <rect x="170" y="-8" width="12" height="12" rx="2" fill="#8b5cf6"/>
+                        <text x="188" y="2" fill="#8b949e" font-size="10">Smart Contract</text>
+                        <rect x="295" y="-8" width="12" height="12" rx="2" fill="#00f5ff"/>
+                        <text x="313" y="2" fill="#8b949e" font-size="10">AI Backend</text>
+                        <rect x="395" y="-8" width="12" height="12" rx="2" fill="#10b981"/>
+                        <text x="413" y="2" fill="#8b949e" font-size="10">STRIKON</text>
+                    </g>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Component Detail Cards -->
+        <section class="modules-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Component Details
+            </h2>
+            <div class="modules-grid">
+                <!-- Flutter App -->
+                <div class="module-card flutter">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon" style="background: var(--flutter-color);">📱</div>
+                            <div>
+                                <div class="card-name">Flutter Mobile App</div>
+                                <div class="card-path">frontend/ · iOS & Android</div>
+                            </div>
+                        </div>
+                        <span class="status-badge core">CORE</span>
+                    </div>
+                    <div class="card-description">Cross-platform mobile app for browsing, trading, and managing tokenized energy assets with integrated wallet.</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Flutter 3.x</span>
+                        <span class="tech-tag">Dart</span>
+                        <span class="tech-tag">web3dart</span>
+                        <span class="tech-tag">WalletConnect</span>
+                        <span class="tech-tag">Riverpod</span>
+                    </div>
+                    <div class="features-list">
+                        <div class="features-title">Key Screens</div>
+                        <div class="features-grid">
+                            <div class="feature-item">Portfolio Dashboard</div>
+                            <div class="feature-item">STO Marketplace</div>
+                            <div class="feature-item">Trade Execution</div>
+                            <div class="feature-item">AI Valuation View</div>
+                            <div class="feature-item">Yield Claim</div>
+                            <div class="feature-item">KYC Onboarding</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Contracts -->
+                <div class="module-card contract">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon" style="background: var(--contract-color);">⛰️</div>
+                            <div>
+                                <div class="card-name">Smart Contracts</div>
+                                <div class="card-path">contracts/ · Avalanche C-Chain</div>
+                            </div>
+                        </div>
+                        <span class="status-badge core">CORE</span>
+                    </div>
+                    <div class="card-description">ERC-3643 compliant security token with P2P order matching DEX and automated revenue distribution vault.</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Solidity ^0.8.20</span>
+                        <span class="tech-tag">Hardhat</span>
+                        <span class="tech-tag">OpenZeppelin</span>
+                        <span class="tech-tag">ERC-3643</span>
+                    </div>
+                    <div class="features-list">
+                        <div class="features-title">Contracts</div>
+                        <div class="features-grid">
+                            <div class="feature-item">EnergyToken.sol</div>
+                            <div class="feature-item">EnergyDEX.sol</div>
+                            <div class="feature-item">RevenueVault.sol</div>
+                            <div class="feature-item">EnergyOracle.sol</div>
+                            <div class="feature-item">IdentityRegistry.sol</div>
+                            <div class="feature-item">ComplianceModule.sol</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Valuation -->
+                <div class="module-card ai">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon" style="background: var(--ai-color);">🤖</div>
+                            <div>
+                                <div class="card-name">AI Valuation Engine</div>
+                                <div class="card-path">External · Python</div>
+                            </div>
+                        </div>
+                        <span class="status-badge mvp">MVP</span>
+                    </div>
+                    <div class="card-description">APEX-inspired AI engine that analyzes charging station revenue data to calculate fair token valuation using NPV/IRR models.</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">Claude API</span>
+                        <span class="tech-tag">Node.js 24</span>
+                        <span class="tech-tag">NumPy</span>
+                    </div>
+                    <div class="features-list">
+                        <div class="features-title">Capabilities</div>
+                        <div class="features-grid">
+                            <div class="feature-item">NPV/IRR Analysis</div>
+                            <div class="feature-item">Revenue Forecasting</div>
+                            <div class="feature-item">Risk Scoring</div>
+                            <div class="feature-item">Price Recommendation</div>
+                            <div class="feature-item">Utilization Trend</div>
+                            <div class="feature-item">Comparative Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Oracle Service -->
+                <div class="module-card oracle">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon" style="background: var(--oracle-color);">🔗</div>
+                            <div>
+                                <div class="card-name">Oracle Relay</div>
+                                <div class="card-path">services/oracle-relay/ · TypeScript</div>
+                            </div>
+                        </div>
+                        <span class="status-badge mvp">MVP</span>
+                    </div>
+                    <div class="card-description">Bridges real-world charging station data on-chain via a persistent TypeScript daemon. Uses mock data for hackathon, production-ready for STRIKON API.</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">ethers.js</span>
+                        <span class="tech-tag">Node.js 24</span>
+                        <span class="tech-tag">Polling Loop</span>
+                        <span class="tech-tag">REST</span>
+                    </div>
+                    <div class="features-list">
+                        <div class="features-title">Data Feeds</div>
+                        <div class="features-grid">
+                            <div class="feature-item">kWh Dispensed</div>
+                            <div class="feature-item">Revenue (USDC)</div>
+                            <div class="feature-item">Uptime %</div>
+                            <div class="feature-item">Session Count</div>
+                            <div class="feature-item">Station Health</div>
+                            <div class="feature-item">Grid Price</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DeFi Trading -->
+                <div class="module-card defi">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon" style="background: var(--defi-color);">💱</div>
+                            <div>
+                                <div class="card-name">P2P DeFi Trading</div>
+                                <div class="card-path">contracts/c-chain/ · Phase 2</div>
+                            </div>
+                        </div>
+                        <span class="status-badge core">CORE</span>
+                    </div>
+                    <div class="card-description">Peer-to-peer energy STO trading with simplified order book matching. Compliance-gated — only KYC-verified users can trade.</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Order Book</span>
+                        <span class="tech-tag">USDC Pair</span>
+                        <span class="tech-tag">Limit Order</span>
+                        <span class="tech-tag">Compliant</span>
+                    </div>
+                    <div class="features-list">
+                        <div class="features-title">Trading Features</div>
+                        <div class="features-grid">
+                            <div class="feature-item">Buy / Sell Orders</div>
+                            <div class="feature-item">Order Matching</div>
+                            <div class="feature-item">Trade History</div>
+                            <div class="feature-item">Price Charts</div>
+                            <div class="feature-item">Compliance Gate</div>
+                            <div class="feature-item">Fee Distribution</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallet -->
+                <div class="module-card wallet">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon" style="background: var(--wallet-color);">🔐</div>
+                            <div>
+                                <div class="card-name">Wallet & Identity</div>
+                                <div class="card-path">frontend/ · WalletConnect v2</div>
+                            </div>
+                        </div>
+                        <span class="status-badge core">CORE</span>
+                    </div>
+                    <div class="card-description">WalletConnect integration with on-chain identity registry for KYC compliance. Supports MetaMask, Core Wallet, and embedded wallet options.</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">WalletConnect v2</span>
+                        <span class="tech-tag">MetaMask</span>
+                        <span class="tech-tag">Core Wallet</span>
+                        <span class="tech-tag">EIP-712</span>
+                    </div>
+                    <div class="features-list">
+                        <div class="features-title">Features</div>
+                        <div class="features-grid">
+                            <div class="feature-item">Multi-Wallet Support</div>
+                            <div class="feature-item">KYC Verification</div>
+                            <div class="feature-item">Tx Signing</div>
+                            <div class="feature-item">Token Approval</div>
+                            <div class="feature-item">Balance Display</div>
+                            <div class="feature-item">Network Switch</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3-Tier Integration Diagram -->
+        <section class="integration-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                </svg>
+                Integration Architecture — STRIKON × Avalanche
+            </h2>
+            <div class="integration-diagram">
+                <svg class="integration-svg" viewBox="0 0 900 480">
+                    <defs>
+                        <pattern id="intGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5"/>
+                        </pattern>
+                        <marker id="arrowD2" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+                        </marker>
+                        <marker id="arrowU2" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 10 0 L 0 5 L 10 10 z" fill="#8b949e"/>
+                        </marker>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#intGrid)"/>
+
+                    <!-- Top: User Layer -->
+                    <g transform="translate(100, 20)">
+                        <rect width="700" height="80" rx="16" fill="#161b22" stroke="#027DFD" stroke-width="3"/>
+                        <text x="350" y="30" text-anchor="middle" fill="#027DFD" font-weight="700" font-size="17">📱 User Layer — Flutter Mobile App</text>
+                        <text x="350" y="52" text-anchor="middle" fill="#8b949e" font-size="11">Portfolio · Marketplace · Trade · AI Insights · Wallet</text>
+                        <text x="350" y="68" text-anchor="middle" fill="#6e7681" font-size="9">iOS & Android | WalletConnect | Real-time Updates</text>
+                        <circle cx="680" cy="22" r="6" fill="#238636" style="animation: pulse 2s infinite"/>
+                    </g>
+
+                    <!-- Arrows -->
+                    <g>
+                        <path d="M 450 105 L 450 140" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowD2)"/>
+                        <text x="465" y="128" fill="#6e7681" font-size="9">Tx / Query</text>
+                        <path d="M 400 140 L 400 105" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowU2)"/>
+                        <text x="330" y="128" fill="#6e7681" font-size="9">Events</text>
+                    </g>
+
+                    <!-- Middle: Blockchain Layer -->
+                    <g transform="translate(100, 145)">
+                        <rect width="700" height="110" rx="16" fill="#161b22" stroke="#E84142" stroke-width="3"/>
+                        <text x="350" y="28" text-anchor="middle" fill="#E84142" font-weight="700" font-size="17">⛰️ Blockchain Layer — Avalanche C-Chain</text>
+
+                        <g transform="translate(25, 42)">
+                            <rect width="120" height="50" rx="8" fill="#21262d" stroke="#8b5cf6" stroke-width="1"/>
+                            <text x="60" y="22" text-anchor="middle" fill="#8b5cf6" font-size="10" font-weight="600">EnergyToken</text>
+                            <text x="60" y="38" text-anchor="middle" fill="#6e7681" font-size="8">ERC-3643</text>
+                        </g>
+                        <g transform="translate(160, 42)">
+                            <rect width="120" height="50" rx="8" fill="#21262d" stroke="#ff00ff" stroke-width="1"/>
+                            <text x="60" y="22" text-anchor="middle" fill="#ff00ff" font-size="10" font-weight="600">EnergyDEX</text>
+                            <text x="60" y="38" text-anchor="middle" fill="#6e7681" font-size="8">P2P Trading</text>
+                        </g>
+                        <g transform="translate(295, 42)">
+                            <rect width="120" height="50" rx="8" fill="#21262d" stroke="#10b981" stroke-width="1"/>
+                            <text x="60" y="22" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600">RevenueVault</text>
+                            <text x="60" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Yield Dist.</text>
+                        </g>
+                        <g transform="translate(430, 42)">
+                            <rect width="120" height="50" rx="8" fill="#21262d" stroke="#f97316" stroke-width="1"/>
+                            <text x="60" y="22" text-anchor="middle" fill="#f97316" font-size="10" font-weight="600">EnergyOracle</text>
+                            <text x="60" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Data Feed</text>
+                        </g>
+                        <g transform="translate(565, 42)">
+                            <rect width="120" height="50" rx="8" fill="#21262d" stroke="#fbbf24" stroke-width="1"/>
+                            <text x="60" y="22" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">Identity</text>
+                            <text x="60" y="38" text-anchor="middle" fill="#6e7681" font-size="8">KYC Registry</text>
+                        </g>
+                    </g>
+
+                    <!-- Arrows -->
+                    <g>
+                        <path d="M 450 260 L 450 295" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowD2)"/>
+                        <text x="465" y="283" fill="#6e7681" font-size="9">API Call</text>
+                        <path d="M 400 295 L 400 260" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowU2)"/>
+                        <text x="320" y="283" fill="#6e7681" font-size="9">Oracle Feed</text>
+                    </g>
+
+                    <!-- Bottom: Intelligence Layer -->
+                    <g transform="translate(100, 300)">
+                        <rect width="700" height="80" rx="16" fill="#161b22" stroke="#00f5ff" stroke-width="3"/>
+                        <text x="350" y="28" text-anchor="middle" fill="#00f5ff" font-weight="700" font-size="17">🤖 Intelligence Layer — AI Backend</text>
+                        <text x="350" y="50" text-anchor="middle" fill="#8b949e" font-size="11">AI Valuation (APEX) · Oracle Relay · Notification Service</text>
+                        <text x="350" y="66" text-anchor="middle" fill="#6e7681" font-size="9">Node.js 24 | TypeScript | Claude API | ethers.js</text>
+                    </g>
+
+                    <!-- Arrows to STRIKON -->
+                    <g>
+                        <path d="M 450 385 L 450 410" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowD2)" stroke-dasharray="6,3"/>
+                        <text x="465" y="403" fill="#6e7681" font-size="9">Future</text>
+                        <path d="M 400 410 L 400 385" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowU2)" stroke-dasharray="6,3"/>
+                        <text x="320" y="403" fill="#6e7681" font-size="9">Real Data</text>
+                    </g>
+
+                    <!-- STRIKON Data Source -->
+                    <g transform="translate(100, 415)">
+                        <rect width="700" height="50" rx="16" fill="#161b22" stroke="#10b981" stroke-width="2" stroke-dasharray="8,4"/>
+                        <text x="350" y="22" text-anchor="middle" fill="#10b981" font-weight="700" font-size="15">⚡ STRIKON Platform — Real Energy Infrastructure</text>
+                        <text x="350" y="40" text-anchor="middle" fill="#6e7681" font-size="10">130+ Microservices · DERA · APEX · ATLAS · Live Charger Data</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <g transform="translate(30, 475)">
+                        <rect x="0" y="-8" width="12" height="12" rx="2" fill="#027DFD"/>
+                        <text x="18" y="2" fill="#8b949e" font-size="10">User</text>
+                        <rect x="65" y="-8" width="12" height="12" rx="2" fill="#E84142"/>
+                        <text x="83" y="2" fill="#8b949e" font-size="10">Blockchain</text>
+                        <rect x="160" y="-8" width="12" height="12" rx="2" fill="#00f5ff"/>
+                        <text x="178" y="2" fill="#8b949e" font-size="10">AI</text>
+                        <rect x="210" y="-8" width="12" height="12" rx="2" fill="#10b981"/>
+                        <text x="228" y="2" fill="#8b949e" font-size="10">STRIKON</text>
+                        <text x="330" y="2" fill="#6e7681" font-size="9">── Solid: Active   ╌╌ Dashed: Future Integration</text>
+                    </g>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="tech-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Tech Stack
+            </h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-card-title">📱 Frontend</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #027DFD;">F</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Flutter</div>
+                                <div class="tech-item-version">3.x · Dart · iOS & Android</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #3b82f6;">W3</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">web3dart</div>
+                                <div class="tech-item-version">Ethereum RPC · Contract ABI</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #fbbf24;">WC</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">WalletConnect v2</div>
+                                <div class="tech-item-version">Multi-wallet · Sign v2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-card-title">⛰️ Blockchain</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #E84142;">AV</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Avalanche C-Chain</div>
+                                <div class="tech-item-version">EVM · Sub-second Finality</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #8b5cf6;">SO</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Solidity</div>
+                                <div class="tech-item-version">^0.8.20 · Hardhat · OpenZeppelin</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #f97316;">OR</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Oracle Relay</div>
+                                <div class="tech-item-version">TypeScript · ethers.js · Data Bridge</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-card-title">🤖 Backend & AI</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #00f5ff; color: #0d1117;">AI</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Claude API</div>
+                                <div class="tech-item-version">Valuation · Analysis · Insights</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #f97316;">OR</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Oracle Relay</div>
+                                <div class="tech-item-version">TypeScript · ethers.js · Node.js 24</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #10b981;">PY</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Python</div>
+                                <div class="tech-item-version">NumPy · Financial Models</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Smart Contracts -->
+        <section class="contract-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Smart Contract Architecture
+            </h2>
+            <div class="contract-grid">
+                <div class="contract-card">
+                    <div class="contract-card-title">EnergyToken.sol</div>
+                    <div class="contract-card-desc">ERC-3643 compliant security token representing fractional ownership of EV charging station revenue. Includes transfer restrictions and compliance hooks.</div>
+                </div>
+                <div class="contract-card">
+                    <div class="contract-card-title">EnergyDEX.sol</div>
+                    <div class="contract-card-desc">On-chain order book for P2P trading of energy tokens. Supports limit orders with USDC pairs and automatic compliance verification.</div>
+                </div>
+                <div class="contract-card">
+                    <div class="contract-card-title">RevenueVault.sol</div>
+                    <div class="contract-card-desc">Collects charging station revenue and distributes proportional yields to token holders. Automated claim mechanism with compound option.</div>
+                </div>
+                <div class="contract-card">
+                    <div class="contract-card-title">EnergyOracle.sol</div>
+                    <div class="contract-card-desc">Chainlink-compatible oracle contract receiving off-chain station data feeds — kWh dispensed, revenue, uptime, and session counts.</div>
+                </div>
+                <div class="contract-card">
+                    <div class="contract-card-title">IdentityRegistry.sol</div>
+                    <div class="contract-card-desc">On-chain KYC registry managing investor identities and eligibility claims. Gates all STO transfers through compliance checks.</div>
+                </div>
+                <div class="contract-card">
+                    <div class="contract-card-title">ComplianceModule.sol</div>
+                    <div class="contract-card-desc">Modular compliance rules engine — investor count limits, transfer restrictions, jurisdiction checks, and holding period enforcement.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Flow -->
+        <section class="flow-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Token Lifecycle Flow
+            </h2>
+            <div class="flow-grid">
+                <div class="flow-step">
+                    <div class="flow-number">1</div>
+                    <div class="flow-title" style="color: var(--strikon-color);">Data Ingest</div>
+                    <div class="flow-desc">Charging station revenue & utilization data collected via Oracle Relay</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">2</div>
+                    <div class="flow-title" style="color: var(--ai-color);">AI Valuation</div>
+                    <div class="flow-desc">APEX engine analyzes NPV/IRR and generates fair token price recommendation</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">3</div>
+                    <div class="flow-title" style="color: var(--contract-color);">Tokenize</div>
+                    <div class="flow-desc">Station revenue tokenized as ERC-3643 compliant security tokens on Avalanche</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">4</div>
+                    <div class="flow-title" style="color: var(--defi-color);">P2P Trade</div>
+                    <div class="flow-desc">KYC-verified users trade tokens peer-to-peer on EnergyDEX order book</div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-number">5</div>
+                    <div class="flow-title" style="color: var(--neon-lime);">Yield Claim</div>
+                    <div class="flow-desc">Token holders claim proportional revenue yields from RevenueVault</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>EnergyFi v1.0 — Avalanche Hackathon 2026</p>
+            <p style="margin-top: 0.5rem;">Powered by WingSide Technology · STRIKON Ecosystem</p>
+            <p style="margin-top: 0.25rem; font-size: 0.75rem;">Energy STO · AI Valuation · P2P DeFi · Real Infrastructure</p>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('.layer-node').forEach(node => {
+            node.addEventListener('mouseenter', function() {
+                const rect = this.querySelector('rect');
+                if (rect) rect.style.filter = 'drop-shadow(0 0 10px currentColor)';
+            });
+            node.addEventListener('mouseleave', function() {
+                const rect = this.querySelector('rect');
+                if (rect) rect.style.filter = 'none';
+            });
+        });
+
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.borderColor = getComputedStyle(this).getPropertyValue('--module-color');
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.borderColor = '';
+            });
+        });
+    </script>
+</body>
+</html>

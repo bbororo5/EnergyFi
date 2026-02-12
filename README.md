@@ -4,6 +4,12 @@
 
 ### RWA-Backed STO DeFi for Energy Infrastructure
 
+<br/>
+
+<img src="docs/assets/wingside_logo.png" height="300"/>
+<br/>
+<sub>by <b>Wingside AI</b></sub>
+
 [![Avalanche](https://img.shields.io/badge/Avalanche-Subnet%20%2B%20C--Chain-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?logo=solidity)](https://soliditylang.org/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-3-FFF100?logo=hardhat&logoColor=black)](https://hardhat.org/)
@@ -15,7 +21,7 @@
 
 ## TL;DR
 
-> Built **on top of [STRIKON](https://strikon.io)**, a fully-developed EV-charging platform with **130+ microservices, launching June 2026**.
+> Built **on top of [STRIKON](https://strikon.io)**, a fully-developed EV-charging platform with **30+ microservices, launching June 2026**.
 > EnergyFi turns real-world energy assets into **on-chain securities (STO)** — with **compliant issuance, secondary trading, and automated yield distribution**.
 
 This is not a blank-slate hackathon project — the platform is built, the interfaces are defined, and the RWA tokenisation layer plugs right in.
@@ -26,7 +32,7 @@ This is not a blank-slate hackathon project — the platform is built, the inter
 
 | Typical Hackathon Team | EnergyFi |
 | :--- | :--- |
-| Starts from scratch | **Built on STRIKON — 130+ microservices, launching June 2026** |
+| Starts from scratch | **Built on STRIKON — 30+ microservices, launching June 2026** |
 | Mock data only | Production-grade interfaces defined; mock JSON mirrors real schema |
 | Web demo | **Flutter native mobile app — real user experience** |
 | Proof of concept | Production-ready architecture (Avalanche Subnet + C-Chain) |
@@ -56,7 +62,7 @@ The energy market is converging on exactly what EnergyFi does:
 | :--- | :--- |
 | **AI datacenter boom → nuclear buildout** | Nuclear plants can't ramp down — surplus energy at night needs a home |
 | **V2G (Vehicle-to-Grid) growth** | EV batteries absorb surplus, sell back to grid — a perfect complement to nuclear rigidity |
-| **Korea STO regulations cleared (2025)** | Tokenised securities on real-world assets are now legal — the RWA market is wide open |
+| **Korea STO regulations cleared (Jan 2026)** | Tokenised securities on real-world assets are now legal — the RWA market is wide open |
 | **Beyond EV charging** | Same architecture extends to ESS, solar, and other distributed energy resources |
 
 > STRIKON already has the energy infrastructure. EnergyFi adds the **RWA tokenisation layer** — compliant issuance, secondary market, and yield — at exactly the moment regulation allows it.
@@ -66,6 +72,8 @@ The energy market is converging on exactly what EnergyFi does:
 ## STRIKON Platform — Built & Launching Soon
 
 <div align="center">
+<img src="docs/assets/strikon_logo.jpeg" height="300"/>
+<br/><br/>
 <table>
 <tr>
 <td align="center"><b>Login</b></td>
@@ -85,6 +93,35 @@ The energy market is converging on exactly what EnergyFi does:
 </div>
 
 > **At launch (June 2026)**: live data via STRIKON Platform API · **Hackathon demo**: same flow on realistic mock JSON matching production schema
+
+---
+
+## APEX Engine — AI-Powered Investment Intelligence
+
+<div align="center">
+<table>
+<tr>
+<td align="center"><b>Investment Score Map & AI Recommendations</b></td>
+<td align="center"><b>Portfolio Analytics & Demand Heatmap</b></td>
+</tr>
+<tr>
+<td><img src="docs/assets/apex_dashboard_1.png" width="420"/></td>
+<td><img src="docs/assets/apex_dashboard_2.png" width="420"/></td>
+</tr>
+</table>
+</div>
+
+APEX analyses every charging station and outputs:
+
+| Output | Detail |
+| :--- | :--- |
+| **Investment Score** | NPV, IRR, payback period — per station |
+| **Risk Grade** | Revenue stability, utilization trend, equipment health, competition |
+| **AI Signal** | UNDERVALUED / FAIR VALUE / OVERVALUED |
+| **Revenue Forecast** | Monthly projections with confidence intervals |
+| **Synergy Analysis** | Cross-station portfolio optimisation |
+
+> 📖 Full interface schema: [09_Interface_Spec.md](docs/09_Interface_Spec.md)
 
 ---
 
@@ -153,6 +190,7 @@ The energy market is converging on exactly what EnergyFi does:
 | [06 Oracle Relay Spec](docs/06_Oracle_Relay_Spec.md) | Oracle Relay service spec |
 | [07 Frontend Spec](docs/07_Frontend_Spec.md) | Flutter mobile app spec |
 | [08 Token Lifecycle](docs/08_Token_Lifecycle.md) | Token lifecycle: Data → Yield |
+| [09 Interface Spec](docs/09_Interface_Spec.md) | STRIKON ↔ EnergyFi interface schemas (8 APIs) |
 
 <details>
 <summary><b>Quick Start (click to expand)</b></summary>

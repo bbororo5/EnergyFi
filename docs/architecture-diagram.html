@@ -594,8 +594,8 @@
                             <text x="80" y="38" text-anchor="middle" fill="#6e7681" font-size="8">ERC-3643 Compliant</text>
                             <line x1="10" y1="48" x2="150" y2="48" stroke="#30363d" stroke-width="0.5"/>
                             <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">mint() / transfer()</text>
-                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">dividendClaim()</text>
-                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">complianceCheck()</text>
+                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">addToWhitelist()</text>
+                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">pause() / unpause()</text>
                         </g>
                         <g transform="translate(210, 42)">
                             <rect width="160" height="95" rx="8" fill="#21262d" stroke="#ff00ff" stroke-width="1.5"/>
@@ -620,9 +620,9 @@
                             <text x="80" y="22" text-anchor="middle" fill="#10b981" font-size="11" font-weight="600">RevenueVault</text>
                             <text x="80" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Yield Distribution</text>
                             <line x1="10" y1="48" x2="150" y2="48" stroke="#30363d" stroke-width="0.5"/>
-                            <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">depositRevenue()</text>
-                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">claimYield()</text>
-                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">rebalance()</text>
+                            <text x="80" y="62" text-anchor="middle" fill="#8b949e" font-size="7.5">receive() / allocate()</text>
+                            <text x="80" y="75" text-anchor="middle" fill="#8b949e" font-size="7.5">claim()</text>
+                            <text x="80" y="88" text-anchor="middle" fill="#8b949e" font-size="7.5">claimable()</text>
                         </g>
                         <g transform="translate(750, 42)">
                             <rect width="120" height="95" rx="8" fill="#21262d" stroke="#fbbf24" stroke-width="1.5"/>
@@ -682,7 +682,7 @@
                     <g class="layer-node" transform="translate(50, 490)">
                         <rect width="850" height="55" rx="16" fill="#161b22" stroke="#10b981" stroke-width="2.5" stroke-dasharray="8,4"/>
                         <text x="425" y="25" text-anchor="middle" fill="#10b981" font-weight="700" font-size="16">⚡ STRIKON Platform (Production Data Source)</text>
-                        <text x="425" y="43" text-anchor="middle" fill="#6e7681" font-size="11">130+ Microservices · Real-time Charger Data · DERA · APEX · ATLAS · Revenue Analytics</text>
+                        <text x="425" y="43" text-anchor="middle" fill="#6e7681" font-size="11">30+ Microservices · Real-time Charger Data · DERA · APEX · ATLAS · Revenue Analytics</text>
                         <text x="45" y="44" fill="#10b981" font-size="9" font-style="italic">Future Integration</text>
                     </g>
 
@@ -797,8 +797,8 @@
                     <div class="tech-tags">
                         <span class="tech-tag">Python</span>
                         <span class="tech-tag">Claude API</span>
-                        <span class="tech-tag">Node.js 24</span>
                         <span class="tech-tag">NumPy</span>
+                        <span class="tech-tag">Financial Models</span>
                     </div>
                     <div class="features-list">
                         <div class="features-title">Capabilities</div>
@@ -1011,7 +1011,7 @@
                     <g transform="translate(100, 415)">
                         <rect width="700" height="50" rx="16" fill="#161b22" stroke="#10b981" stroke-width="2" stroke-dasharray="8,4"/>
                         <text x="350" y="22" text-anchor="middle" fill="#10b981" font-weight="700" font-size="15">⚡ STRIKON Platform — Real Energy Infrastructure</text>
-                        <text x="350" y="40" text-anchor="middle" fill="#6e7681" font-size="10">130+ Microservices · DERA · APEX · ATLAS · Live Charger Data</text>
+                        <text x="350" y="40" text-anchor="middle" fill="#6e7681" font-size="10">30+ Microservices · DERA · APEX · ATLAS · Live Charger Data</text>
                     </g>
 
                     <!-- Legend -->
@@ -1143,7 +1143,7 @@
                 </div>
                 <div class="contract-card">
                     <div class="contract-card-title">EnergyOracle.sol</div>
-                    <div class="contract-card-desc">Chainlink-compatible oracle contract receiving off-chain station data feeds — kWh dispensed, revenue, uptime, and session counts.</div>
+                    <div class="contract-card-desc">Custom oracle contract receiving off-chain station data via Oracle Relay service — kWh dispensed, revenue, uptime, and content hash verification.</div>
                 </div>
                 <div class="contract-card">
                     <div class="contract-card-title">IdentityRegistry.sol</div>
@@ -1195,7 +1195,7 @@
 
         <!-- Footer -->
         <footer>
-            <p>EnergyFi v1.0 — Avalanche Hackathon 2026</p>
+            <p>EnergyFi v1.0 — Avalanche Build Games 2026</p>
             <p style="margin-top: 0.5rem;">Powered by WingSide Technology · STRIKON Ecosystem</p>
             <p style="margin-top: 0.25rem; font-size: 0.75rem;">Energy STO · AI Valuation · P2P DeFi · Real Infrastructure</p>
         </footer>

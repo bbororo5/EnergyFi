@@ -63,7 +63,7 @@ Intelligence layer bridging off-chain data to on-chain state.
 
 ### 2.4 Layer 1: STRIKON Platform (External)
 Production data source — **not part of this repository**.
-- 130+ microservices handling real EV charging infrastructure.
+- 30+ microservices handling real EV charging infrastructure.
 - Provides: kWh dispensed, revenue, uptime, session count, station health, grid price.
 - Integration: REST API (mock JSON for hackathon, production API for mainnet).
 
@@ -96,7 +96,7 @@ A sovereign, permissioned EVM Subnet dedicated to **DER Data Integrity**.
 IoT Gateways (Solar, ESS, EVSE)
         │
         ▼
-  STRIKON Platform (130+ microservices)
+  STRIKON Platform (30+ microservices)
         │
         ├──── REST API ────┐
         │                  ▼

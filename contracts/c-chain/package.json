@@ -6,7 +6,9 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "clean": "npx hardhat clean"
+    "clean": "npx hardhat clean",
+    "deploy:fuji": "npx hardhat run scripts/deploy_cchain.ts --network fuji",
+    "deploy:local": "npx hardhat run scripts/deploy_cchain.ts --network localhost"
   },
   "keywords": [],
   "author": "",

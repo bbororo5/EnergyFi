@@ -1,14 +1,14 @@
 # EnergyFi — Project Overview
 
 ## 1. Vision
-EnergyFi is the **DeFi layer for real-world energy infrastructure**. Built on top of the production-grade [STRIKON](https://strikon.io) EV charging platform (130+ microservices), it tokenizes charging station revenue as Security Tokens (STO), enables P2P trading, and distributes yields — all on Avalanche.
+EnergyFi is the **DeFi layer for real-world energy infrastructure**. Built on top of the production-grade [STRIKON](https://strikon.io) EV charging platform (30+ microservices), it tokenizes charging station revenue as Security Tokens (STO), enables P2P trading, and distributes yields — all on Avalanche.
 
 > _"We are not starting from scratch. Our production infrastructure's real-time data flows directly on-chain."_
 
 ## 2. Problem Statement
 - Energy infrastructure assets (EV chargers, Solar, ESS) generate predictable cash flows but are **illiquid** and **inaccessible** to retail investors.
 - Existing STO platforms lack **real-time data feeds** from physical infrastructure.
-- Regulatory uncertainty in Korea has been resolved with the **2024 Capital Markets Act amendment** enabling tokenized securities.
+- Regulatory uncertainty in Korea has been resolved with the **Jan 2026 Capital Markets Act amendment** enabling tokenized securities.
 
 ## 3. Solution
 
@@ -25,7 +25,7 @@ EnergyFi is the **DeFi layer for real-world energy infrastructure**. Built on to
 
 | Typical Hackathon Project | EnergyFi |
 |:---|:---|
-| Starts from blank canvas | Built on **130+ microservice production platform** |
+| Starts from blank canvas | Built on **30+ microservice production platform** |
 | Mock data only | Real infrastructure data pipeline |
 | Web demo | **Flutter native mobile app** |
 | Proof of concept | Production-ready architecture (Subnet L2 + C-Chain L1) |

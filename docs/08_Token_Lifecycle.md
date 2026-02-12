@@ -7,7 +7,7 @@ This document traces the complete lifecycle of an energy asset — from real-wor
 ## 2. Lifecycle Stages
 
 ### Stage 1: Data Ingest
-**Source**: STRIKON Platform (130+ microservices)
+**Source**: STRIKON Platform (30+ microservices)
 
 Real-time EV charging station data is collected:
 - kWh dispensed per session

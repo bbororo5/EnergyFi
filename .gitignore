@@ -116,6 +116,10 @@ build/
 .AppleDouble
 .LSOverride
 
+# iCloud conflict copies
+*\ 2.*
+*\ 2/
+
 # Windows
 Thumbs.db
 ehthumbs.db

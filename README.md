@@ -19,66 +19,37 @@
 
 ---
 
-## TL;DR
+## What is EnergyFi?
 
-> South Korea's **STO Act passed 3 weeks ago (Jan 15 2026)** — a 1-year grace period to define the market leaders has begun.
-> EnergyFi tokenises **real energy infrastructure** as on-chain securities, starting with **V2G (Vehicle-to-Grid)** charging stations.
->
-> Built on **[STRIKON](https://strikon.io)** — a production-grade EV-charging platform (30+ microservices, launching June 2026) — by a team that builds the **chips, firmware, and embedded systems** powering the hardware.
+EnergyFi turns **real energy infrastructure** — starting with EV charging stations — into **on-chain securities (STO)** that anyone can invest in, trade, and earn yield from.
 
-This is not a blank-slate hackathon project. The infrastructure is real, the regulation is live, and Avalanche is the bridge to global institutional capital.
+```mermaid
+flowchart LR
+    A[Charging Station] --> B[STRIKON]
+    C[APEX Engine] <--> B
+    B --> D[EnergyFi]
+    D --> E[Avalanche Subnet\nIoT · Device Data]
+    D --> F[Avalanche C-Chain\nSTO · Trading · Yield]
 
----
+    style A fill:#1a1a2e,stroke:#10b981,color:#e0e0e0
+    style B fill:#1a1a2e,stroke:#10b981,stroke-width:2px,color:#10b981
+    style C fill:#1a1a2e,stroke:#00f5ff,stroke-width:2px,color:#00f5ff
+    style D fill:#1a1a2e,stroke:#E84142,stroke-width:3px,color:#E84142
+    style E fill:#1a1a2e,stroke:#f59e0b,stroke-width:2px,color:#f59e0b
+    style F fill:#1a1a2e,stroke:#E84142,stroke-width:2px,color:#E84142
+```
 
-## What Makes This Different
+**The flow**: Real station data → AI valuation → On-chain STO → Investor yield.
 
-| Typical Hackathon Team | EnergyFi |
-| :--- | :--- |
-| Starts from scratch | **Built on STRIKON — 30+ microservices, launching June 2026** |
-| Mock data only | Production-grade interfaces defined; mock JSON mirrors real schema |
-| Software only | **Chip → Firmware → Platform → Chain** — we own the full stack |
-| No regulatory path | **STO Act (Jan 2026) passed — 1-year window to capture market** |
-| Web demo | **Flutter native mobile app — real user experience** |
-| Proof of concept | Production-ready architecture (Avalanche Subnet + C-Chain) |
-
-> *"The infrastructure is real, the regulation is live, and we're building the RWA layer on Avalanche to connect it all."*
-
----
-
-## Why Avalanche?
-
-We have **1 year** to capture the market before the grace period ends. Avalanche is the fastest path:
-
-| Need | Solution | Why only Avalanche? |
-| :--- | :--- | :--- |
-| **Regulatory speed** | ERC-3643 + Subnet permissioning | Compliance-ready out of the box — no custom framework needed |
-| **Global capital pipeline** | C-Chain (public L1) | Institutional DeFi ecosystem to connect Korean RWA assets with global liquidity |
-| **IoT-scale data ingestion** | Wingside Subnet (custom L2) | Sovereign chain with near-instant finality and low gas for high-frequency device data |
-| **FinTech-grade reliability** | Avalanche consensus | Absolute finality and data consistency required for securities settlement |
-
-Avalanche is the only ecosystem where you can **spin up a dedicated chain for your use case** while settling on a shared, liquid public chain — without a third-party bridge.
+South Korea's **STO Act passed on Jan 15 2026** with a 1-year grace period — EnergyFi is being built to capture this market on Avalanche.
 
 ---
 
-## Why Now?
+## The Foundation — Already Built
 
-**The regulatory floodgates opened 3 weeks ago.**
+EnergyFi is not starting from zero. It sits on top of two production-grade systems built by Wingside:
 
-South Korea's **STO Act passed on Jan 15 2026**, with a **1-year grace period** — the race to define market leaders starts now.
-
-| Signal | What it means |
-| :--- | :--- |
-| **STO Act passed (Jan 15 2026)** | Tokenised securities on real-world assets are now legal — first-mover advantage is everything |
-| **1-year grace period** | Regulatory framework is being finalized — teams that ship first will set the standard |
-| **V2G (Vehicle-to-Grid) growth** | EV batteries absorb surplus energy, sell back to grid — our beachhead market |
-| **AI datacenter boom → nuclear buildout** | Nuclear can't ramp down — surplus energy needs distributed storage like V2G |
-| **Beyond EV charging** | Same architecture extends to ESS, solar, and other distributed energy resources |
-
-> STRIKON already has the energy infrastructure. EnergyFi adds the **RWA tokenisation layer** on Avalanche — compliant issuance, secondary market, and yield — at exactly the moment regulation allows it.
-
----
-
-## STRIKON Platform — Built & Launching Soon
+### STRIKON Platform — The Data Source
 
 <div align="center">
 <img src="docs/assets/strikon_logo.jpeg" height="300"/>
@@ -101,7 +72,71 @@ South Korea's **STO Act passed on Jan 15 2026**, with a **1-year grace period** 
 </table>
 </div>
 
-> **At launch (June 2026)**: live data via STRIKON Platform API · **Hackathon demo**: same flow on realistic mock JSON matching production schema
+STRIKON is the **EV charging platform** that operates the physical stations — 30+ microservices handling charger management, billing, real-time monitoring, and revenue tracking. Launching June 2026. This is where the real-world data comes from.
+
+### APEX Engine — The AI Brain
+
+<div align="center">
+<table>
+<tr>
+<td align="center"><b>Investment Score Map & AI Recommendations</b></td>
+<td align="center"><b>Portfolio Analytics & Demand Heatmap</b></td>
+</tr>
+<tr>
+<td><img src="docs/assets/apex_dashboard_1.png" width="420"/></td>
+<td><img src="docs/assets/apex_dashboard_2.png" width="420"/></td>
+</tr>
+</table>
+</div>
+
+APEX analyses every charging station and produces **investment-grade intelligence**:
+
+| Output | Detail |
+| :--- | :--- |
+| **Investment Score** | NPV, IRR, payback period — per station |
+| **Risk Grade** | Revenue stability, utilization trend, equipment health, competition |
+| **AI Signal** | UNDERVALUED / FAIR VALUE / OVERVALUED |
+| **Revenue Forecast** | Monthly projections with confidence intervals |
+
+> 📖 Full interface schema: [09_Interface_Spec.md](docs/09_Interface_Spec.md)
+
+### What EnergyFi Adds
+
+EnergyFi is the **blockchain layer** that connects these systems to Avalanche:
+
+| STRIKON provides | APEX provides | EnergyFi does |
+| :--- | :--- | :--- |
+| kWh dispensed, revenue, uptime | Fair value, risk score, yield forecast | **Tokenise** the station as an STO |
+| Real-time charger health | Buy/sell signal per station | **Trade** tokens P2P on-chain |
+| Monthly financial reports | Portfolio optimisation | **Distribute** yield to token holders |
+
+> **Hackathon demo**: mock JSON matching production schema · **At launch (June 2026)**: live data via STRIKON API
+
+---
+
+## Why Avalanche?
+
+| Need | Solution | Why only Avalanche? |
+| :--- | :--- | :--- |
+| **Regulatory speed** | ERC-3643 + Subnet permissioning | Compliance-ready out of the box — no custom framework needed |
+| **Global capital pipeline** | C-Chain (public L1) | Institutional DeFi ecosystem to connect Korean RWA assets with global liquidity |
+| **IoT-scale data ingestion** | Wingside Subnet (custom L2) | Sovereign chain with near-instant finality and low gas for high-frequency device data |
+| **FinTech-grade reliability** | Avalanche consensus | Absolute finality and data consistency required for securities settlement |
+
+Avalanche is the only ecosystem where you can **spin up a dedicated chain for your use case** while settling on a shared, liquid public chain — without a third-party bridge.
+
+---
+
+## Why Now?
+
+South Korea's **STO Act passed on Jan 15 2026** with a **1-year grace period**. Teams that ship first will set the standard.
+
+| Signal | What it means |
+| :--- | :--- |
+| **STO Act (Jan 15 2026)** | Tokenised securities on real-world assets are now legal — first-mover advantage is critical |
+| **V2G growth** | EV batteries absorb surplus energy, sell back to grid — our beachhead market |
+| **AI datacenter boom → nuclear** | Nuclear can't ramp down — surplus energy needs distributed storage like V2G |
+| **Beyond EV charging** | Same architecture extends to ESS, solar, and other distributed energy resources |
 
 ---
 
@@ -122,35 +157,6 @@ Chip  →  Firmware  →  Embedded  →  Platform (STRIKON)  →  Blockchain (Av
 | **Blockchain** | EnergyFi on Avalanche | RWA tokenisation with FinTech-grade consistency |
 
 > When the asset backing your STO is verified from the chip level up, **the trust model is fundamentally different** from projects that scrape third-party APIs.
-
----
-
-## APEX Engine — AI-Powered Investment Intelligence
-
-<div align="center">
-<table>
-<tr>
-<td align="center"><b>Investment Score Map & AI Recommendations</b></td>
-<td align="center"><b>Portfolio Analytics & Demand Heatmap</b></td>
-</tr>
-<tr>
-<td><img src="docs/assets/apex_dashboard_1.png" width="420"/></td>
-<td><img src="docs/assets/apex_dashboard_2.png" width="420"/></td>
-</tr>
-</table>
-</div>
-
-APEX analyses every charging station and outputs:
-
-| Output | Detail |
-| :--- | :--- |
-| **Investment Score** | NPV, IRR, payback period — per station |
-| **Risk Grade** | Revenue stability, utilization trend, equipment health, competition |
-| **AI Signal** | UNDERVALUED / FAIR VALUE / OVERVALUED |
-| **Revenue Forecast** | Monthly projections with confidence intervals |
-| **Synergy Analysis** | Cross-station portfolio optimisation |
-
-> 📖 Full interface schema: [09_Interface_Spec.md](docs/09_Interface_Spec.md)
 
 ---
 
@@ -194,14 +200,17 @@ APEX analyses every charging station and outputs:
 
 ---
 
-## Roadmap
+## Roadmap — Build Games Timeline
 
-| Phase | Milestone | Status |
-| :--- | :--- | :---: |
-| **Week 1–2** | STO smart contracts (lightweight ERC-3643) · Flutter scaffold · Mock API | ✅ |
-| **Week 3–4** | Revenue → Token issuance flow · P2P trading · AI valuation | 🔧 |
-| **Week 5** | End-to-end integration · UI polish · Edge cases | ⬜ |
-| **Week 6** | Pitch deck · Live demo rehearsal · Documentation | ⬜ |
+| Phase | Focus | Deliverables | Status |
+| :--- | :--- | :--- | :---: |
+| **Application** (~ Feb 13) | Project setup | Docs, architecture, interface spec, repo scaffold | ✅ |
+| **Week 1** (Feb 14~) | Idea Pitch | 1-min pitch video, project narrative | 🔧 |
+| **Week 2–3** | Prototype / MVP | STO contracts (ERC-3643), Oracle Relay, mock data demo, Flutter wallet | ⬜ |
+| **Week 4–5** | GTM & Vision | Fuji testnet deployment, STRIKON API integration plan, growth strategy | ⬜ |
+| **Week 6** | Finals | Live demo, pitch deck, documentation polish | ⬜ |
+
+**Post-hackathon**: STRIKON platform launch (June 2026) → EnergyFi mainnet (Jan 2027, aligned with STO Act enforcement)
 
 ---
 

@@ -2,7 +2,7 @@
 
 # EnergyFi
 
-### RWA-Backed STO DeFi for Energy Infrastructure
+### Energy RWA — Tokenising Real Infrastructure on Avalanche
 
 <br/>
 
@@ -21,10 +21,12 @@
 
 ## TL;DR
 
-> Built **on top of [STRIKON](https://strikon.io)**, a fully-developed EV-charging platform with **30+ microservices, launching June 2026**.
-> EnergyFi turns real-world energy assets into **on-chain securities (STO)** — with **compliant issuance, secondary trading, and automated yield distribution**.
+> South Korea's **STO Act passed 3 weeks ago (Jan 15 2026)** — a 1-year grace period to define the market leaders has begun.
+> EnergyFi tokenises **real energy infrastructure** as on-chain securities, starting with **V2G (Vehicle-to-Grid)** charging stations.
+>
+> Built on **[STRIKON](https://strikon.io)** — a production-grade EV-charging platform (30+ microservices, launching June 2026) — by a team that builds the **chips, firmware, and embedded systems** powering the hardware.
 
-This is not a blank-slate hackathon project — the platform is built, the interfaces are defined, and the RWA tokenisation layer plugs right in.
+This is not a blank-slate hackathon project. The infrastructure is real, the regulation is live, and Avalanche is the bridge to global institutional capital.
 
 ---
 
@@ -34,21 +36,25 @@ This is not a blank-slate hackathon project — the platform is built, the inter
 | :--- | :--- |
 | Starts from scratch | **Built on STRIKON — 30+ microservices, launching June 2026** |
 | Mock data only | Production-grade interfaces defined; mock JSON mirrors real schema |
+| Software only | **Chip → Firmware → Platform → Chain** — we own the full stack |
+| No regulatory path | **STO Act (Jan 2026) passed — 1-year window to capture market** |
 | Web demo | **Flutter native mobile app — real user experience** |
 | Proof of concept | Production-ready architecture (Avalanche Subnet + C-Chain) |
 
-> *"The platform is built and launching — this hackathon project is the RWA DeFi layer on top of it."*
+> *"The infrastructure is real, the regulation is live, and we're building the RWA layer on Avalanche to connect it all."*
 
 ---
 
 ## Why Avalanche?
 
-EnergyFi needs **two things no single-chain can provide**:
+We have **1 year** to capture the market before the grace period ends. Avalanche is the fastest path:
 
 | Need | Solution | Why only Avalanche? |
 | :--- | :--- | :--- |
-| **High-frequency IoT logging** | Wingside Subnet (custom L2) | Sovereign chain with near-instant finality and low gas for whitelisted use cases |
-| **Regulated STO settlement** | C-Chain (public L1) | Battle-tested EVM with institutional liquidity and compliance tooling |
+| **Regulatory speed** | ERC-3643 + Subnet permissioning | Compliance-ready out of the box — no custom framework needed |
+| **Global capital pipeline** | C-Chain (public L1) | Institutional DeFi ecosystem to connect Korean RWA assets with global liquidity |
+| **IoT-scale data ingestion** | Wingside Subnet (custom L2) | Sovereign chain with near-instant finality and low gas for high-frequency device data |
+| **FinTech-grade reliability** | Avalanche consensus | Absolute finality and data consistency required for securities settlement |
 
 Avalanche is the only ecosystem where you can **spin up a dedicated chain for your use case** while settling on a shared, liquid public chain — without a third-party bridge.
 
@@ -56,16 +62,19 @@ Avalanche is the only ecosystem where you can **spin up a dedicated chain for yo
 
 ## Why Now?
 
-The energy market is converging on exactly what EnergyFi does:
+**The regulatory floodgates opened 3 weeks ago.**
 
-| Trend | Implication for EnergyFi |
+South Korea's **STO Act passed on Jan 15 2026**, with a **1-year grace period** — the race to define market leaders starts now.
+
+| Signal | What it means |
 | :--- | :--- |
-| **AI datacenter boom → nuclear buildout** | Nuclear plants can't ramp down — surplus energy at night needs a home |
-| **V2G (Vehicle-to-Grid) growth** | EV batteries absorb surplus, sell back to grid — a perfect complement to nuclear rigidity |
-| **Korea STO regulations cleared (Jan 2026)** | Tokenised securities on real-world assets are now legal — the RWA market is wide open |
+| **STO Act passed (Jan 15 2026)** | Tokenised securities on real-world assets are now legal — first-mover advantage is everything |
+| **1-year grace period** | Regulatory framework is being finalized — teams that ship first will set the standard |
+| **V2G (Vehicle-to-Grid) growth** | EV batteries absorb surplus energy, sell back to grid — our beachhead market |
+| **AI datacenter boom → nuclear buildout** | Nuclear can't ramp down — surplus energy needs distributed storage like V2G |
 | **Beyond EV charging** | Same architecture extends to ESS, solar, and other distributed energy resources |
 
-> STRIKON already has the energy infrastructure. EnergyFi adds the **RWA tokenisation layer** — compliant issuance, secondary market, and yield — at exactly the moment regulation allows it.
+> STRIKON already has the energy infrastructure. EnergyFi adds the **RWA tokenisation layer** on Avalanche — compliant issuance, secondary market, and yield — at exactly the moment regulation allows it.
 
 ---
 
@@ -93,6 +102,26 @@ The energy market is converging on exactly what EnergyFi does:
 </div>
 
 > **At launch (June 2026)**: live data via STRIKON Platform API · **Hackathon demo**: same flow on realistic mock JSON matching production schema
+
+---
+
+## Why This Team — Chip-to-Chain
+
+Most RWA projects start at the API layer and trust external data. **We start at the hardware.**
+
+```
+Chip  →  Firmware  →  Embedded  →  Platform (STRIKON)  →  Blockchain (Avalanche)
+└─────── Built by Wingside (20+ years hardware leadership) ──────┘   └── EnergyFi ──┘
+```
+
+| Layer | What we control | Why it matters |
+| :--- | :--- | :--- |
+| **Hardware** | Custom charging modules, metering ICs | Data is signed at the source — no API tampering possible |
+| **Firmware** | Embedded real-time OS, OCPP stack | Tamper-evident telemetry before it ever hits the network |
+| **Platform** | STRIKON (30+ microservices) | Production-grade data pipeline, already built |
+| **Blockchain** | EnergyFi on Avalanche | RWA tokenisation with FinTech-grade consistency |
+
+> When the asset backing your STO is verified from the chip level up, **the trust model is fundamentally different** from projects that scrape third-party APIs.
 
 ---
 

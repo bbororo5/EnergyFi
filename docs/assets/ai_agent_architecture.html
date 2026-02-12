@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRIKON AI/ML Architecture</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-card: #1c2128;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-color: #30363d;
+            --border-hover: #484f58;
+            --neon-cyan: #00f5ff;
+            --neon-magenta: #ff00ff;
+            --neon-lime: #39ff14;
+            --neon-amber: #ffa500;
+            --neon-purple: #8b5cf6;
+            --neon-red: #ef4444;
+            --dera-color: #f97316;
+            --atlas-color: #3b82f6;
+            --scala-color: #10b981;
+            --apex-color: #8b5cf6;
+            --bob-color: #ef4444;
+            --helix-color: #06b6d4;
+            --pulse-color: #f59e0b;
+            --llm-color: #ec4899;
+            --production-color: #238636;
+            --development-color: #d29922;
+            --architecture-color: #6e7681;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(139, 92, 246, 0.1), rgba(255, 0, 255, 0.05));
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-lime));
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #8b5cf6, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        header .org-name {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-item.production .stat-value { color: var(--production-color); }
+        .stat-item.development .stat-value { color: var(--development-color); }
+        .stat-item.code .stat-value { color: var(--neon-cyan); }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title svg {
+            width: 24px;
+            height: 24px;
+            opacity: 0.7;
+        }
+
+        /* Architecture Diagram */
+        .architecture-section {
+            margin-bottom: 3rem;
+        }
+
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .architecture-svg {
+            width: 100%;
+            min-width: 900px;
+            height: 500px;
+        }
+
+        .architecture-svg .service-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .architecture-svg .service-node:hover {
+            filter: brightness(1.2);
+        }
+
+        .architecture-svg .connection {
+            stroke-dasharray: 5, 5;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .pulse-dot {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Service Cards */
+        .services-section {
+            margin-bottom: 3rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .service-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--service-color);
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--service-color);
+        }
+
+        .service-card.dera { --service-color: var(--dera-color); }
+        .service-card.atlas { --service-color: var(--atlas-color); }
+        .service-card.scala { --service-color: var(--scala-color); }
+        .service-card.apex { --service-color: var(--apex-color); }
+        .service-card.bob { --service-color: var(--bob-color); }
+        .service-card.helix { --service-color: var(--helix-color); }
+        .service-card.pulse { --service-color: var(--pulse-color); }
+        .service-card.llm { --service-color: var(--llm-color); }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--service-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .card-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-fullname {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-badge.production {
+            background: rgba(35, 134, 54, 0.2);
+            color: var(--production-color);
+            border: 1px solid var(--production-color);
+        }
+
+        .status-badge.development {
+            background: rgba(210, 153, 34, 0.2);
+            color: var(--development-color);
+            border: 1px solid var(--development-color);
+        }
+
+        .status-badge.architecture {
+            background: rgba(110, 118, 129, 0.2);
+            color: var(--architecture-color);
+            border: 1px solid var(--architecture-color);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .meta-item svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tag {
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 245, 255, 0.15);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', Monaco, monospace;
+        }
+
+        .components-list {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .components-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+        }
+
+        .component-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .component-item::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--service-color);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Tech Stack Section */
+        .tech-section {
+            margin-bottom: 3rem;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .tech-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tech-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .tech-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .tech-item-info {
+            flex: 1;
+        }
+
+        .tech-item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tech-item-version {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Database Matrix */
+        .db-matrix {
+            overflow-x: auto;
+        }
+
+        .db-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .db-table th,
+        .db-table td {
+            padding: 0.85rem 1rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .db-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .db-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .db-table tbody tr:hover {
+            background: var(--bg-card);
+        }
+
+        .db-check {
+            color: var(--production-color);
+            font-size: 1.2rem;
+        }
+
+        .db-none {
+            color: var(--text-muted);
+        }
+
+        /* Communication Section */
+        .comm-section {
+            margin-bottom: 3rem;
+        }
+
+        .comm-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        .comm-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .comm-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .comm-row:hover {
+            background: var(--bg-card);
+        }
+
+        .comm-source,
+        .comm-target {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .comm-arrow {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .comm-arrow-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--text-muted), transparent);
+        }
+
+        .comm-protocol {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', Monaco, monospace;
+            color: var(--text-secondary);
+        }
+
+        /* Port Registry */
+        .port-section {
+            margin-bottom: 3rem;
+        }
+
+        .port-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .port-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .port-item:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .port-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--neon-lime);
+            background: var(--bg-tertiary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .port-info {
+            flex: 1;
+        }
+
+        .port-service {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .port-type {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Knowledge Base Section */
+        .kb-section {
+            margin-bottom: 3rem;
+        }
+
+        .kb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .kb-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .kb-item:hover {
+            border-color: var(--border-hover);
+        }
+
+        .kb-code {
+            font-size: 0.75rem;
+            color: var(--neon-magenta);
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.25rem;
+        }
+
+        .kb-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .kb-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Pipeline Section */
+        .pipeline-section {
+            margin-bottom: 3rem;
+        }
+
+        .pipeline-container {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        .pipeline-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pipeline-stages {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .pipeline-stage {
+            flex: 1;
+            min-width: 130px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .pipeline-stage::after {
+            content: '→';
+            position: absolute;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .pipeline-stage:last-child::after {
+            display: none;
+        }
+
+        .stage-number {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .stage-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stage-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer .version {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        footer a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                gap: 1rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-stages {
+                flex-direction: column;
+            }
+
+            .pipeline-stage::after {
+                content: '↓';
+                right: auto;
+                bottom: -14px;
+                top: auto;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <h1>STRIKON AI/ML Architecture</h1>
+                <div class="stats-grid">
+                    <div class="stat-item code">
+                        <span class="stat-value">7</span>
+                        <span class="stat-label">Core Services</span>
+                    </div>
+                    <div class="stat-item code">
+                        <span class="stat-value">~90K</span>
+                        <span class="stat-label">Lines of Go</span>
+                    </div>
+                    <div class="stat-item code">
+                        <span class="stat-value">~10K</span>
+                        <span class="stat-label">Lines of Python</span>
+                    </div>
+                    <div class="stat-item production">
+                        <span class="stat-value">5</span>
+                        <span class="stat-label">Production</span>
+                    </div>
+                    <div class="stat-item development">
+                        <span class="stat-value">2</span>
+                        <span class="stat-label">Development</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Architecture Diagram -->
+        <section class="architecture-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                Service Ecosystem
+            </h2>
+            <div class="architecture-diagram">
+                <svg class="architecture-svg" viewBox="0 0 1000 550">
+                    <!-- Background Grid -->
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5"/>
+                        </pattern>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                        <linearGradient id="bobGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.1" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+
+                    <!-- BOB Central Hub Background -->
+                    <ellipse cx="500" cy="275" rx="180" ry="120" fill="url(#bobGradient)" stroke="#ef4444" stroke-width="1" stroke-dasharray="5,5" opacity="0.3"/>
+                    <text x="500" y="380" text-anchor="middle" fill="#ef4444" font-size="10" opacity="0.7">Central Configuration Hub</text>
+
+                    <!-- Connections -->
+                    <g class="connections">
+                        <!-- DERA to ATLAS -->
+                        <path class="connection" d="M 200 100 Q 300 80 360 100" stroke="#f97316" stroke-width="2" fill="none"/>
+                        <text x="280" y="75" fill="#8b949e" font-size="9">gRPC CreateIncident</text>
+
+                        <!-- ATLAS to SCALA -->
+                        <path class="connection" d="M 480 100 Q 580 80 640 100" stroke="#3b82f6" stroke-width="2" fill="none"/>
+                        <text x="560" y="75" fill="#8b949e" font-size="9">Redis Pub/Sub</text>
+
+                        <!-- All to BOB (bidirectional) -->
+                        <path class="connection" d="M 160 140 L 400 240" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <path class="connection" d="M 420 140 L 450 220" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <path class="connection" d="M 700 140 L 550 240" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <path class="connection" d="M 160 420 L 400 310" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <path class="connection" d="M 420 420 L 470 330" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <path class="connection" d="M 700 420 L 550 310" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+                        <path class="connection" d="M 880 200 L 600 260" stroke="#ef4444" stroke-width="1.5" fill="none" opacity="0.6"/>
+
+                        <!-- HELIX to GitLab -->
+                        <path class="connection" d="M 920 200 L 920 280" stroke="#06b6d4" stroke-width="2" fill="none"/>
+
+                        <!-- aiml-llm-go connections -->
+                        <path class="connection" d="M 160 480 L 350 480" stroke="#ec4899" stroke-width="1.5" fill="none" opacity="0.5"/>
+                        <path class="connection" d="M 450 480 L 550 480" stroke="#ec4899" stroke-width="1.5" fill="none" opacity="0.5"/>
+                    </g>
+
+                    <!-- Service Nodes - Top Row -->
+                    <!-- DERA -->
+                    <g class="service-node" transform="translate(100, 60)">
+                        <rect width="120" height="80" rx="12" fill="#161b22" stroke="#f97316" stroke-width="2"/>
+                        <text x="60" y="30" text-anchor="middle" fill="#f97316" font-weight="700" font-size="15">DERA</text>
+                        <text x="60" y="48" text-anchor="middle" fill="#8b949e" font-size="8">Anomaly Detection</text>
+                        <text x="60" y="62" text-anchor="middle" fill="#6e7681" font-size="7">7-Stage Pipeline</text>
+                        <circle cx="105" cy="15" r="6" fill="#238636"/>
+                    </g>
+
+                    <!-- ATLAS -->
+                    <g class="service-node" transform="translate(360, 60)">
+                        <rect width="120" height="80" rx="12" fill="#161b22" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="60" y="30" text-anchor="middle" fill="#3b82f6" font-weight="700" font-size="15">ATLAS</text>
+                        <text x="60" y="48" text-anchor="middle" fill="#8b949e" font-size="8">Auto Operations</text>
+                        <text x="60" y="62" text-anchor="middle" fill="#6e7681" font-size="7">Priority Queue + SLA</text>
+                        <circle cx="105" cy="15" r="6" fill="#238636"/>
+                    </g>
+
+                    <!-- SCALA -->
+                    <g class="service-node" transform="translate(640, 60)">
+                        <rect width="120" height="80" rx="12" fill="#161b22" stroke="#10b981" stroke-width="2"/>
+                        <text x="60" y="30" text-anchor="middle" fill="#10b981" font-weight="700" font-size="15">SCALA</text>
+                        <text x="60" y="48" text-anchor="middle" fill="#8b949e" font-size="8">Customer Support</text>
+                        <text x="60" y="62" text-anchor="middle" fill="#6e7681" font-size="7">Multi-Persona AI</text>
+                        <circle cx="105" cy="15" r="6" fill="#d29922"/>
+                    </g>
+
+                    <!-- HELIX -->
+                    <g class="service-node" transform="translate(860, 120)">
+                        <rect width="110" height="80" rx="12" fill="#161b22" stroke="#06b6d4" stroke-width="2"/>
+                        <text x="55" y="30" text-anchor="middle" fill="#06b6d4" font-weight="700" font-size="15">HELIX</text>
+                        <text x="55" y="48" text-anchor="middle" fill="#8b949e" font-size="8">Self-Healing</text>
+                        <text x="55" y="62" text-anchor="middle" fill="#6e7681" font-size="7">Code Gen v3.0</text>
+                        <circle cx="95" cy="15" r="6" fill="#d29922"/>
+                    </g>
+
+                    <!-- BOB (Central) -->
+                    <g class="service-node" transform="translate(420, 230)">
+                        <rect width="160" height="90" rx="16" fill="#161b22" stroke="#ef4444" stroke-width="3"/>
+                        <text x="80" y="32" text-anchor="middle" fill="#ef4444" font-weight="800" font-size="18">BOB</text>
+                        <text x="80" y="50" text-anchor="middle" fill="#8b949e" font-size="9">Brilliant Optimized Brain</text>
+                        <text x="80" y="66" text-anchor="middle" fill="#6e7681" font-size="7">Config • Knowledge • Guardrail</text>
+                        <text x="80" y="78" text-anchor="middle" fill="#6e7681" font-size="7">Cost • Agent • RAG</text>
+                        <circle cx="145" cy="15" r="6" fill="#238636" class="pulse-dot"/>
+                    </g>
+
+                    <!-- Service Nodes - Bottom Row -->
+                    <!-- APEX -->
+                    <g class="service-node" transform="translate(100, 380)">
+                        <rect width="120" height="80" rx="12" fill="#161b22" stroke="#8b5cf6" stroke-width="2"/>
+                        <text x="60" y="30" text-anchor="middle" fill="#8b5cf6" font-weight="700" font-size="15">APEX</text>
+                        <text x="60" y="48" text-anchor="middle" fill="#8b949e" font-size="8">Investment Analysis</text>
+                        <text x="60" y="62" text-anchor="middle" fill="#6e7681" font-size="7">H3 Geo + XGBoost</text>
+                        <circle cx="105" cy="15" r="6" fill="#238636"/>
+                    </g>
+
+                    <!-- PULSE -->
+                    <g class="service-node" transform="translate(360, 380)">
+                        <rect width="120" height="80" rx="12" fill="#161b22" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="60" y="30" text-anchor="middle" fill="#f59e0b" font-weight="700" font-size="15">PULSE</text>
+                        <text x="60" y="48" text-anchor="middle" fill="#8b949e" font-size="8">E2E Testing</text>
+                        <text x="60" y="62" text-anchor="middle" fill="#6e7681" font-size="7">41 Scenarios</text>
+                        <circle cx="105" cy="15" r="6" fill="#d29922"/>
+                    </g>
+
+                    <!-- aiml-llm-go -->
+                    <g class="service-node" transform="translate(640, 380)">
+                        <rect width="120" height="80" rx="12" fill="#161b22" stroke="#ec4899" stroke-width="2"/>
+                        <text x="60" y="30" text-anchor="middle" fill="#ec4899" font-weight="700" font-size="13">aiml-llm-go</text>
+                        <text x="60" y="48" text-anchor="middle" fill="#8b949e" font-size="8">Unified LLM Client</text>
+                        <text x="60" y="62" text-anchor="middle" fill="#6e7681" font-size="7">Engine • Guardrail • RAG</text>
+                        <circle cx="105" cy="15" r="6" fill="#238636"/>
+                    </g>
+
+                    <!-- External Systems -->
+                    <g transform="translate(860, 290)">
+                        <rect width="90" height="50" rx="8" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+                        <text x="45" y="20" text-anchor="middle" fill="#8b949e" font-size="10">GitLab</text>
+                        <text x="45" y="35" text-anchor="middle" fill="#6e7681" font-size="8">CI/CD</text>
+                    </g>
+
+                    <g transform="translate(860, 350)">
+                        <rect width="90" height="50" rx="8" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+                        <text x="45" y="20" text-anchor="middle" fill="#8b949e" font-size="10">Container Service</text>
+                        <text x="45" y="35" text-anchor="middle" fill="#6e7681" font-size="8">Orchestration</text>
+                    </g>
+
+                    <!-- LLM Providers -->
+                    <g transform="translate(30, 490)">
+                        <rect width="80" height="40" rx="6" fill="#21262d" stroke="#d4a574" stroke-width="1"/>
+                        <text x="40" y="18" text-anchor="middle" fill="#d4a574" font-size="9">Claude</text>
+                        <text x="40" y="32" text-anchor="middle" fill="#6e7681" font-size="7">Anthropic</text>
+                    </g>
+
+                    <g transform="translate(120, 490)">
+                        <rect width="80" height="40" rx="6" fill="#21262d" stroke="#6366f1" stroke-width="1"/>
+                        <text x="40" y="18" text-anchor="middle" fill="#6366f1" font-size="9">Multi-LLM</text>
+                        <text x="40" y="32" text-anchor="middle" fill="#6e7681" font-size="7">Cloud</text>
+                    </g>
+
+                    <!-- Databases -->
+                    <g transform="translate(780, 440)">
+                        <rect width="70" height="35" rx="6" fill="#21262d" stroke="#336791" stroke-width="1"/>
+                        <text x="35" y="22" text-anchor="middle" fill="#336791" font-size="9">PostgreSQL</text>
+                    </g>
+
+                    <g transform="translate(860, 440)">
+                        <rect width="70" height="35" rx="6" fill="#21262d" stroke="#DC382D" stroke-width="1"/>
+                        <text x="35" y="22" text-anchor="middle" fill="#DC382D" font-size="9">Redis</text>
+                    </g>
+
+                    <g transform="translate(780, 485)">
+                        <rect width="70" height="35" rx="6" fill="#21262d" stroke="#24b47e" stroke-width="1"/>
+                        <text x="35" y="22" text-anchor="middle" fill="#24b47e" font-size="9">Qdrant</text>
+                    </g>
+
+                    <g transform="translate(860, 485)">
+                        <rect width="70" height="35" rx="6" fill="#21262d" stroke="#fdb515" stroke-width="1"/>
+                        <text x="35" y="22" text-anchor="middle" fill="#fdb515" font-size="8">TimescaleDB</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <g transform="translate(30, 530)">
+                        <circle cx="10" cy="8" r="5" fill="#238636"/>
+                        <text x="22" y="12" fill="#8b949e" font-size="9">Production</text>
+                        <circle cx="100" cy="8" r="5" fill="#d29922"/>
+                        <text x="112" y="12" fill="#8b949e" font-size="9">Development</text>
+                        <line x1="190" y1="8" x2="210" y2="8" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
+                        <text x="218" y="12" fill="#8b949e" font-size="9">BOB Integration</text>
+                    </g>
+                </svg>
+            </div>
+        </section>
+
+        <!-- DERA Pipeline -->
+        <section class="pipeline-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                DERA 7-Stage Anomaly Detection Pipeline
+            </h2>
+            <div class="pipeline-container">
+                <div class="pipeline-stages">
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 1</div>
+                        <div class="stage-name" style="color: var(--dera-color);">Validator</div>
+                        <div class="stage-desc">Input sanitization</div>
+                    </div>
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 2</div>
+                        <div class="stage-name" style="color: var(--dera-color);">Rule Engine</div>
+                        <div class="stage-desc">OCPP code matching</div>
+                    </div>
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 3</div>
+                        <div class="stage-name" style="color: var(--dera-color);">ML Engine</div>
+                        <div class="stage-desc">LSTM autoencoder</div>
+                    </div>
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 4</div>
+                        <div class="stage-name" style="color: var(--dera-color);">Lifecycle</div>
+                        <div class="stage-desc">Component wear</div>
+                    </div>
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 5</div>
+                        <div class="stage-name" style="color: var(--dera-color);">Aggregator</div>
+                        <div class="stage-desc">Score fusion</div>
+                    </div>
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 6</div>
+                        <div class="stage-name" style="color: var(--dera-color);">Enricher</div>
+                        <div class="stage-desc">LLM diagnosis</div>
+                    </div>
+                    <div class="pipeline-stage">
+                        <div class="stage-number">Stage 7</div>
+                        <div class="stage-name" style="color: var(--dera-color);">Decision</div>
+                        <div class="stage-desc">Severity routing</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Service Cards -->
+        <section class="services-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Core Services
+            </h2>
+            <div class="services-grid">
+                <!-- DERA -->
+                <div class="service-card dera">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">D</div>
+                            <div>
+                                <span class="card-name">DERA</span>
+                                <span class="card-fullname">Detection Engine for Real-time Anomaly</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Real-time charger anomaly detection with ML inference (LSTM Autoencoder) and LLM-powered diagnosis generation. 7-stage processing pipeline with rule engine, correlation, and lifecycle prediction.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">~29.8K LOC</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">ONNX</span>
+                        <span class="tech-tag">LSTM</span>
+                        <span class="tech-tag">LLM</span>
+                        <span class="tech-tag">Redis</span>
+                        <span class="tech-tag">PostgreSQL</span>
+                        <span class="tech-tag">gRPC Streaming</span>
+                    </div>
+                </div>
+
+                <!-- BOB -->
+                <div class="service-card bob">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">B</div>
+                            <div>
+                                <span class="card-name">BOB</span>
+                                <span class="card-fullname">Brilliant Optimized Brain</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Central AI platform orchestrator with 5 gRPC services. Manages configuration (AES-256-GCM), knowledge base (RAG with Cohere embeddings), guardrails, cost tracking, and agent lifecycle via bidirectional streaming.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">~17.3K LOC</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">RAG</span>
+                        <span class="tech-tag">Qdrant</span>
+                        <span class="tech-tag">Cohere</span>
+                        <span class="tech-tag">AES-256-GCM</span>
+                        <span class="tech-tag">gRPC Bidirectional</span>
+                    </div>
+                </div>
+
+                <!-- ATLAS -->
+                <div class="service-card atlas">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">A</div>
+                            <div>
+                                <span class="card-name">ATLAS</span>
+                                <span class="card-fullname">Automated Total Life-cycle & Automation System</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Autonomous incident processing with priority-based queue (CRITICAL→LOW), SLA tracking, and automated charger control. Supports REDUCE_POWER, DISABLE/ENABLE_CHARGER, EMERGENCY_STOP actions.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">~14.9K LOC</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Priority Queue</span>
+                        <span class="tech-tag">SLA Tracking</span>
+                        <span class="tech-tag">LLM + RAG</span>
+                        <span class="tech-tag">Circuit Breaker</span>
+                        <span class="tech-tag">Worker Pool</span>
+                    </div>
+                </div>
+
+                <!-- APEX -->
+                <div class="service-card apex">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">A</div>
+                            <div>
+                                <span class="card-name">APEX</span>
+                                <span class="card-fullname">AI-powered Portfolio & EXpansion Analysis</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Charging station investment analysis with H3 geospatial scoring (resolution 7-9), 4-factor scoring (Demand 35%, Competition 25%, Accessibility 20%, Infrastructure 20%), and XGBoost+MLP ML model.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">~12.5K LOC</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">H3 Geo</span>
+                        <span class="tech-tag">ONNX</span>
+                        <span class="tech-tag">XGBoost</span>
+                        <span class="tech-tag">MLP</span>
+                        <span class="tech-tag">LLM</span>
+                        <span class="tech-tag">Qdrant</span>
+                    </div>
+                </div>
+
+                <!-- SCALA -->
+                <div class="service-card scala">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">S</div>
+                            <div>
+                                <span class="card-name">SCALA</span>
+                                <span class="card-fullname">Seamless Customer Assistance with Learning AI</span>
+                            </div>
+                        </div>
+                        <span class="status-badge development">Development</span>
+                    </div>
+                    <p class="card-description">AI-powered multi-persona customer support with real-time incident awareness. SCALA persona for customers (CAT-004), Aerin persona for CPO operators (CAT-005, CAT-009). WebSocket support.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">~13.6K LOC</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Multi-Persona</span>
+                        <span class="tech-tag">LLM</span>
+                        <span class="tech-tag">WebSocket</span>
+                        <span class="tech-tag">PII Masking</span>
+                        <span class="tech-tag">Redis Pub/Sub</span>
+                    </div>
+                </div>
+
+                <!-- HELIX -->
+                <div class="service-card helix">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">H</div>
+                            <div>
+                                <span class="card-name">HELIX</span>
+                                <span class="card-fullname">Self-Healing & Self-Evolving System v3.0</span>
+                            </div>
+                        </div>
+                        <span class="status-badge development">Development</span>
+                    </div>
+                    <p class="card-description">Autonomous code generation, validation, and deployment for dual platforms (STRIKON Go, ELECTRA C++). Webhook API triggers, triage system, self-correction loop, staged OTA rollout.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">v3.0 Complete</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Code Gen</span>
+                        <span class="tech-tag">GitLab CI</span>
+                        <span class="tech-tag">Container Service</span>
+                        <span class="tech-tag">OTA</span>
+                        <span class="tech-tag">LLM</span>
+                        <span class="tech-tag">TimescaleDB</span>
+                    </div>
+                </div>
+
+                <!-- aiml-llm-go -->
+                <div class="service-card llm">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">L</div>
+                            <div>
+                                <span class="card-name">aiml-llm-go</span>
+                                <span class="card-fullname">Unified LLM Client Library</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Shared LLM client with Engine API, semantic caching (Qdrant), dynamic model routing, LLM-as-Judge quality evaluation, self-correction loop, 7-stage guardrail pipeline, and BOB cost integration.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">Shared Library</span>
+                        <span class="meta-item">~17.5K LOC</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Claude</span>
+                        <span class="tech-tag">Multi-LLM</span>
+                        <span class="tech-tag">Semantic Cache</span>
+                        <span class="tech-tag">Guardrails</span>
+                        <span class="tech-tag">LLM-as-Judge</span>
+                    </div>
+                </div>
+
+                <!-- PULSE -->
+                <div class="service-card pulse">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">P</div>
+                            <div>
+                                <span class="card-name">PULSE</span>
+                                <span class="card-fullname">Platform Unified Live Scenario Executor</span>
+                            </div>
+                        </div>
+                        <span class="status-badge development">Development</span>
+                    </div>
+                    <p class="card-description">E2E testing dashboard with live scenario execution tracking. 41 test scenarios (29 HTTP, 12 gRPC) across AI, Core, and Business categories. SSE streaming for real-time results.</p>
+                    <div class="card-meta">
+                        <span class="meta-item">~2.2K LOC</span>
+                        <span class="meta-item">41 Scenarios</span>
+                    </div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">SSE</span>
+                        <span class="tech-tag">HTTP</span>
+                        <span class="tech-tag">gRPC</span>
+                        <span class="tech-tag">CLI Mode</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="tech-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Technology Stack
+            </h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-card-title">Languages & Frameworks</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #00ADD8; color: white;">Go</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Go</div>
+                                <div class="tech-item-version">1.25.3 • Primary Language</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #3776AB; color: white;">Py</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Python</div>
+                                <div class="tech-item-version">3.x • ML Training (PyTorch, XGBoost)</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #244c5a; color: white;">gR</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">gRPC</div>
+                                <div class="tech-item-version">1.77.0 • Bidirectional Streaming</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #6366f1; color: white;">PB</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Protocol Buffers</div>
+                                <div class="tech-item-version">1.36.11 • API Contracts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">ML & AI</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #FF6F00; color: white;">ON</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">ONNX Runtime</div>
+                                <div class="tech-item-version">1.23.0 • ML Inference (~100ms)</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #d4a574; color: white;">C</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Claude (Anthropic)</div>
+                                <div class="tech-item-version">Opus/Sonnet/Haiku • Primary LLM</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #6366f1; color: white;">ML</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Multi-LLM</div>
+                                <div class="tech-item-version">Multi-model • LLM Gateway</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #39594D; color: white;">Co</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Cohere</div>
+                                <div class="tech-item-version">Multilingual v3 • KB Embeddings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">Databases</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #336791; color: white;">PG</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">PostgreSQL</div>
+                                <div class="tech-item-version">pgxpool • Primary Data Store</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #DC382D; color: white;">Re</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Redis</div>
+                                <div class="tech-item-version">go-redis v9 • Cache & Pub/Sub</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #24b47e; color: white;">Qd</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Qdrant</div>
+                                <div class="tech-item-version">1.16.2 • Vector DB (3072-dim)</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #fdb515; color: black;">TS</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">TimescaleDB</div>
+                                <div class="tech-item-version">Hypertable • HELIX Events</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">Infrastructure</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #2496ED; color: white;">D</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Docker</div>
+                                <div class="tech-item-version">7-service compose • Containerization</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #FC6D26; color: white;">GL</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">GitLab</div>
+                                <div class="tech-item-version">HELIX Integration • CI/CD</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #6366f1; color: white;">CS</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Container Service</div>
+                                <div class="tech-item-version">Serverless • Container Orchestration</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #E6522C; color: white;">Pr</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Prometheus</div>
+                                <div class="tech-item-version">strikon_aiml_* • Metrics</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Knowledge Base -->
+        <section class="kb-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                EV Charging Knowledge Base (202+ Items)
+            </h2>
+            <div class="kb-grid">
+                <div class="kb-item">
+                    <div class="kb-code">CAT-001</div>
+                    <div class="kb-title">Charging Protocols & Standards</div>
+                    <div class="kb-desc">OCPP 1.6/2.0.1, ISO 15118, IEC 61851</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-002</div>
+                    <div class="kb-title">Hardware Components & Diagnostics</div>
+                    <div class="kb-desc">Connectors, power modules, communication</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-003</div>
+                    <div class="kb-title">Failure Modes & Troubleshooting</div>
+                    <div class="kb-desc">Error codes, root cause analysis</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-004</div>
+                    <div class="kb-title">Customer Service Scenarios</div>
+                    <div class="kb-desc">SCALA persona knowledge domain</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-005</div>
+                    <div class="kb-title">Investment & Business Analysis</div>
+                    <div class="kb-desc">APEX & Aerin knowledge domain</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-006</div>
+                    <div class="kb-title">Network Operations & Maintenance</div>
+                    <div class="kb-desc">ATLAS operations knowledge</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-007</div>
+                    <div class="kb-title">Regulatory & Certification</div>
+                    <div class="kb-desc">Compliance, safety standards</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-008</div>
+                    <div class="kb-title">System Integration & Connectivity</div>
+                    <div class="kb-desc">APIs, protocols, data exchange</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-009</div>
+                    <div class="kb-title">Data Analytics & Prediction</div>
+                    <div class="kb-desc">ML models, forecasting, trends</div>
+                </div>
+                <div class="kb-item">
+                    <div class="kb-code">CAT-010</div>
+                    <div class="kb-title">ESG & Sustainability</div>
+                    <div class="kb-desc">Carbon credits, green energy</div>
+                </div>
+            </div>
+        </section>
+
+        <footer></footer>
+    </div>
+
+    <script>
+        // Add hover effects for service nodes in SVG
+        document.querySelectorAll('.service-node').forEach(node => {
+            node.addEventListener('mouseenter', function() {
+                const rect = this.querySelector('rect');
+                if (rect) {
+                    rect.style.filter = 'drop-shadow(0 0 12px currentColor)';
+                }
+            });
+            node.addEventListener('mouseleave', function() {
+                const rect = this.querySelector('rect');
+                if (rect) {
+                    rect.style.filter = 'none';
+                }
+            });
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add intersection observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.service-card, .tech-card, .kb-item, .port-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

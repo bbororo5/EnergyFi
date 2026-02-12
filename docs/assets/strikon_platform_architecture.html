@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRIKON Platform Architecture</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-color: #30363d;
+            /* Neon Colors */
+            --neon-cyan: #00f5ff;
+            --neon-magenta: #ff00ff;
+            --neon-lime: #39ff14;
+            --neon-amber: #ffa500;
+            --neon-purple: #8b5cf6;
+            /* Core Services */
+            --configurator-color: #f97316;
+            --auth-color: #ef4444;
+            /* Gateway Services */
+            --gateway-color: #3b82f6;
+            --gateway-v21-color: #0ea5e9;
+            --api-color: #06b6d4;
+            --moe-color: #14b8a6;
+            --callback-color: #64748b;
+            --payments-color: #eab308;
+            /* Business Services */
+            --authorizer-color: #10b981;
+            --controller-color: #8b5cf6;
+            --station-manager-color: #6366f1;
+            --initializer-color: #a855f7;
+            --dlp-color: #d946ef;
+            /* Messaging Services */
+            --messenger-color: #ec4899;
+            --alert-color: #f43f5e;
+            --domain-msg-color: #fb7185;
+            /* Frontend Services */
+            --backoffice-color: #f59e0b;
+            --console-color: #84cc16;
+            --task-color: #78716c;
+            /* Status */
+            --production-color: #238636;
+            --development-color: #d29922;
+            --architecture-color: #6e7681;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(139, 92, 246, 0.1), rgba(255, 0, 255, 0.05));
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-lime));
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #8b5cf6, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title svg {
+            width: 24px;
+            height: 24px;
+            opacity: 0.7;
+        }
+
+        /* Architecture Diagram */
+        .architecture-section {
+            margin-bottom: 3rem;
+        }
+
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .architecture-svg {
+            width: 100%;
+            min-width: 1100px;
+            height: 620px;
+        }
+
+        .architecture-svg .service-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .architecture-svg .service-node:hover {
+            filter: brightness(1.2);
+        }
+
+        .architecture-svg .connection {
+            stroke-dasharray: 5, 5;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Service Cards */
+        .services-section {
+            margin-bottom: 3rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .service-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--service-color);
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--service-color);
+        }
+
+        /* Core */
+        .service-card.configurator { --service-color: var(--configurator-color); }
+        .service-card.auth { --service-color: var(--auth-color); }
+        /* Gateway */
+        .service-card.gateway { --service-color: var(--gateway-color); }
+        .service-card.gateway-v21 { --service-color: var(--gateway-v21-color); }
+        .service-card.api { --service-color: var(--api-color); }
+        .service-card.moe { --service-color: var(--moe-color); }
+        .service-card.callback { --service-color: var(--callback-color); }
+        .service-card.payments { --service-color: var(--payments-color); }
+        /* Business */
+        .service-card.authorizer { --service-color: var(--authorizer-color); }
+        .service-card.controller { --service-color: var(--controller-color); }
+        .service-card.station-manager { --service-color: var(--station-manager-color); }
+        .service-card.initializer { --service-color: var(--initializer-color); }
+        .service-card.dlp { --service-color: var(--dlp-color); }
+        /* Messaging */
+        .service-card.messenger { --service-color: var(--messenger-color); }
+        .service-card.alert { --service-color: var(--alert-color); }
+        .service-card.domain-msg { --service-color: var(--domain-msg-color); }
+        /* Frontend */
+        .service-card.backoffice { --service-color: var(--backoffice-color); }
+        .service-card.console { --service-color: var(--console-color); }
+        .service-card.task { --service-color: var(--task-color); }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--service-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .card-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-fullname {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-badge.production {
+            background: rgba(35, 134, 54, 0.2);
+            color: var(--production-color);
+            border: 1px solid var(--production-color);
+        }
+
+        .status-badge.development {
+            background: rgba(210, 153, 34, 0.2);
+            color: var(--development-color);
+            border: 1px solid var(--development-color);
+        }
+
+        .status-badge.architecture {
+            background: rgba(110, 118, 129, 0.2);
+            color: var(--architecture-color);
+            border: 1px solid var(--architecture-color);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .meta-item svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tag {
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 245, 255, 0.15);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', Monaco, monospace;
+        }
+
+        .components-list {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .components-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .component-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .component-item::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--service-color);
+            border-radius: 50%;
+        }
+
+        /* Tech Stack Section */
+        .tech-section {
+            margin-bottom: 3rem;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .tech-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .tech-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .tech-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tech-item-info {
+            flex: 1;
+        }
+
+        .tech-item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tech-item-version {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                gap: 1rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>STRIKON Platform Architecture</h1>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">17+</span>
+                    <span class="stat-label">Microservices</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">Go</span>
+                    <span class="stat-label">Backend</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">Next.js</span>
+                    <span class="stat-label">Frontend</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">97%</span>
+                    <span class="stat-label">Compliance</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">OCPP</span>
+                    <span class="stat-label">Protocol</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Architecture Diagram -->
+        <section class="architecture-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                Service Ecosystem (19 Services)
+            </h2>
+            <div class="architecture-diagram">
+                <svg class="architecture-svg" viewBox="0 0 1100 720">
+                    <!-- Background Grid -->
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+
+                    <!-- Layer Labels -->
+                    <text x="30" y="35" fill="#6e7681" font-size="11" font-weight="600">EXTERNAL</text>
+                    <text x="30" y="105" fill="#6e7681" font-size="11" font-weight="600">FRONTEND</text>
+                    <text x="30" y="195" fill="#6e7681" font-size="11" font-weight="600">GATEWAY</text>
+                    <text x="30" y="315" fill="#6e7681" font-size="11" font-weight="600">BUSINESS</text>
+                    <text x="30" y="445" fill="#6e7681" font-size="11" font-weight="600">MESSAGING</text>
+                    <text x="30" y="555" fill="#6e7681" font-size="11" font-weight="600">DATA</text>
+
+                    <!-- External Layer -->
+                    <g transform="translate(200, 15)">
+                        <rect width="90" height="40" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+                        <text x="45" y="18" text-anchor="middle" fill="#8b949e" font-size="9">EV Charger</text>
+                        <text x="45" y="32" text-anchor="middle" fill="#6e7681" font-size="7">OCPP 1.6/2.1</text>
+                    </g>
+                    <g transform="translate(400, 15)">
+                        <rect width="90" height="40" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+                        <text x="45" y="18" text-anchor="middle" fill="#8b949e" font-size="9">Mobile App</text>
+                        <text x="45" y="32" text-anchor="middle" fill="#6e7681" font-size="7">User Client</text>
+                    </g>
+
+                    <!-- Frontend Layer (3 services) -->
+                    <g class="service-node" transform="translate(200, 75)">
+                        <rect width="120" height="50" rx="8" fill="#161b22" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="60" y="20" text-anchor="middle" fill="#f59e0b" font-weight="600" font-size="10">CPO Backoffice</text>
+                        <text x="60" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Admin Dashboard</text>
+                        <circle cx="105" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(350, 75)">
+                        <rect width="120" height="50" rx="8" fill="#161b22" stroke="#84cc16" stroke-width="2"/>
+                        <text x="60" y="20" text-anchor="middle" fill="#84cc16" font-weight="600" font-size="10">Platform Console</text>
+                        <text x="60" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Monitoring</text>
+                        <circle cx="105" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(500, 75)">
+                        <rect width="120" height="50" rx="8" fill="#161b22" stroke="#78716c" stroke-width="2"/>
+                        <text x="60" y="20" text-anchor="middle" fill="#78716c" font-weight="600" font-size="10">Task Supporter</text>
+                        <text x="60" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Internal Tool</text>
+                        <circle cx="105" cy="10" r="4" fill="#238636"/>
+                    </g>
+
+                    <!-- Gateway Layer (6 services) -->
+                    <g class="service-node" transform="translate(130, 165)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#3b82f6" font-weight="600" font-size="9">Gateway 1.6</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">OCPP WebSocket</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(260, 165)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#0ea5e9" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#0ea5e9" font-weight="600" font-size="9">Gateway 2.1</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">OCPP 2.1 WS</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(390, 165)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#06b6d4" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#06b6d4" font-weight="600" font-size="9">Open API</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">REST Gateway</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(520, 165)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#14b8a6" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#14b8a6" font-weight="600" font-size="9">MOE Gateway</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">환경부 API</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(650, 165)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#64748b" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#64748b" font-weight="600" font-size="9">Callback GW</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">PG Callback</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(780, 165)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#eab308" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#eab308" font-weight="600" font-size="9">Payments GW</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Payment API</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+
+                    <!-- Business Layer (6 services) -->
+                    <g class="service-node" transform="translate(130, 285)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#10b981" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#10b981" font-weight="600" font-size="9">Authorizer</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">RFID/QR/Mobile</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(260, 285)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#8b5cf6" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#8b5cf6" font-weight="600" font-size="9">Controller</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Command Control</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(390, 285)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#6366f1" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#6366f1" font-weight="600" font-size="9">Station Mgr</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Station Ops</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(520, 285)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#a855f7" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#a855f7" font-weight="600" font-size="9">Initializer</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Provisioning</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(650, 285)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#d946ef" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#d946ef" font-weight="600" font-size="9">DLP</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Tariff/Billing</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(780, 285)">
+                        <rect width="115" height="50" rx="8" fill="#161b22" stroke="#ef4444" stroke-width="2"/>
+                        <text x="57" y="20" text-anchor="middle" fill="#ef4444" font-weight="600" font-size="9">Auth (AAA)</text>
+                        <text x="57" y="35" text-anchor="middle" fill="#8b949e" font-size="7">AuthN/AuthZ</text>
+                        <circle cx="100" cy="10" r="4" fill="#238636"/>
+                    </g>
+
+                    <!-- Messaging Layer (3 services) -->
+                    <g class="service-node" transform="translate(200, 415)">
+                        <rect width="130" height="50" rx="8" fill="#161b22" stroke="#ec4899" stroke-width="2"/>
+                        <text x="65" y="20" text-anchor="middle" fill="#ec4899" font-weight="600" font-size="9">Message Notifier</text>
+                        <text x="65" y="35" text-anchor="middle" fill="#8b949e" font-size="7">SMS/FCM/Email</text>
+                        <circle cx="115" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(360, 415)">
+                        <rect width="130" height="50" rx="8" fill="#161b22" stroke="#f43f5e" stroke-width="2"/>
+                        <text x="65" y="20" text-anchor="middle" fill="#f43f5e" font-weight="600" font-size="9">Alert Messenger</text>
+                        <text x="65" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Alert Routing</text>
+                        <circle cx="115" cy="10" r="4" fill="#238636"/>
+                    </g>
+                    <g class="service-node" transform="translate(520, 415)">
+                        <rect width="130" height="50" rx="8" fill="#161b22" stroke="#fb7185" stroke-width="2"/>
+                        <text x="65" y="20" text-anchor="middle" fill="#fb7185" font-weight="600" font-size="9">Domain Messenger</text>
+                        <text x="65" y="35" text-anchor="middle" fill="#8b949e" font-size="7">Business Events</text>
+                        <circle cx="115" cy="10" r="4" fill="#238636"/>
+                    </g>
+
+                    <!-- Data Layer -->
+                    <g class="service-node" transform="translate(130, 525)">
+                        <rect width="140" height="60" rx="10" fill="#161b22" stroke="#f97316" stroke-width="3"/>
+                        <text x="70" y="22" text-anchor="middle" fill="#f97316" font-weight="700" font-size="11">Configurator</text>
+                        <text x="70" y="38" text-anchor="middle" fill="#8b949e" font-size="7">Central Config Manager</text>
+                        <text x="70" y="50" text-anchor="middle" fill="#6e7681" font-size="6">Schema | Multi-tenant</text>
+                        <circle cx="125" cy="10" r="4" fill="#238636"/>
+                    </g>
+
+                    <!-- Databases -->
+                    <g transform="translate(320, 535)">
+                        <rect width="90" height="40" rx="6" fill="#21262d" stroke="#336791" stroke-width="1.5"/>
+                        <text x="45" y="16" text-anchor="middle" fill="#336791" font-size="9" font-weight="600">PostgreSQL</text>
+                        <text x="45" y="30" text-anchor="middle" fill="#6e7681" font-size="7">Multi-Schema</text>
+                    </g>
+                    <g transform="translate(430, 535)">
+                        <rect width="90" height="40" rx="6" fill="#21262d" stroke="#DC382D" stroke-width="1.5"/>
+                        <text x="45" y="16" text-anchor="middle" fill="#DC382D" font-size="9" font-weight="600">Redis</text>
+                        <text x="45" y="30" text-anchor="middle" fill="#6e7681" font-size="7">Cache/Pub-Sub</text>
+                    </g>
+                    <g transform="translate(540, 535)">
+                        <rect width="90" height="40" rx="6" fill="#21262d" stroke="#FDB515" stroke-width="1.5"/>
+                        <text x="45" y="16" text-anchor="middle" fill="#FDB515" font-size="9" font-weight="600">TimescaleDB</text>
+                        <text x="45" y="30" text-anchor="middle" fill="#6e7681" font-size="7">Time-Series</text>
+                    </g>
+                    <g transform="translate(650, 535)">
+                        <rect width="90" height="40" rx="6" fill="#21262d" stroke="#FF6600" stroke-width="1.5"/>
+                        <text x="45" y="16" text-anchor="middle" fill="#FF6600" font-size="9" font-weight="600">RabbitMQ</text>
+                        <text x="45" y="30" text-anchor="middle" fill="#6e7681" font-size="7">Message Queue</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <g transform="translate(900, 525)">
+                        <text x="0" y="12" fill="#8b949e" font-size="9" font-weight="600">Status</text>
+                        <circle cx="8" cy="28" r="4" fill="#238636"/>
+                        <text x="20" y="32" fill="#8b949e" font-size="8">Production</text>
+                        <circle cx="8" cy="45" r="4" fill="#d29922"/>
+                        <text x="20" y="49" fill="#8b949e" font-size="8">Development</text>
+                    </g>
+
+                    <!-- Service Count Summary -->
+                    <g transform="translate(900, 165)">
+                        <text x="0" y="12" fill="#8b949e" font-size="9" font-weight="600">Services</text>
+                        <text x="0" y="28" fill="#6e7681" font-size="8">Frontend: 3</text>
+                        <text x="0" y="42" fill="#6e7681" font-size="8">Gateway: 6</text>
+                        <text x="0" y="56" fill="#6e7681" font-size="8">Business: 6</text>
+                        <text x="0" y="70" fill="#6e7681" font-size="8">Messaging: 3</text>
+                        <text x="0" y="84" fill="#6e7681" font-size="8">Data: 1</text>
+                        <text x="0" y="102" fill="#c9d1d9" font-size="9" font-weight="600">Total: 19</text>
+                    </g>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Service Cards -->
+        <section class="services-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Platform Services
+            </h2>
+            <div class="services-grid">
+                <!-- Configurator -->
+                <div class="service-card configurator">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">C</div>
+                            <div>
+                                <span class="card-name">Configurator</span>
+                                <span class="card-fullname">Central Configuration Manager</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Multi-tenant configuration management with dynamic port assignment for all services</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">gRPC</span>
+                        <span class="tech-tag">PostgreSQL</span>
+                        <span class="tech-tag">Multi-tenant</span>
+                        <span class="tech-tag">Schema</span>
+                    </div>
+                </div>
+
+                <!-- Charger Gateway -->
+                <div class="service-card gateway">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">G</div>
+                            <div>
+                                <span class="card-name">Charger Gateway</span>
+                                <span class="card-fullname">OCPP WebSocket Server</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Real-time OCPP 1.6-J WebSocket communication with EV charging stations</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">OCPP 1.6-J</span>
+                        <span class="tech-tag">WebSocket</span>
+                        <span class="tech-tag">JSON-RPC</span>
+                        <span class="tech-tag">Redis</span>
+                    </div>
+                </div>
+
+                <!-- Charger Authorizer -->
+                <div class="service-card authorizer">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">A</div>
+                            <div>
+                                <span class="card-name">Charger Authorizer</span>
+                                <span class="card-fullname">Multi-Method Authentication</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Multi-method charging authorization supporting RFID, QR code, and mobile authentication</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">RFID</span>
+                        <span class="tech-tag">QR Code</span>
+                        <span class="tech-tag">Mobile</span>
+                        <span class="tech-tag">Local List</span>
+                    </div>
+                </div>
+
+                <!-- Charger Controller -->
+                <div class="service-card controller">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">C</div>
+                            <div>
+                                <span class="card-name">Charger Controller</span>
+                                <span class="card-fullname">Command Control Center</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Charging control command management with Redis pub/sub for real-time operations</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">RemoteStart</span>
+                        <span class="tech-tag">RemoteStop</span>
+                        <span class="tech-tag">Reset</span>
+                        <span class="tech-tag">Smart Charging</span>
+                    </div>
+                </div>
+
+                <!-- Auth Service (AAA) -->
+                <div class="service-card auth">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">A</div>
+                            <div>
+                                <span class="card-name">Auth Service (AAA)</span>
+                                <span class="card-fullname">Authentication, Authorization, Accounting</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Platform-wide authentication, authorization with RBAC, and account management</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">JWT</span>
+                        <span class="tech-tag">RBAC</span>
+                        <span class="tech-tag">OAuth2</span>
+                        <span class="tech-tag">MFA</span>
+                    </div>
+                </div>
+
+                <!-- Platform Open API -->
+                <div class="service-card api">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">A</div>
+                            <div>
+                                <span class="card-name">Platform Open API</span>
+                                <span class="card-fullname">RESTful API Gateway</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">RESTful API gateway for backoffice and 3rd-party integrations with OpenAPI spec</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">gin-gonic</span>
+                        <span class="tech-tag">REST</span>
+                        <span class="tech-tag">OpenAPI</span>
+                        <span class="tech-tag">Rate Limiting</span>
+                    </div>
+                </div>
+
+                <!-- Message Notifier -->
+                <div class="service-card messenger">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">M</div>
+                            <div>
+                                <span class="card-name">Message Notifier</span>
+                                <span class="card-fullname">Multi-Channel Notification</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">External notification integrations: Naver SMS, FCM, AWS SES, and Slack</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Naver SMS</span>
+                        <span class="tech-tag">FCM</span>
+                        <span class="tech-tag">AWS SES</span>
+                        <span class="tech-tag">Slack</span>
+                    </div>
+                </div>
+
+                <!-- CPO Backoffice -->
+                <div class="service-card backoffice">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">B</div>
+                            <div>
+                                <span class="card-name">CPO Backoffice</span>
+                                <span class="card-fullname">Charge Point Operator Dashboard</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Full-featured management dashboard for charge point operators with real-time monitoring</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Next.js</span>
+                        <span class="tech-tag">React 18</span>
+                        <span class="tech-tag">TypeScript</span>
+                        <span class="tech-tag">Tailwind</span>
+                    </div>
+                </div>
+
+                <!-- Platform Console -->
+                <div class="service-card console">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">P</div>
+                            <div>
+                                <span class="card-name">Platform Console</span>
+                                <span class="card-fullname">AI-Powered Monitoring Dashboard</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Real-time monitoring with 6 AI agents: BOB, DERA, ATLAS, APEX, SCALA, PULSE</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Next.js</span>
+                        <span class="tech-tag">Real-time</span>
+                        <span class="tech-tag">WebSocket</span>
+                        <span class="tech-tag">Charts</span>
+                    </div>
+                </div>
+
+                <!-- Charger Gateway v2.1 -->
+                <div class="service-card gateway-v21">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">G2</div>
+                            <div>
+                                <span class="card-name">Charger Gateway v2.1</span>
+                                <span class="card-fullname">OCPP 2.1 WebSocket Server</span>
+                            </div>
+                        </div>
+                        <span class="status-badge development">Development</span>
+                    </div>
+                    <p class="card-description">Next-generation OCPP 2.1 protocol support with enhanced security and smart charging</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">OCPP 2.1</span>
+                        <span class="tech-tag">WebSocket</span>
+                        <span class="tech-tag">Device Mgmt</span>
+                        <span class="tech-tag">ISO 15118</span>
+                    </div>
+                </div>
+
+                <!-- Charger Station Manager -->
+                <div class="service-card station-manager">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">SM</div>
+                            <div>
+                                <span class="card-name">Station Manager</span>
+                                <span class="card-fullname">Charging Station Lifecycle</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Complete charging station lifecycle management including registration, status, and maintenance</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">PostgreSQL</span>
+                        <span class="tech-tag">Redis</span>
+                        <span class="tech-tag">TimescaleDB</span>
+                        <span class="tech-tag">Lifecycle</span>
+                    </div>
+                </div>
+
+                <!-- Charger Initializer -->
+                <div class="service-card initializer">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">I</div>
+                            <div>
+                                <span class="card-name">Charger Initializer</span>
+                                <span class="card-fullname">Boot Notification Handler</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Handles OCPP BootNotification, initial configuration, and charger provisioning workflow</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">BootNotification</span>
+                        <span class="tech-tag">Provisioning</span>
+                        <span class="tech-tag">Configuration</span>
+                        <span class="tech-tag">Onboarding</span>
+                    </div>
+                </div>
+
+                <!-- Domain Logic Processor -->
+                <div class="service-card dlp">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">D</div>
+                            <div>
+                                <span class="card-name">Domain Logic Processor</span>
+                                <span class="card-fullname">Core Business Logic Engine</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Central business logic processing for charging events, transactions, and domain rules</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">RabbitMQ</span>
+                        <span class="tech-tag">Event-Driven</span>
+                        <span class="tech-tag">Saga Pattern</span>
+                        <span class="tech-tag">CQRS</span>
+                    </div>
+                </div>
+
+                <!-- MOE Gateway -->
+                <div class="service-card moe">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">M</div>
+                            <div>
+                                <span class="card-name">MOE Gateway</span>
+                                <span class="card-fullname">Ministry of Environment Integration</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Korean government MOE (환경부) charging network integration and compliance reporting</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">환경부</span>
+                        <span class="tech-tag">eRoaming</span>
+                        <span class="tech-tag">Compliance</span>
+                        <span class="tech-tag">Reporting</span>
+                    </div>
+                </div>
+
+                <!-- External Callback Gateway -->
+                <div class="service-card callback">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">CB</div>
+                            <div>
+                                <span class="card-name">Callback Gateway</span>
+                                <span class="card-fullname">External Webhook Handler</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Handles external callbacks and webhooks from third-party services and partners</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Webhook</span>
+                        <span class="tech-tag">Retry Logic</span>
+                        <span class="tech-tag">Signature</span>
+                        <span class="tech-tag">Queue</span>
+                    </div>
+                </div>
+
+                <!-- Payments Gateway -->
+                <div class="service-card payments">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">P</div>
+                            <div>
+                                <span class="card-name">Payments Gateway</span>
+                                <span class="card-fullname">Payment Processing Service</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Payment processing integrations with multiple PSPs for charging session billing</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Payment</span>
+                        <span class="tech-tag">Billing</span>
+                        <span class="tech-tag">Refund</span>
+                        <span class="tech-tag">Settlement</span>
+                    </div>
+                </div>
+
+                <!-- Alert Messenger -->
+                <div class="service-card alert">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">A</div>
+                            <div>
+                                <span class="card-name">Alert Messenger</span>
+                                <span class="card-fullname">System Alert Handler</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Real-time system alerts and critical notification management for operations team</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">RabbitMQ</span>
+                        <span class="tech-tag">Real-time</span>
+                        <span class="tech-tag">Severity</span>
+                        <span class="tech-tag">Escalation</span>
+                    </div>
+                </div>
+
+                <!-- Domain Messenger -->
+                <div class="service-card domain-msg">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">DM</div>
+                            <div>
+                                <span class="card-name">Domain Messenger</span>
+                                <span class="card-fullname">Internal Event Bus</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Internal domain event messaging and service-to-service communication orchestration</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">RabbitMQ</span>
+                        <span class="tech-tag">Event Sourcing</span>
+                        <span class="tech-tag">Pub/Sub</span>
+                        <span class="tech-tag">Saga</span>
+                    </div>
+                </div>
+
+                <!-- Task Supporter -->
+                <div class="service-card task">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">T</div>
+                            <div>
+                                <span class="card-name">Task Supporter</span>
+                                <span class="card-fullname">Operations Support Tool</span>
+                            </div>
+                        </div>
+                        <span class="status-badge production">Production</span>
+                    </div>
+                    <p class="card-description">Operations support dashboard for manual tasks, debugging, and platform maintenance</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">Next.js</span>
+                        <span class="tech-tag">Admin Panel</span>
+                        <span class="tech-tag">Debug Tools</span>
+                        <span class="tech-tag">Ops</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="tech-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Technology Stack
+            </h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-card-title">Backend</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #00ADD8; color: white;">Go</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Go</div>
+                                <div class="tech-item-version">1.22+</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #244c5a; color: white;">gR</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">gRPC</div>
+                                <div class="tech-item-version">Inter-service Communication</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #00D1B2; color: white;">GN</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">gin-gonic</div>
+                                <div class="tech-item-version">HTTP Framework</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">Frontend</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #000000; color: white;">N</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Next.js</div>
+                                <div class="tech-item-version">14.x</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #61DAFB; color: black;">R</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">React</div>
+                                <div class="tech-item-version">18.x</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #3178C6; color: white;">TS</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">TypeScript</div>
+                                <div class="tech-item-version">5.x</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">Data & Messaging</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #336791; color: white;">PG</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">PostgreSQL</div>
+                                <div class="tech-item-version">Multi-Schema Design</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #DC382D; color: white;">RE</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Redis</div>
+                                <div class="tech-item-version">Cache & Pub/Sub</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #FDB515; color: black;">TS</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">TimescaleDB</div>
+                                <div class="tech-item-version">Time-Series Data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">Infrastructure</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #2496ED; color: white;">D</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Docker</div>
+                                <div class="tech-item-version">Containerization</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #F2A900; color: white;">LK</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Loki</div>
+                                <div class="tech-item-version">Log Aggregation</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #E6522C; color: white;">PR</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Prometheus</div>
+                                <div class="tech-item-version">Metrics & Monitoring</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2025 STRIKON Platform</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add hover effects for service nodes in SVG
+        document.querySelectorAll('.service-node').forEach(node => {
+            node.addEventListener('mouseenter', function() {
+                this.querySelector('rect').style.filter = 'drop-shadow(0 0 10px currentColor)';
+            });
+            node.addEventListener('mouseleave', function() {
+                this.querySelector('rect').style.filter = 'none';
+            });
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

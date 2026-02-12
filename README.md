@@ -52,42 +52,40 @@ EnergyFi is not starting from zero. It sits on top of two production-grade syste
 ### STRIKON Platform — The Data Source
 
 <div align="center">
-<img src="docs/assets/strikon_logo.jpeg" height="300"/>
+<img src="docs/assets/strikon_logo.jpeg" height="200"/>
 <br/><br/>
 <table>
 <tr>
-<td align="center"><b>Login</b></td>
-<td align="center"><b>Home Dashboard</b></td>
-<td align="center"><b>Station Map</b></td>
-<td align="center"><b>Live Charging</b></td>
-<td align="center"><b>Wallet & History</b></td>
+<td align="center"><b>Mobile App</b></td>
+<td align="center"><b>Platform Architecture (30+ microservices)</b></td>
 </tr>
 <tr>
-<td><img src="docs/assets/app_login.png" width="160"/></td>
-<td><img src="docs/assets/app_home.png" width="160"/></td>
-<td><img src="docs/assets/app_map.png" width="160"/></td>
-<td><img src="docs/assets/app_charging.png" width="160"/></td>
-<td><img src="docs/assets/app_wallet.png" width="160"/></td>
+<td><img src="docs/assets/app_home.png" width="200"/></td>
+<td><img src="docs/assets/strikon_platform.png" width="560"/></td>
 </tr>
 </table>
 </div>
 
-STRIKON is the **EV charging platform** that operates the physical stations — 30+ microservices handling charger management, billing, real-time monitoring, and revenue tracking. Launching June 2026. This is where the real-world data comes from.
+> 🔗 [View interactive platform architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/strikon_platform_architecture.html)
+
+STRIKON is the **EV charging platform** that operates the physical stations — 30+ microservices handling charger management, billing, real-time monitoring, and revenue tracking. **6 specialised AI agents** automate demand forecasting, pricing, maintenance scheduling, and fleet routing — cutting operational costs by replacing manual processes with autonomous decision-making. Launching June 2026.
 
 ### APEX Engine — The AI Brain
 
 <div align="center">
 <table>
 <tr>
-<td align="center"><b>Investment Score Map & AI Recommendations</b></td>
-<td align="center"><b>Portfolio Analytics & Demand Heatmap</b></td>
+<td align="center"><b>APEX Dashboard</b></td>
+<td align="center"><b>AI Agent Architecture (6 agents)</b></td>
 </tr>
 <tr>
 <td><img src="docs/assets/apex_dashboard_1.png" width="420"/></td>
-<td><img src="docs/assets/apex_dashboard_2.png" width="420"/></td>
+<td><img src="docs/assets/strikon_ai_agents.png" width="420"/></td>
 </tr>
 </table>
 </div>
+
+> 🔗 [View interactive AI agent architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/ai_agent_architecture.html)
 
 APEX analyses every charging station and produces **investment-grade intelligence**:
 
@@ -156,7 +154,15 @@ Chip  →  Firmware  →  Embedded  →  Platform (STRIKON)  →  Blockchain (Av
 | **Platform** | STRIKON (30+ microservices) | Production-grade data pipeline, already built |
 | **Blockchain** | EnergyFi on Avalanche | RWA tokenisation with FinTech-grade consistency |
 
-> When the asset backing your STO is verified from the chip level up, **the trust model is fundamentally different** from projects that scrape third-party APIs.
+Every build is continuously validated by a **Virtual Twin** — a dedicated simulation environment that stress-tests AI outputs against deterministic baselines, ensuring the probabilistic nature of AI never compromises financial accuracy.
+
+<div align="center">
+<img src="docs/assets/strikon_virtual_twin.png" width="800"/>
+</div>
+
+> 🔗 [View interactive Virtual Twin architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/virtual_twin_architecture.html)
+
+When the asset backing your STO is verified from the chip level up — and every AI decision is regression-tested before deployment — **the trust model is fundamentally different** from projects that scrape third-party APIs.
 
 ---
 

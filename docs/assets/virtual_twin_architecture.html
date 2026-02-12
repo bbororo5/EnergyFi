@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRIKON Virtual Twin Architecture</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --border-color: #30363d;
+            --neon-cyan: #00f5ff;
+            --neon-magenta: #ff00ff;
+            --neon-lime: #39ff14;
+            --neon-amber: #ffa500;
+            --neon-purple: #8b5cf6;
+            --neon-red: #ef4444;
+            --dashboard-color: #3b82f6;
+            --fleet-color: #10b981;
+            --energy-color: #f59e0b;
+            --roi-color: #8b5cf6;
+            --simulation-color: #ef4444;
+            --monitoring-color: #06b6d4;
+            --production-color: #238636;
+            --docker-color: #2496ED;
+            /* AI Agent Colors */
+            --dera-color: #f97316;
+            --atlas-color: #3b82f6;
+            --scala-color: #10b981;
+            --apex-color: #8b5cf6;
+            --bob-color: #ef4444;
+            --helix-color: #06b6d4;
+            --scala-color-agent: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(139, 92, 246, 0.1), rgba(255, 0, 255, 0.05));
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-lime));
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00f5ff, #8b5cf6, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title svg {
+            width: 24px;
+            height: 24px;
+            opacity: 0.7;
+        }
+
+        /* Architecture Diagram */
+        .architecture-section {
+            margin-bottom: 3rem;
+        }
+
+        .architecture-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .architecture-svg {
+            width: 100%;
+            min-width: 900px;
+            height: 500px;
+        }
+
+        .architecture-svg .layer-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .architecture-svg .layer-node:hover {
+            filter: brightness(1.2);
+        }
+
+        .architecture-svg .connection {
+            stroke-dasharray: 5, 5;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Module Cards */
+        .modules-section {
+            margin-bottom: 3rem;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--module-color);
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--module-color);
+        }
+
+        .module-card.dashboard { --module-color: var(--dashboard-color); }
+        .module-card.fleet { --module-color: var(--fleet-color); }
+        .module-card.energy { --module-color: var(--energy-color); }
+        .module-card.roi { --module-color: var(--roi-color); }
+        .module-card.simulation { --module-color: var(--simulation-color); }
+        .module-card.monitoring { --module-color: var(--monitoring-color); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--module-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .card-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-path {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-badge.active {
+            background: rgba(35, 134, 54, 0.2);
+            color: var(--production-color);
+            border: 1px solid var(--production-color);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .meta-item svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tech-tag {
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 245, 255, 0.15);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', Monaco, monospace;
+        }
+
+        .endpoints-list {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .endpoints-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .endpoints-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .endpoint-item {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .endpoint-item::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--module-color);
+            border-radius: 50%;
+        }
+
+        /* Tech Stack Section */
+        .tech-section {
+            margin-bottom: 3rem;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .tech-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .tech-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .tech-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tech-item-info {
+            flex: 1;
+        }
+
+        .tech-item-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tech-item-version {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Database Schema */
+        .db-section {
+            margin-bottom: 3rem;
+        }
+
+        .db-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .db-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+        }
+
+        .db-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--neon-magenta);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .db-card-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Countries Section */
+        .countries-section {
+            margin-bottom: 3rem;
+        }
+
+        .countries-grid {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .country-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .country-item:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-2px);
+        }
+
+        .country-flag {
+            font-size: 1.5rem;
+        }
+
+        .country-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .country-code {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* API Endpoints Summary */
+        .api-section {
+            margin-bottom: 3rem;
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .api-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .api-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-lime);
+            background: var(--bg-tertiary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .api-info {
+            flex: 1;
+        }
+
+        .api-category {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .api-path {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Protocol Section */
+        .protocol-section {
+            margin-bottom: 3rem;
+        }
+
+        .protocol-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .protocol-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .protocol-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .protocol-badge.ocpp {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--neon-purple);
+            border: 1px solid var(--neon-purple);
+        }
+
+        .protocol-badge.iso {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--fleet-color);
+            border: 1px solid var(--fleet-color);
+        }
+
+        .protocol-desc {
+            flex: 1;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .protocol-features {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .protocol-feature {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer a {
+            color: var(--neon-cyan);
+            text-decoration: none;
+        }
+
+        /* AI Agents Section */
+        .agents-section {
+            margin-bottom: 3rem;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .agent-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--agent-color);
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: var(--agent-color);
+        }
+
+        .agent-card.helix { --agent-color: var(--helix-color); }
+        .agent-card.dera { --agent-color: var(--dera-color); }
+        .agent-card.atlas { --agent-color: var(--atlas-color); }
+        .agent-card.scala { --agent-color: var(--scala-color); }
+        .agent-card.apex { --agent-color: var(--apex-color); }
+        .agent-card.bob { --agent-color: var(--bob-color); }
+
+        .agent-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--agent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .agent-fullname {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .agent-ports {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .port-badge {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .components-list {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .components-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .component-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .component-item::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--agent-color);
+            border-radius: 50%;
+        }
+
+        /* Vertical Integration Diagram */
+        .integration-section {
+            margin-bottom: 3rem;
+        }
+
+        .integration-diagram {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-x: auto;
+        }
+
+        .integration-svg {
+            width: 100%;
+            min-width: 800px;
+            height: 450px;
+        }
+
+        /* Data Flywheel */
+        .flywheel-section {
+            margin-bottom: 3rem;
+        }
+
+        .flywheel-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .flywheel-step {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .flywheel-step::after {
+            content: '→';
+            position: absolute;
+            right: -1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .flywheel-step:last-child::after {
+            content: '↻';
+            right: auto;
+            left: 50%;
+            top: auto;
+            bottom: -2rem;
+            transform: translateX(-50%);
+        }
+
+        .flywheel-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+        }
+
+        .flywheel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .flywheel-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 900px) {
+            .flywheel-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .flywheel-step::after {
+                display: none;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                gap: 1rem;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .endpoints-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>STRIKON Virtual Twin</h1>
+            <p class="subtitle">실제 충전기 소프트웨어를 50,000대 규모로 실행하는 시뮬레이션 플랫폼</p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">50K+</span>
+                    <span class="stat-label">Virtual Chargers</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">28</span>
+                    <span class="stat-label">Pages</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">64</span>
+                    <span class="stat-label">API Endpoints</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">86</span>
+                    <span class="stat-label">Components</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">24</span>
+                    <span class="stat-label">Database Tables</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">6</span>
+                    <span class="stat-label">Countries</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">1000x</span>
+                    <span class="stat-label">Time Acceleration</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Architecture Diagram -->
+        <section class="architecture-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                System Architecture
+            </h2>
+            <div class="architecture-diagram">
+                <svg class="architecture-svg" viewBox="0 0 1000 500">
+                    <!-- Background Grid -->
+                    <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5"/>
+                        </pattern>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                        <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#00f5ff"/>
+                            <stop offset="50%" style="stop-color:#8b5cf6"/>
+                            <stop offset="100%" style="stop-color:#ff00ff"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)"/>
+
+                    <!-- Layer Labels -->
+                    <text x="30" y="60" fill="#6e7681" font-size="12" font-weight="600">PRESENTATION</text>
+                    <text x="30" y="180" fill="#6e7681" font-size="12" font-weight="600">APPLICATION</text>
+                    <text x="30" y="300" fill="#6e7681" font-size="12" font-weight="600">DATA LAYER</text>
+                    <text x="30" y="420" fill="#6e7681" font-size="12" font-weight="600">SIMULATION</text>
+
+                    <!-- Connections -->
+                    <g class="connections">
+                        <!-- Frontend to API -->
+                        <path class="connection" d="M 250 95 L 250 140" stroke="#00f5ff" stroke-width="2" fill="none"/>
+                        <path class="connection" d="M 450 95 L 450 140" stroke="#00f5ff" stroke-width="2" fill="none"/>
+                        <path class="connection" d="M 650 95 L 650 140" stroke="#00f5ff" stroke-width="2" fill="none"/>
+                        <path class="connection" d="M 850 95 L 850 140" stroke="#00f5ff" stroke-width="2" fill="none"/>
+
+                        <!-- API to Database -->
+                        <path class="connection" d="M 350 220 L 350 265" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+                        <path class="connection" d="M 550 220 L 550 265" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+                        <path class="connection" d="M 750 220 L 750 265" stroke="#8b5cf6" stroke-width="2" fill="none"/>
+
+                        <!-- Database to Docker -->
+                        <path class="connection" d="M 450 345 L 450 385" stroke="#ff00ff" stroke-width="2" fill="none"/>
+                        <path class="connection" d="M 550 345 L 550 385" stroke="#ff00ff" stroke-width="2" fill="none"/>
+                    </g>
+
+                    <!-- Presentation Layer -->
+                    <g class="layer-node" transform="translate(150, 40)">
+                        <rect width="200" height="55" rx="8" fill="#161b22" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="100" y="25" text-anchor="middle" fill="#3b82f6" font-weight="600" font-size="13">Dashboard</text>
+                        <text x="100" y="42" text-anchor="middle" fill="#8b949e" font-size="9">Overview / KPIs / ROI</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(370, 40)">
+                        <rect width="160" height="55" rx="8" fill="#161b22" stroke="#10b981" stroke-width="2"/>
+                        <text x="80" y="25" text-anchor="middle" fill="#10b981" font-weight="600" font-size="13">Fleet & Energy</text>
+                        <text x="80" y="42" text-anchor="middle" fill="#8b949e" font-size="9">Status / V2G / DR</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(550, 40)">
+                        <rect width="200" height="55" rx="8" fill="#161b22" stroke="#ef4444" stroke-width="2"/>
+                        <text x="100" y="25" text-anchor="middle" fill="#ef4444" font-weight="600" font-size="13">Simulation</text>
+                        <text x="100" y="42" text-anchor="middle" fill="#8b949e" font-size="9">Control / Scenarios / Results</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(770, 40)">
+                        <rect width="160" height="55" rx="8" fill="#161b22" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="80" y="25" text-anchor="middle" fill="#f59e0b" font-weight="600" font-size="13">Configuration</text>
+                        <text x="80" y="42" text-anchor="middle" fill="#8b949e" font-size="9">Products / Stations / Grid</text>
+                    </g>
+
+                    <!-- Application Layer (API Routes) -->
+                    <g class="layer-node" transform="translate(150, 145)">
+                        <rect width="300" height="70" rx="10" fill="#161b22" stroke="#00f5ff" stroke-width="2"/>
+                        <text x="150" y="25" text-anchor="middle" fill="#00f5ff" font-weight="600" font-size="14">Next.js API Routes (64)</text>
+                        <text x="150" y="45" text-anchor="middle" fill="#8b949e" font-size="10">/api/dashboard, fleet, energy, roi, simulation</text>
+                        <text x="150" y="60" text-anchor="middle" fill="#8b949e" font-size="10">/api/containers, agents, platform, messages</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(470, 145)">
+                        <rect width="200" height="70" rx="10" fill="#161b22" stroke="#8b5cf6" stroke-width="2"/>
+                        <text x="100" y="25" text-anchor="middle" fill="#8b5cf6" font-weight="600" font-size="14">Zustand Stores (10)</text>
+                        <text x="100" y="45" text-anchor="middle" fill="#8b949e" font-size="10">simulation, fleet, energy, roi</text>
+                        <text x="100" y="60" text-anchor="middle" fill="#8b949e" font-size="10">country, message, chargerGrid</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(690, 145)">
+                        <rect width="200" height="70" rx="10" fill="#161b22" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="100" y="25" text-anchor="middle" fill="#f59e0b" font-weight="600" font-size="14">CRUD + Auth APIs</text>
+                        <text x="100" y="45" text-anchor="middle" fill="#8b949e" font-size="10">products, stations, grid, tariffs</text>
+                        <text x="100" y="60" text-anchor="middle" fill="#8b949e" font-size="10">scenarios, auth, import/export</text>
+                    </g>
+
+                    <!-- Data Layer -->
+                    <g class="layer-node" transform="translate(200, 265)">
+                        <rect width="300" height="75" rx="12" fill="#161b22" stroke="#ff00ff" stroke-width="2"/>
+                        <text x="150" y="25" text-anchor="middle" fill="#ff00ff" font-weight="700" font-size="14">SQLite + Drizzle ORM</text>
+                        <text x="150" y="45" text-anchor="middle" fill="#8b949e" font-size="10">./data/virtual-twin.db</text>
+                        <text x="150" y="62" text-anchor="middle" fill="#6e7681" font-size="9">24 Tables | JSON Fields | Container Mgmt</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(520, 265)">
+                        <rect width="160" height="75" rx="12" fill="#161b22" stroke="#10b981" stroke-width="2"/>
+                        <text x="80" y="25" text-anchor="middle" fill="#10b981" font-weight="600" font-size="13">lib/db/queries</text>
+                        <text x="80" y="45" text-anchor="middle" fill="#8b949e" font-size="9">products.ts</text>
+                        <text x="80" y="58" text-anchor="middle" fill="#8b949e" font-size="9">stations.ts, grid.ts</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(700, 265)">
+                        <rect width="180" height="75" rx="12" fill="#161b22" stroke="#06b6d4" stroke-width="2"/>
+                        <text x="90" y="25" text-anchor="middle" fill="#06b6d4" font-weight="600" font-size="13">Excel Import</text>
+                        <text x="90" y="45" text-anchor="middle" fill="#8b949e" font-size="9">lib/excel/import.ts</text>
+                        <text x="90" y="58" text-anchor="middle" fill="#8b949e" font-size="9">template.ts</text>
+                    </g>
+
+                    <!-- Simulation Layer (Docker) -->
+                    <g class="layer-node" transform="translate(200, 385)">
+                        <rect width="350" height="85" rx="14" fill="#161b22" stroke="#2496ED" stroke-width="3"/>
+                        <text x="175" y="28" text-anchor="middle" fill="#2496ED" font-weight="700" font-size="15">Docker Virtual Instances</text>
+                        <text x="175" y="48" text-anchor="middle" fill="#8b949e" font-size="10">Electra app-core + HAL Simulators (50K+)</text>
+                        <text x="175" y="65" text-anchor="middle" fill="#6e7681" font-size="9">OCPP 2.1 | ISO 15118-20 | OpenADR 2.0b</text>
+                        <circle cx="330" cy="20" r="8" fill="#238636" style="animation: pulse 2s infinite"/>
+                    </g>
+
+                    <g class="layer-node" transform="translate(570, 385)">
+                        <rect width="200" height="85" rx="14" fill="#161b22" stroke="#ef4444" stroke-width="2"/>
+                        <text x="100" y="28" text-anchor="middle" fill="#ef4444" font-weight="600" font-size="14">Container Pools</text>
+                        <text x="100" y="48" text-anchor="middle" fill="#8b949e" font-size="10">LED Grid (1K Clusters)</text>
+                        <text x="100" y="65" text-anchor="middle" fill="#8b949e" font-size="10">Auto-scaling / Health</text>
+                    </g>
+
+                    <g class="layer-node" transform="translate(790, 385)">
+                        <rect width="160" height="85" rx="14" fill="#161b22" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="80" y="28" text-anchor="middle" fill="#f59e0b" font-weight="600" font-size="14">Platform Sync</text>
+                        <text x="80" y="48" text-anchor="middle" fill="#8b949e" font-size="10">OCPP Messages</text>
+                        <text x="80" y="65" text-anchor="middle" fill="#8b949e" font-size="10">Agent API / Audit</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <g transform="translate(30, 480)">
+                        <rect x="0" y="-8" width="12" height="12" rx="2" fill="#00f5ff"/>
+                        <text x="20" y="2" fill="#8b949e" font-size="10">Frontend</text>
+                        <rect x="100" y="-8" width="12" height="12" rx="2" fill="#8b5cf6"/>
+                        <text x="120" y="2" fill="#8b949e" font-size="10">State</text>
+                        <rect x="180" y="-8" width="12" height="12" rx="2" fill="#ff00ff"/>
+                        <text x="200" y="2" fill="#8b949e" font-size="10">Database</text>
+                        <rect x="280" y="-8" width="12" height="12" rx="2" fill="#2496ED"/>
+                        <text x="300" y="2" fill="#8b949e" font-size="10">Docker</text>
+                    </g>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Core Modules -->
+        <section class="modules-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Core Modules
+            </h2>
+            <div class="modules-grid">
+                <!-- Dashboard -->
+                <div class="module-card dashboard">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">D</div>
+                            <div>
+                                <span class="card-name">Dashboard</span>
+                                <span class="card-path">app/page.tsx</span>
+                            </div>
+                        </div>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                    <p class="card-description">Main overview with fleet status, power timeline, regional map, and quick statistics</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">FleetStatusChart</span>
+                        <span class="tech-tag">PowerTimeline</span>
+                        <span class="tech-tag">RegionMap</span>
+                        <span class="tech-tag">QuickStats</span>
+                    </div>
+                </div>
+
+                <!-- Fleet -->
+                <div class="module-card fleet">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">F</div>
+                            <div>
+                                <span class="card-name">Fleet Management</span>
+                                <span class="card-path">app/fleet/</span>
+                            </div>
+                        </div>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                    <p class="card-description">Fleet status monitoring with regional distribution and charger health tracking</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">fleetStore</span>
+                        <span class="tech-tag">DonutChart</span>
+                        <span class="tech-tag">BarChart</span>
+                    </div>
+                </div>
+
+                <!-- Energy -->
+                <div class="module-card energy">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">E</div>
+                            <div>
+                                <span class="card-name">Energy Monitoring</span>
+                                <span class="card-path">app/energy/</span>
+                            </div>
+                        </div>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                    <p class="card-description">Real-time energy consumption, V2G (Vehicle-to-Grid) and demand response event management</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">V2GPanel</span>
+                        <span class="tech-tag">DREventsPanel</span>
+                        <span class="tech-tag">AreaChart</span>
+                        <span class="tech-tag">energyStore</span>
+                    </div>
+                </div>
+
+                <!-- ROI -->
+                <div class="module-card roi">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">R</div>
+                            <div>
+                                <span class="card-name">ROI Analysis</span>
+                                <span class="card-path">app/roi/</span>
+                            </div>
+                        </div>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                    <p class="card-description">Investment return analysis with payback progress tracking and cost breakdown visualization</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">PaybackProgress</span>
+                        <span class="tech-tag">CostBreakdown</span>
+                        <span class="tech-tag">roiStore</span>
+                        <span class="tech-tag">RadialProgress</span>
+                    </div>
+                </div>
+
+                <!-- Simulation -->
+                <div class="module-card simulation">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">S</div>
+                            <div>
+                                <span class="card-name">Simulation Control</span>
+                                <span class="card-path">app/simulation/</span>
+                            </div>
+                        </div>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                    <p class="card-description">Control simulation runs with scenario selection, fleet composition, and result tracking</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">SimulationControl</span>
+                        <span class="tech-tag">ScenarioSelector</span>
+                        <span class="tech-tag">FleetComposition</span>
+                        <span class="tech-tag">simulationStore</span>
+                    </div>
+                </div>
+
+                <!-- Monitoring -->
+                <div class="module-card monitoring">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon">M</div>
+                            <div>
+                                <span class="card-name">Virtual Instances</span>
+                                <span class="card-path">app/instances/</span>
+                            </div>
+                        </div>
+                        <span class="status-badge active">Active</span>
+                    </div>
+                    <p class="card-description">Monitor Docker containers running Electra charger software with HAL simulators</p>
+                    <div class="tech-tags">
+                        <span class="tech-tag">ClusterHealth</span>
+                        <span class="tech-tag">InstanceGrid</span>
+                        <span class="tech-tag">InstanceDetail</span>
+                        <span class="tech-tag">AlertsList</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="tech-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Technology Stack
+            </h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-card-title">Framework & Language</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #000000; color: white;">N</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Next.js</div>
+                                <div class="tech-item-version">14 (App Router)</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #3178C6; color: white;">TS</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">TypeScript</div>
+                                <div class="tech-item-version">Strict Mode</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #61DAFB; color: black;">R</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">React</div>
+                                <div class="tech-item-version">18.x</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">State & Data</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #433e38; color: #f5c453;">Z</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Zustand</div>
+                                <div class="tech-item-version">State Management</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #C5F74F; color: black;">D</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Drizzle ORM</div>
+                                <div class="tech-item-version">SQLite Integration</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #003B57; color: white;">SQ</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">SQLite</div>
+                                <div class="tech-item-version">better-sqlite3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-card-title">UI & Styling</div>
+                    <div class="tech-items">
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #06B6D4; color: white;">TW</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Tailwind CSS</div>
+                                <div class="tech-item-version">Cyberpunk Glassmorphism</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #FF6384; color: white;">RC</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Recharts</div>
+                                <div class="tech-item-version">Data Visualization</div>
+                            </div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-item-icon" style="background: #F56565; color: white;">L</div>
+                            <div class="tech-item-info">
+                                <div class="tech-item-name">Lucide React</div>
+                                <div class="tech-item-version">Icon Library</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3-Tier Vertical Integration -->
+        <section class="integration-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                </svg>
+                3-Tier Vertical Integration
+            </h2>
+            <div class="integration-diagram">
+                <svg class="integration-svg" viewBox="0 0 900 450">
+                    <defs>
+                        <pattern id="integrationGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5"/>
+                        </pattern>
+                        <linearGradient id="dataFlowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00f5ff"/>
+                            <stop offset="50%" style="stop-color:#8b5cf6"/>
+                            <stop offset="100%" style="stop-color:#ef4444"/>
+                        </linearGradient>
+                        <marker id="arrowDown" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+                        </marker>
+                        <marker id="arrowUp" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M 10 0 L 0 5 L 10 10 z" fill="#8b949e"/>
+                        </marker>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#integrationGrid)"/>
+
+                    <!-- Tier 1: Virtual Twin (Top) -->
+                    <g transform="translate(100, 30)">
+                        <rect width="700" height="100" rx="16" fill="#161b22" stroke="#00f5ff" stroke-width="3"/>
+                        <text x="350" y="35" text-anchor="middle" fill="#00f5ff" font-weight="700" font-size="18">Virtual Twin (Simulation)</text>
+                        <text x="350" y="58" text-anchor="middle" fill="#8b949e" font-size="12">50,000+ Docker Containers | HAL Simulator | 1,000x Time Acceleration</text>
+                        <text x="350" y="78" text-anchor="middle" fill="#6e7681" font-size="10">ROI (NPV/IRR/Payback) | V2G/DR Simulation | What-If Scenarios | 6 Countries</text>
+                        <circle cx="680" cy="25" r="8" fill="#238636" style="animation: pulse 2s infinite"/>
+                    </g>
+
+                    <!-- Data Flow Arrows -->
+                    <g>
+                        <path d="M 450 135 L 450 165" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowDown)"/>
+                        <text x="470" y="155" fill="#6e7681" font-size="10">Data Out</text>
+                        <path d="M 400 165 L 400 135" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowUp)"/>
+                        <text x="340" y="155" fill="#6e7681" font-size="10">Data In</text>
+                    </g>
+
+                    <!-- Tier 2: STRIKON Platform (Middle) -->
+                    <g transform="translate(100, 170)">
+                        <rect width="700" height="120" rx="16" fill="#161b22" stroke="#8b5cf6" stroke-width="3"/>
+                        <text x="350" y="30" text-anchor="middle" fill="#8b5cf6" font-weight="700" font-size="18">STRIKON Platform (Cloud + AI)</text>
+
+                        <!-- OCPP Gateway -->
+                        <g transform="translate(30, 45)">
+                            <rect width="140" height="55" rx="8" fill="#21262d" stroke="#8b5cf6" stroke-width="1"/>
+                            <text x="70" y="25" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="600">OCPP Gateway</text>
+                            <text x="70" y="42" text-anchor="middle" fill="#6e7681" font-size="9">1.6-J + 2.1</text>
+                        </g>
+
+                        <!-- AI Agents -->
+                        <g transform="translate(190, 45)">
+                            <rect width="100" height="55" rx="8" fill="#21262d" stroke="#ef4444" stroke-width="1"/>
+                            <text x="50" y="22" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="600">BOB</text>
+                            <text x="50" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Manager</text>
+                        </g>
+                        <g transform="translate(300, 45)">
+                            <rect width="100" height="55" rx="8" fill="#21262d" stroke="#f97316" stroke-width="1"/>
+                            <text x="50" y="22" text-anchor="middle" fill="#f97316" font-size="11" font-weight="600">DERA</text>
+                            <text x="50" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Anomaly</text>
+                        </g>
+                        <g transform="translate(410, 45)">
+                            <rect width="100" height="55" rx="8" fill="#21262d" stroke="#3b82f6" stroke-width="1"/>
+                            <text x="50" y="22" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="600">ATLAS</text>
+                            <text x="50" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Auto-Ops</text>
+                        </g>
+                        <g transform="translate(520, 45)">
+                            <rect width="100" height="55" rx="8" fill="#21262d" stroke="#8b5cf6" stroke-width="1"/>
+                            <text x="50" y="22" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="600">APEX</text>
+                            <text x="50" y="38" text-anchor="middle" fill="#6e7681" font-size="8">Investment</text>
+                        </g>
+                        <g transform="translate(630, 45)">
+                            <rect width="50" height="55" rx="8" fill="#21262d" stroke="#10b981" stroke-width="1"/>
+                            <text x="25" y="22" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">SCA</text>
+                            <text x="25" y="36" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">LA</text>
+                        </g>
+                    </g>
+
+                    <!-- Data Flow Arrows 2 -->
+                    <g>
+                        <path d="M 450 295 L 450 325" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowDown)"/>
+                        <text x="465" y="315" fill="#6e7681" font-size="10">OCPP</text>
+                        <path d="M 400 325 L 400 295" stroke="#8b949e" stroke-width="2" marker-end="url(#arrowUp)"/>
+                        <text x="340" y="315" fill="#6e7681" font-size="10">OCPP</text>
+                    </g>
+
+                    <!-- Tier 3: Electra (Bottom) -->
+                    <g transform="translate(100, 330)">
+                        <rect width="700" height="100" rx="16" fill="#161b22" stroke="#ef4444" stroke-width="3"/>
+                        <text x="350" y="35" text-anchor="middle" fill="#ef4444" font-weight="700" font-size="18">Electra (Edge Charger)</text>
+                        <text x="350" y="58" text-anchor="middle" fill="#8b949e" font-size="12">app-core (State Machine) | OCPP 2.1 Client | Edge AI Brain</text>
+                        <text x="350" y="78" text-anchor="middle" fill="#6e7681" font-size="10">HAL: Power Module, RFID, PLC, CAN | TensorFlow Lite / ONNX | OTA Updates</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <g transform="translate(30, 420)">
+                        <rect x="0" y="-8" width="12" height="12" rx="2" fill="#00f5ff"/>
+                        <text x="20" y="2" fill="#8b949e" font-size="10">Simulation</text>
+                        <rect x="100" y="-8" width="12" height="12" rx="2" fill="#8b5cf6"/>
+                        <text x="120" y="2" fill="#8b949e" font-size="10">Cloud</text>
+                        <rect x="180" y="-8" width="12" height="12" rx="2" fill="#ef4444"/>
+                        <text x="200" y="2" fill="#8b949e" font-size="10">Edge</text>
+                    </g>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Data Flywheel -->
+        <section class="flywheel-section">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Data Flywheel
+            </h2>
+            <div class="flywheel-grid">
+                <div class="flywheel-step">
+                    <div class="flywheel-number">1</div>
+                    <div class="flywheel-title" style="color: var(--neon-cyan);">Generate</div>
+                    <div class="flywheel-desc">Generate large-scale simulation data from Virtual Instances</div>
+                </div>
+                <div class="flywheel-step">
+                    <div class="flywheel-number">2</div>
+                    <div class="flywheel-title" style="color: var(--neon-purple);">Learn</div>
+                    <div class="flywheel-desc">Platform AI Agents (DERA, ATLAS, APEX) learn patterns</div>
+                </div>
+                <div class="flywheel-step">
+                    <div class="flywheel-number">3</div>
+                    <div class="flywheel-title" style="color: var(--neon-magenta);">Deploy</div>
+                    <div class="flywheel-desc">Deploy improved models to Electra Edge AI via OTA updates</div>
+                </div>
+                <div class="flywheel-step">
+                    <div class="flywheel-number">4</div>
+                    <div class="flywheel-title" style="color: var(--neon-lime);">Improve</div>
+                    <div class="flywheel-desc">More accurate predictions → More realistic simulations (repeat)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>Electra Virtual Twin v2.0 | STRIKON Ecosystem</p>
+            <p style="margin-top: 0.5rem;">Real Code Execution &middot; 50,000+ Scale &middot; 1,000x Time Acceleration &middot; 6 Countries</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add hover effects for layer nodes in SVG
+        document.querySelectorAll('.layer-node').forEach(node => {
+            node.addEventListener('mouseenter', function() {
+                this.querySelector('rect').style.filter = 'drop-shadow(0 0 10px currentColor)';
+            });
+            node.addEventListener('mouseleave', function() {
+                this.querySelector('rect').style.filter = 'none';
+            });
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

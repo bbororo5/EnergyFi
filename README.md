@@ -10,9 +10,10 @@
 <img src="docs/assets/wingside_logo.png" height="300"/>
 <br/>
 
-[![Avalanche](https://img.shields.io/badge/Avalanche-Subnet%20%2B%20C--Chain-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
+
+[![Avalanche](https://img.shields.io/badge/Avalanche-Evergreen%20Standard-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
+[![Hardware Security](https://img.shields.io/badge/TPM%202.0-Hardware%20Anchor-blue?logo=intel)](https://en.wikipedia.org/wiki/Trusted_Platform_Module)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?logo=solidity)](https://soliditylang.org/)
-[![Hardhat](https://img.shields.io/badge/Hardhat-3-FFF100?logo=hardhat&logoColor=black)](https://hardhat.org/)
 [![Flutter](https://img.shields.io/badge/Flutter-Mobile_App-02569B?logo=flutter)](https://flutter.dev/)
 
 </div>
@@ -21,7 +22,11 @@
 
 ## What is EnergyFi?
 
-EnergyFi turns **real energy infrastructure** — starting with EV charging stations — into **on-chain securities (STO)** that anyone can invest in, trade, and earn yield from.
+EnergyFi is the blockchain protocol powering **STRIKON**, the world's first AI-native EV charging infrastructure.
+
+Unlike traditional RWA projects that rely on third-party APIs (Software Trust), EnergyFi leverages a **Hardware Anchor (TPM 2.0)** embedded in every charger. We tokenize the charging infrastructure itself, allowing investors to own a piece of the hardware and receive **real-time dividends** from charging revenue, verified directly from the chip to the chain.
+
+> **Note:** While our roadmap includes V2G (Vehicle-to-Grid) technology for future power grid interaction, our current core STO focuses on **infrastructure asset securitization** and **charging revenue distribution**.
 
 ```mermaid
 flowchart LR

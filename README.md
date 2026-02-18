@@ -1,14 +1,14 @@
 <div align="center">
 
 # EnergyFi
+### Powered by STRIKON
 
-### Energy RWA — Tokenising Real Infrastructure on Avalanche
+### Hardware-Anchored RWA — Real-Time Infrastructure Finance on Avalanche
 
 <br/>
 
 <img src="docs/assets/wingside_logo.png" height="300"/>
 <br/>
-<sub>by <b>Wingside AI</b></sub>
 
 [![Avalanche](https://img.shields.io/badge/Avalanche-Subnet%20%2B%20C--Chain-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?logo=solidity)](https://soliditylang.org/)

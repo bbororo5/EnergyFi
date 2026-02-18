@@ -30,23 +30,41 @@ Unlike traditional RWA projects that rely on third-party APIs (Software Trust), 
 
 ```mermaid
 flowchart LR
-    A[Charging Station] --> B[STRIKON]
-    C[APEX Engine] <--> B
-    B --> D[EnergyFi]
-    D --> E[Avalanche Subnet\nIoT · Device Data]
-    D --> F[Avalanche C-Chain\nSTO · Trading · Yield]
+    subgraph Hardware["Hardware Anchor (Trust Source)"]
+        A[EV Charger] -->|Sign Data| B[TPM 2.0 Chip]
+    end
 
-    style A fill:#1a1a2e,stroke:#10b981,color:#e0e0e0
-    style B fill:#1a1a2e,stroke:#10b981,stroke-width:2px,color:#10b981
-    style C fill:#1a1a2e,stroke:#00f5ff,stroke-width:2px,color:#00f5ff
-    style D fill:#1a1a2e,stroke:#E84142,stroke-width:3px,color:#E84142
-    style E fill:#1a1a2e,stroke:#f59e0b,stroke-width:2px,color:#f59e0b
-    style F fill:#1a1a2e,stroke:#E84142,stroke-width:2px,color:#E84142
+    subgraph Blockchain["Avalanche Infrastructure"]
+        B -->|Signed Telemetry| C[EnergyFi Subnet\n(Evergreen Compatible)]
+        C -->|Verified Revenue| D[Smart Contract\n(Yield Distribution)]
+    end
+
+    subgraph User["Investor Experience"]
+        D -->|Real-Time Settlement| E[Investor Wallet]
+    end
+
+    style Hardware fill:#222,stroke:#fff,stroke-width:2px
+    style B fill:#E84142,stroke:#fff,stroke-width:2px,color:#fff
+    style Blockchain fill:#1a1a2e,stroke:#E84142
+    style C fill:#1a1a2e,stroke:#E84142,stroke-dasharray: 5 5
 ```
 
-**The flow**: Real station data → AI valuation → On-chain STO → Investor yield.
 
-South Korea's **STO Act passed on Jan 15 2026** with a 1-year grace period — EnergyFi is being built to capture this market on Avalanche.
+
+## Why We Are Different: The Hardware Anchor
+
+Most RWA projects suffer from the **"Oracle Problem"**—if the physical data is tampered with before it hits the blockchain, the on-chain asset is worthless.
+
+EnergyFi solves this at the source:
+
+| Feature | Legacy RWA | EnergyFi (STRIKON) |
+| :--- | :--- | :--- |
+| **Data Source** | Third-party API (modifiable) | **TPM 2.0 / SE Module** (Physical Chip) |
+| **Verification** | Manual Audit / Trusting the API provider | **Cryptographic Signing** at Hardware Level |
+| **Settlement** | T+2 Days / Quarterly Dividends | **Real-Time** (Second-by-Second Yield) |
+| **Security** | Software Level | **Hardware Level** (Anti-Tamper) |
+
+**"Code is Law"**: By securing data at the chip level, we eliminate the need for costly manual verification by brokerage firms, enabling a true **Trustless Architecture**.
 
 ---
 

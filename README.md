@@ -35,8 +35,8 @@ flowchart LR
     end
 
     subgraph Blockchain["Avalanche Infrastructure"]
-        B -->|Signed Telemetry| C[EnergyFi Subnet\n(Evergreen Compatible)]
-        C -->|Verified Revenue| D[Smart Contract\n(Yield Distribution)]
+        B -->|Signed Telemetry| C["EnergyFi Subnet\n(Evergreen Compatible)"]
+        C -->|Verified Revenue| D["Smart Contract\n(Yield Distribution)"]
     end
 
     subgraph User["Investor Experience"]

@@ -1,18 +1,19 @@
 <div align="center">
 
 # EnergyFi
+### Powered by STRIKON
 
-### Energy RWA — Tokenising Real Infrastructure on Avalanche
+### Hardware-Anchored RWA — Real-Time Infrastructure Finance on Avalanche
 
 <br/>
 
 <img src="docs/assets/wingside_logo.png" height="300"/>
 <br/>
-<sub>by <b>Wingside AI</b></sub>
 
-[![Avalanche](https://img.shields.io/badge/Avalanche-Subnet%20%2B%20C--Chain-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
+
+[![Avalanche](https://img.shields.io/badge/Avalanche-Evergreen%20Standard-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
+[![Hardware Security](https://img.shields.io/badge/TPM%202.0-Hardware%20Anchor-blue?logo=intel)](https://en.wikipedia.org/wiki/Trusted_Platform_Module)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?logo=solidity)](https://soliditylang.org/)
-[![Hardhat](https://img.shields.io/badge/Hardhat-3-FFF100?logo=hardhat&logoColor=black)](https://hardhat.org/)
 [![Flutter](https://img.shields.io/badge/Flutter-Mobile_App-02569B?logo=flutter)](https://flutter.dev/)
 
 </div>
@@ -21,30 +22,51 @@
 
 ## What is EnergyFi?
 
-EnergyFi turns **real energy infrastructure** — starting with EV charging stations — into **on-chain securities (STO)** that anyone can invest in, trade, and earn yield from.
+EnergyFi is the blockchain protocol powering **STRIKON**, the world's first AI-native EV charging infrastructure.
+
+Unlike traditional RWA projects that rely on third-party APIs (Software Trust), EnergyFi leverages a **Hardware Anchor (TPM 2.0)** embedded in every charger. We tokenize the charging infrastructure itself, allowing investors to own a piece of the hardware and receive **real-time dividends** from charging revenue, verified directly from the chip to the chain.
+
+> **Note:** While our roadmap includes V2G (Vehicle-to-Grid) technology for future power grid interaction, our current core STO focuses on **infrastructure asset securitization** and **charging revenue distribution**.
 
 ```mermaid
 flowchart LR
-    A[Charging Station] --> B[STRIKON]
-    C[APEX Engine] <--> B
-    B --> D[EnergyFi]
-    D --> E[Avalanche Subnet\nIoT · Device Data]
-    D --> F[Avalanche C-Chain\nSTO · Trading · Yield]
+    subgraph Hardware["Hardware Anchor (Trust Source)"]
+        A[EV Charger] -->|Sign Data| B[TPM 2.0 Chip]
+    end
 
-    style A fill:#1a1a2e,stroke:#10b981,color:#e0e0e0
-    style B fill:#1a1a2e,stroke:#10b981,stroke-width:2px,color:#10b981
-    style C fill:#1a1a2e,stroke:#00f5ff,stroke-width:2px,color:#00f5ff
-    style D fill:#1a1a2e,stroke:#E84142,stroke-width:3px,color:#E84142
-    style E fill:#1a1a2e,stroke:#f59e0b,stroke-width:2px,color:#f59e0b
-    style F fill:#1a1a2e,stroke:#E84142,stroke-width:2px,color:#E84142
+    subgraph Blockchain["Avalanche Infrastructure"]
+        B -->|Signed Telemetry| C[EnergyFi Subnet\n(Evergreen Compatible)]
+        C -->|Verified Revenue| D[Smart Contract\n(Yield Distribution)]
+    end
+
+    subgraph User["Investor Experience"]
+        D -->|Real-Time Settlement| E[Investor Wallet]
+    end
+
+    style Hardware fill:#222,stroke:#fff,stroke-width:2px
+    style B fill:#E84142,stroke:#fff,stroke-width:2px,color:#fff
+    style Blockchain fill:#1a1a2e,stroke:#E84142
+    style C fill:#1a1a2e,stroke:#E84142,stroke-dasharray: 5 5
 ```
 
-**The flow**: Real station data → AI valuation → On-chain STO → Investor yield.
 
-South Korea's **STO Act passed on Jan 15 2026** with a 1-year grace period — EnergyFi is being built to capture this market on Avalanche.
+
+## Why We Are Different: The Hardware Anchor
+
+Most RWA projects suffer from the **"Oracle Problem"**—if the physical data is tampered with before it hits the blockchain, the on-chain asset is worthless.
+
+EnergyFi solves this at the source:
+
+| Feature | Legacy RWA | EnergyFi (STRIKON) |
+| :--- | :--- | :--- |
+| **Data Source** | Third-party API (modifiable) | **TPM 2.0 / SE Module** (Physical Chip) |
+| **Verification** | Manual Audit / Trusting the API provider | **Cryptographic Signing** at Hardware Level |
+| **Settlement** | T+2 Days / Quarterly Dividends | **Real-Time** (Second-by-Second Yield) |
+| **Security** | Software Level | **Hardware Level** (Anti-Tamper) |
+
+**"Code is Law"**: By securing data at the chip level, we eliminate the need for costly manual verification by brokerage firms, enabling a true **Trustless Architecture**.
 
 ---
-
 ## The Foundation — Already Built
 
 EnergyFi is not starting from zero. It sits on top of two production-grade systems built by Wingside:
@@ -110,7 +132,17 @@ EnergyFi is the **blockchain layer** that connects these systems to Avalanche:
 
 > **Hackathon demo**: mock JSON matching production schema · **At launch (June 2026)**: live data via STRIKON API
 
+###  Virtual Twin — Reliability
+
+To ensure financial accuracy, every AI decision is regression-tested in our **Virtual Twin** environment before deployment. We don't guess; we simulate.
+
+<div align="center">
+<img src="docs/assets/strikon_virtual_twin.png" width="100%" style="border-radius: 10px;"/>
+</div>
+
+> 🔗 [View interactive Virtual Twin architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/virtual_twin_architecture.html)
 ---
+
 
 ## Why Avalanche?
 
@@ -123,46 +155,28 @@ EnergyFi is the **blockchain layer** that connects these systems to Avalanche:
 
 Avalanche is the only ecosystem where you can **spin up a dedicated chain for your use case** while settling on a shared, liquid public chain — without a third-party bridge.
 
+## Avalanche Strategy: Built for Institutions
+
+We are not just building a private subnet; we are building an **Institutional-Ready Infrastructure** aligned with **Avalanche Evergreen** standards.
+
+### 1. Private Subnet for Data Security
+* **Purpose:** Handling high-frequency IoT data (voltage, amperage, session logs) requires zero latency and zero gas costs for devices.
+* **Security:** Our private subnet ensures that sensitive raw data is processed securely before yield data is bridged to the public chain.
+
+### 2. Evergreen Compatibility (Future-Proofing)
+* **Standardization:** We adopt the data standards and permissioning structures used by **Spruce** and **Intain** (Avalanche's institutional subnets).
+* **Interoperability:** This design ensures that when EnergyFi STOs are ready for global liquidity, they can seamlessly connect with Wall Street institutions and regulated DeFi protocols on the Avalanche network.
+
 ---
 
-## Why Now?
+## The "Infinite Snowball" Model
 
-South Korea's **STO Act passed on Jan 15 2026** with a **1-year grace period**. Teams that ship first will set the standard.
+EnergyFi introduces a self-replicating economic model powered by AI and Blockchain transparency.
 
-| Signal | What it means |
-| :--- | :--- |
-| **STO Act (Jan 15 2026)** | Tokenised securities on real-world assets are now legal — first-mover advantage is critical |
-| **V2G growth** | EV batteries absorb surplus energy, sell back to grid — our beachhead market |
-| **AI datacenter boom → nuclear** | Nuclear can't ramp down — surplus energy needs distributed storage like V2G |
-| **Beyond EV charging** | Same architecture extends to ESS, solar, and other distributed energy resources |
-
----
-
-## Why This Team — Chip-to-Chain
-
-Most RWA projects start at the API layer and trust external data. **We start at the hardware.**
-
-```
-Chip  →  Firmware  →  Embedded  →  Platform (STRIKON)  →  Blockchain (Avalanche)
-└─────── Built by Wingside (20+ years hardware leadership) ──────┘   └── EnergyFi ──┘
-```
-
-| Layer | What we control | Why it matters |
-| :--- | :--- | :--- |
-| **Hardware** | Custom charging modules, metering ICs | Data is signed at the source — no API tampering possible |
-| **Firmware** | Embedded real-time OS, OCPP stack | Tamper-evident telemetry before it ever hits the network |
-| **Platform** | STRIKON (30+ microservices) | Production-grade data pipeline, already built |
-| **Blockchain** | EnergyFi on Avalanche | RWA tokenisation with FinTech-grade consistency |
-
-Every build is continuously validated by a **Virtual Twin** — a dedicated simulation environment that stress-tests AI outputs against deterministic baselines, ensuring the probabilistic nature of AI never compromises financial accuracy.
-
-<div align="center">
-<img src="docs/assets/strikon_virtual_twin.png" width="800"/>
-</div>
-
-> 🔗 [View interactive Virtual Twin architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/virtual_twin_architecture.html)
-
-When the asset backing your STO is verified from the chip level up — and every AI decision is regression-tested before deployment — **the trust model is fundamentally different** from projects that scrape third-party APIs.
+* **30% Avalanche Foundation:** Token buy-back & burn to defend ecosystem value.
+* **20% Operations:** Funding for **HELIX** (Self-healing AI) and **APEX** (Investment AI) development.
+* **50% Re-investment (The Snowball):** Automatically allocated to manufacture and install *new* chargers.
+    * *Result:* The infrastructure grows geometrically without needing continuous external capital injection.
 
 ---
 
@@ -178,46 +192,55 @@ When the asset backing your STO is verified from the chip level up — and every
 
 ## Token Lifecycle
 
-**Real-World Asset → On-Chain Security → Investor Yield** in 7 steps:
+**From Hardware to Handheld Yield** — How real-world utilization turns into investor profit:
 
-| Step | Component | What happens |
+| Step | Component | Action & Logic |
 | :---: | :--- | :--- |
-| ① | **STRIKON API** | kWh & revenue data (mock JSON for demo, live API at launch) |
-| ② | **APEX Engine** | AI valuation — NPV, IRR, risk score |
-| ③ | **Oracle Relay** | Push verified data on-chain |
-| ④ | **EnergyToken** | Mint STO tokens (KYC-gated) |
-| ⑤ | **EnergyDEX** | P2P order matching *(Phase 2)* |
-| ⑥ | **RevenueVault** | Distribute revenue to token holders |
-| ⑦ | **Flutter App** | Investors view & claim earnings |
+| ① | **STRIKON API** | **Data Generation:** Real-time kWh & revenue logs (Signed by TPM). |
+| ② | **APEX Engine** | **Valuation:** AI calculates risk scores and fair value dynamically. |
+| ③ | **EnergyToken** | **Asset Tokenization:** Investors fund hardware via STO (ERC-3643). |
+| ④ | **Oracle Relay** | **Bridge:** Verifies off-chain revenue data and pushes it on-chain. |
+| ⑤ | **RevenueVault** | **Distribution:** Converts fiat revenue to **Stablecoins (USDC)** and distributes yield via Smart Contracts. |
+| ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
+| ⑦ | **Flutter App** | **Claim:** Investors view real-time APY and claim dividends. |
 
 > 📖 Full detail: [08_Token_Lifecycle.md](docs/08_Token_Lifecycle.md)
 
 ---
 
-## Tech Stack
+## Regulatory Roadmap: 2026 STO Act
 
-| Layer | Technology |
-| :--- | :--- |
-| **Smart Contracts** | Solidity ^0.8.20 · Hardhat 3 · OpenZeppelin ^5.3 · Lightweight ERC-3643 |
-| **Blockchain** | Avalanche C-Chain + Custom Subnet (Subnet-EVM) |
-| **Backend** | TypeScript · Node.js 24 · ethers.js ^6.14 |
-| **AI** | Python · Claude API (APEX Engine) |
-| **Mobile** | Flutter ^3.7 · Riverpod · WalletConnect v2 |
+We are preparing for the enforcement of South Korea's **Electronic Securities Act (Jan 2026)**.
+
+* **Goal:** Obtain status as a **"Self-Issuing Account Management Institution"**.
+* **Strategy:** By proving that our **Hardware Anchor + Blockchain Ledger** provides higher transparency than human auditors, we aim to bypass traditional brokerage intermediaries.
+* **Current Status:** Technical Due Diligence (Retro9000 Proposal) in progress.
 
 ---
 
-## Roadmap — Build Games Timeline
+## Future Expansion: V2G & VPP
 
-| Phase | Focus | Deliverables | Status |
-| :--- | :--- | :--- | :---: |
-| **Application** (~ Feb 13) | Project setup | Docs, architecture, interface spec, repo scaffold | ✅ |
-| **Week 1** (Feb 14~) | Idea Pitch | 1-min pitch video, project narrative | 🔧 |
-| **Week 2–3** | Prototype / MVP | STO contracts (ERC-3643), Oracle Relay, mock data demo, Flutter wallet | ⬜ |
-| **Week 4–5** | GTM & Vision | Fuji testnet deployment, STRIKON API integration plan, growth strategy | ⬜ |
-| **Week 6** | Finals | Live demo, pitch deck, documentation polish | ⬜ |
+While our current focus is on the **Charging Station STO**, the hardware is future-proofed for:
 
-**Post-hackathon**: STRIKON platform launch (June 2026) → EnergyFi mainnet (Jan 2027, aligned with STO Act enforcement)
+* **V2G (Vehicle-to-Grid):** Turning EVs into mobile batteries to stabilize the grid.
+* **VPP (Virtual Power Plant):** Aggregating distributed chargers to trade power.
 
+*These features will be activated in Phase 3 (Global Standard), creating additional revenue streams for STO holders beyond simple charging fees.*
+
+---
+
+## 🛠️ Technology Stack
+
+EnergyFi connects established hardware infrastructure with the Avalanche blockchain.
+
+| Layer | Component  | Technology |
+| :--- | :--- | :--- |
+| **Asset (Off-chain)** | **EV Charger** | Custom Hardware, TPM 2.0, metering IC |
+| **Platform (Off-chain)** | **STRIKON** | Node.js microservices, Python AI Agents (APEX) |
+| **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche Subnet**, Hardhat |
+| **Interface** | **App** | Flutter, WalletConnect v2, ethers.js |
+
+> **Hackathon Focus:** During this hackathon, we built the **EnergyFi Protocol** (Smart Contracts & Subnet config) and the **Oracle Relay** that connects the live TPM data from STRIKON to the Avalanche blockchain.
 ---
 
 ## Documentation

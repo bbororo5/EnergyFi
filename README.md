@@ -192,17 +192,17 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 
 ## Token Lifecycle
 
-**Real-World Asset → On-Chain Security → Investor Yield** in 7 steps:
+**From Hardware to Handheld Yield** — How real-world utilization turns into investor profit:
 
-| Step | Component | What happens |
+| Step | Component | Action & Logic |
 | :---: | :--- | :--- |
-| ① | **STRIKON API** | kWh & revenue data (mock JSON for demo, live API at launch) |
-| ② | **APEX Engine** | AI valuation — NPV, IRR, risk score |
-| ③ | **Oracle Relay** | Push verified data on-chain |
-| ④ | **EnergyToken** | Mint STO tokens (KYC-gated) |
-| ⑤ | **EnergyDEX** | P2P order matching *(Phase 2)* |
-| ⑥ | **RevenueVault** | Distribute revenue to token holders |
-| ⑦ | **Flutter App** | Investors view & claim earnings |
+| ① | **STRIKON API** | **Data Generation:** Real-time kWh & revenue logs (Signed by TPM). |
+| ② | **APEX Engine** | **Valuation:** AI calculates risk scores and fair value dynamically. |
+| ③ | **EnergyToken** | **Asset Tokenization:** Investors fund hardware via STO (ERC-3643). |
+| ④ | **Oracle Relay** | **Bridge:** Verifies off-chain revenue data and pushes it on-chain. |
+| ⑤ | **RevenueVault** | **Distribution:** Converts fiat revenue to **Stablecoins (USDC)** and distributes yield via Smart Contracts. |
+| ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
+| ⑦ | **Flutter App** | **Claim:** Investors view real-time APY and claim dividends. |
 
 > 📖 Full detail: [08_Token_Lifecycle.md](docs/08_Token_Lifecycle.md)
 

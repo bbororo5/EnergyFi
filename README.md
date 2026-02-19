@@ -163,40 +163,20 @@ We are not just building a private subnet; we are building an **Institutional-Re
 * **Purpose:** Handling high-frequency IoT data (voltage, amperage, session logs) requires zero latency and zero gas costs for devices.
 * **Security:** Our private subnet ensures that sensitive raw data is processed securely before yield data is bridged to the public chain.
 
-| Signal | What it means |
-| :--- | :--- |
-| **STO Act (Jan 15 2026)** | Tokenised securities on real-world assets are now legal — first-mover advantage is critical |
-| **V2G growth** | EV batteries absorb surplus energy, sell back to grid — our beachhead market |
-| **AI datacenter boom → nuclear** | Nuclear can't ramp down — surplus energy needs distributed storage like V2G |
-| **Beyond EV charging** | Same architecture extends to ESS, solar, and other distributed energy resources |
+### 2. Evergreen Compatibility (Future-Proofing)
+* **Standardization:** We adopt the data standards and permissioning structures used by **Spruce** and **Intain** (Avalanche's institutional subnets).
+* **Interoperability:** This design ensures that when EnergyFi STOs are ready for global liquidity, they can seamlessly connect with Wall Street institutions and regulated DeFi protocols on the Avalanche network.
 
 ---
 
-## Why This Team — Chip-to-Chain
+## The "Infinite Snowball" Model
 
-Most RWA projects start at the API layer and trust external data. **We start at the hardware.**
+EnergyFi introduces a self-replicating economic model powered by AI and Blockchain transparency.
 
-```
-Chip  →  Firmware  →  Embedded  →  Platform (STRIKON)  →  Blockchain (Avalanche)
-└─────── Built by Wingside (20+ years hardware leadership) ──────┘   └── EnergyFi ──┘
-```
-
-| Layer | What we control | Why it matters |
-| :--- | :--- | :--- |
-| **Hardware** | Custom charging modules, metering ICs | Data is signed at the source — no API tampering possible |
-| **Firmware** | Embedded real-time OS, OCPP stack | Tamper-evident telemetry before it ever hits the network |
-| **Platform** | STRIKON (30+ microservices) | Production-grade data pipeline, already built |
-| **Blockchain** | EnergyFi on Avalanche | RWA tokenisation with FinTech-grade consistency |
-
-Every build is continuously validated by a **Virtual Twin** — a dedicated simulation environment that stress-tests AI outputs against deterministic baselines, ensuring the probabilistic nature of AI never compromises financial accuracy.
-
-<div align="center">
-<img src="docs/assets/strikon_virtual_twin.png" width="800"/>
-</div>
-
-> 🔗 [View interactive Virtual Twin architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/virtual_twin_architecture.html)
-
-When the asset backing your STO is verified from the chip level up — and every AI decision is regression-tested before deployment — **the trust model is fundamentally different** from projects that scrape third-party APIs.
+* **30% Avalanche Foundation:** Token buy-back & burn to defend ecosystem value.
+* **20% Operations:** Funding for **HELIX** (Self-healing AI) and **APEX** (Investment AI) development.
+* **50% Re-investment (The Snowball):** Automatically allocated to manufacture and install *new* chargers.
+    * *Result:* The infrastructure grows geometrically without needing continuous external capital injection.
 
 ---
 

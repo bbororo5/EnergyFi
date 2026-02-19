@@ -155,11 +155,13 @@ To ensure financial accuracy, every AI decision is regression-tested in our **Vi
 
 Avalanche is the only ecosystem where you can **spin up a dedicated chain for your use case** while settling on a shared, liquid public chain — without a third-party bridge.
 
----
+## Avalanche Strategy: Built for Institutions
 
-## Why Now?
+We are not just building a private subnet; we are building an **Institutional-Ready Infrastructure** aligned with **Avalanche Evergreen** standards.
 
-South Korea's **STO Act passed on Jan 15 2026** with a **1-year grace period**. Teams that ship first will set the standard.
+### 1. Private Subnet for Data Security
+* **Purpose:** Handling high-frequency IoT data (voltage, amperage, session logs) requires zero latency and zero gas costs for devices.
+* **Security:** Our private subnet ensures that sensitive raw data is processed securely before yield data is bridged to the public chain.
 
 | Signal | What it means |
 | :--- | :--- |

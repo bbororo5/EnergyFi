@@ -67,7 +67,6 @@ EnergyFi solves this at the source:
 **"Code is Law"**: By securing data at the chip level, we eliminate the need for costly manual verification by brokerage firms, enabling a true **Trustless Architecture**.
 
 ---
-
 ## The Foundation — Already Built
 
 EnergyFi is not starting from zero. It sits on top of two production-grade systems built by Wingside:
@@ -133,7 +132,17 @@ EnergyFi is the **blockchain layer** that connects these systems to Avalanche:
 
 > **Hackathon demo**: mock JSON matching production schema · **At launch (June 2026)**: live data via STRIKON API
 
+###  Virtual Twin — Reliability
+
+To ensure financial accuracy, every AI decision is regression-tested in our **Virtual Twin** environment before deployment. We don't guess; we simulate.
+
+<div align="center">
+<img src="docs/assets/strikon_virtual_twin.png" width="100%" style="border-radius: 10px;"/>
+</div>
+
+> 🔗 [View interactive Virtual Twin architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/virtual_twin_architecture.html)
 ---
+
 
 ## Why Avalanche?
 

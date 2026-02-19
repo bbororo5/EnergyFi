@@ -208,19 +208,17 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 
 ---
 
-## Tech Stack
+## Regulatory Roadmap: 2026 STO Act
 
-| Layer | Technology |
-| :--- | :--- |
-| **Smart Contracts** | Solidity ^0.8.20 · Hardhat 3 · OpenZeppelin ^5.3 · Lightweight ERC-3643 |
-| **Blockchain** | Avalanche C-Chain + Custom Subnet (Subnet-EVM) |
-| **Backend** | TypeScript · Node.js 24 · ethers.js ^6.14 |
-| **AI** | Python · Claude API (APEX Engine) |
-| **Mobile** | Flutter ^3.7 · Riverpod · WalletConnect v2 |
+We are preparing for the enforcement of South Korea's **Electronic Securities Act (Jan 2026)**.
+
+* **Goal:** Obtain status as a **"Self-Issuing Account Management Institution"**.
+* **Strategy:** By proving that our **Hardware Anchor + Blockchain Ledger** provides higher transparency than human auditors, we aim to bypass traditional brokerage intermediaries.
+* **Current Status:** Technical Due Diligence (Retro9000 Proposal) in progress.
 
 ---
 
-## Roadmap — Build Games Timeline
+## Future Expansion: V2G & VPP
 
 | Phase | Focus | Deliverables | Status |
 | :--- | :--- | :--- | :---: |

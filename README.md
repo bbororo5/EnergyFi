@@ -236,7 +236,7 @@ EnergyFi connects established hardware infrastructure with the Avalanche blockch
 | Layer | Component  | Technology |
 | :--- | :--- | :--- |
 | **Asset (Off-chain)** | **EV Charger** | Custom Hardware, TPM 2.0, metering IC |
-| **Platform (Off-chain)** | **STRIKON** | Node.js microservices, Python AI Agents (APEX) |
+| **Platform (Off-chain)** | **STRIKON** | Golang 30+ microservices, Python AI Agents (APEX) |
 | **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche Subnet**, Hardhat |
 | **Interface** | **App** | Flutter, WalletConnect v2, ethers.js |
 

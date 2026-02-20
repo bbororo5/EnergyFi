@@ -220,16 +220,27 @@ We are preparing for the enforcement of South Korea's **Electronic Securities Ac
 
 ## Future Expansion: V2G & VPP
 
-| Phase | Focus | Deliverables | Status |
-| :--- | :--- | :--- | :---: |
-| **Application** (~ Feb 13) | Project setup | Docs, architecture, interface spec, repo scaffold | ✅ |
-| **Week 1** (Feb 14~) | Idea Pitch | 1-min pitch video, project narrative | 🔧 |
-| **Week 2–3** | Prototype / MVP | STO contracts (ERC-3643), Oracle Relay, mock data demo, Flutter wallet | ⬜ |
-| **Week 4–5** | GTM & Vision | Fuji testnet deployment, STRIKON API integration plan, growth strategy | ⬜ |
-| **Week 6** | Finals | Live demo, pitch deck, documentation polish | ⬜ |
+While our current focus is on the **Charging Station STO**, the hardware is future-proofed for:
 
-**Post-hackathon**: STRIKON platform launch (June 2026) → EnergyFi mainnet (Jan 2027, aligned with STO Act enforcement)
+* **V2G (Vehicle-to-Grid):** Turning EVs into mobile batteries to stabilize the grid.
+* **VPP (Virtual Power Plant):** Aggregating distributed chargers to trade power.
 
+*These features will be activated in Phase 3 (Global Standard), creating additional revenue streams for STO holders beyond simple charging fees.*
+
+---
+
+## 🛠️ Technology Stack
+
+EnergyFi connects established hardware infrastructure with the Avalanche blockchain.
+
+| Layer | Component  | Technology |
+| :--- | :--- | :--- |
+| **Asset (Off-chain)** | **EV Charger** | Custom Hardware, TPM 2.0, metering IC |
+| **Platform (Off-chain)** | **STRIKON** | Node.js microservices, Python AI Agents (APEX) |
+| **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche Subnet**, Hardhat |
+| **Interface** | **App** | Flutter, WalletConnect v2, ethers.js |
+
+> **Hackathon Focus:** During this hackathon, we built the **EnergyFi Protocol** (Smart Contracts & Subnet config) and the **Oracle Relay** that connects the live TPM data from STRIKON to the Avalanche blockchain.
 ---
 
 ## Documentation

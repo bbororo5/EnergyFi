@@ -118,7 +118,7 @@ APEX analyses every charging station and produces **investment-grade intelligenc
 | **AI Signal** | UNDERVALUED / FAIR VALUE / OVERVALUED |
 | **Revenue Forecast** | Monthly projections with confidence intervals |
 
-> 📖 Full interface schema: [09_Interface_Spec.md](docs/09_Interface_Spec.md)
+> 📖 Full interface schema: [Interface Spec](docs/strikon-interface-spec.md)
 
 ### What EnergyFi Adds
 
@@ -186,7 +186,7 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 <img src="docs/assets/architecture.png" width="800"/>
 </div>
 
-> 🔗 [View interactive version with hover details](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/architecture-diagram.html)
+> 🔗 [View interactive version with hover details](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/architecture-diagram.html)
 
 ---
 
@@ -199,12 +199,12 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 | ① | **STRIKON API** | **Data Generation:** Real-time kWh & revenue logs (Signed by TPM). |
 | ② | **APEX Engine** | **Valuation:** AI calculates risk scores and fair value dynamically. |
 | ③ | **EnergyToken** | **Asset Tokenization:** Investors fund hardware via STO (ERC-3643). |
-| ④ | **Oracle Relay** | **Bridge:** Verifies off-chain revenue data and pushes it on-chain. |
+| ④ | **STRIKON Platform** | **Bridge:** Verifies off-chain revenue data and pushes it on-chain. |
 | ⑤ | **RevenueVault** | **Distribution:** Converts fiat revenue to **Stablecoins (USDC)** and distributes yield via Smart Contracts. |
 | ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
 | ⑦ | **Flutter App** | **Claim:** Investors view real-time APY and claim dividends. |
 
-> 📖 Full detail: [08_Token_Lifecycle.md](docs/08_Token_Lifecycle.md)
+> 📖 Full detail: See [Smart Contract Spec](contracts/l1/docs/smart-contract-spec.md) and [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md)
 
 ---
 
@@ -237,27 +237,26 @@ EnergyFi connects established hardware infrastructure with the Avalanche blockch
 | :--- | :--- | :--- |
 | **Asset (Off-chain)** | **EV Charger** | Custom Hardware, TPM 2.0, metering IC |
 | **Platform (Off-chain)** | **STRIKON** | Golang 30+ microservices, Python AI Agents (APEX) |
-| **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche Subnet**, Hardhat |
+| **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche L1**, Hardhat 3 |
 | **Interface** | **App** | Flutter, WalletConnect v2, ethers.js |
 
-> **Hackathon Focus:** During this hackathon, we built the **EnergyFi Protocol** (Smart Contracts & Subnet config) and the **Oracle Relay** that connects the live TPM data from STRIKON to the Avalanche blockchain.
+> **Hackathon Focus:** During this hackathon, we built the **EnergyFi Protocol** (Smart Contracts & L1 config) that records TPM 2.0 SE-signed charging data on-chain and applies VM0038 carbon reduction calculations.
 ---
 
 ## Documentation
 
 | Document | Description |
 | :--- | :--- |
-| [**Architecture Diagram**](docs/architecture-diagram.html) | Interactive system architecture (HTML) |
-| [00 Project Overview](docs/00_Project_Overview.md) | Vision, differentiators, tech stack |
-| [01 Architecture](docs/01_Architecture.md) | System architecture & hybrid topology |
-| [02 Smart Contract Spec](docs/02_Smart_Contract_Spec.md) | Contract specifications (Phase 1 / 2) |
-| [03 Environment Setup](docs/03_Environment_Setup.md) | Development environment setup |
-| [04 Deployment Guide](docs/04_Deployment_Guide.md) | 5-unit deployment procedure |
-| [05 Regulatory Framework](docs/05_Regulatory_Framework.md) | Regulatory & compliance |
-| [06 Oracle Relay Spec](docs/06_Oracle_Relay_Spec.md) | Oracle Relay service spec |
-| [07 Frontend Spec](docs/07_Frontend_Spec.md) | Flutter mobile app spec |
-| [08 Token Lifecycle](docs/08_Token_Lifecycle.md) | Token lifecycle: Data → Yield |
-| [09 Interface Spec](docs/09_Interface_Spec.md) | STRIKON ↔ EnergyFi interface schemas (8 APIs) |
+| [**Architecture Diagram**](docs/assets/architecture-diagram.html) | Interactive system architecture (HTML) |
+| [Project Overview](docs/project-overview.md) | Vision, differentiators, tech stack |
+| [Architecture](docs/architecture.md) | System architecture & hybrid topology |
+| [Smart Contract Spec](contracts/l1/docs/smart-contract-spec.md) | Contract specifications (9-contract architecture) |
+| [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md) | Phase-by-phase implementation plan |
+| [ERC Standards Analysis](contracts/l1/docs/erc-standards-analysis.md) | ERC standard compliance analysis |
+| [Environment Setup](docs/environment-setup.md) | Development environment setup |
+| [Deployment Guide](docs/deployment-guide.md) | 3-phase deployment (Dev → Hackathon → Production) |
+| [Interface Spec](docs/strikon-interface-spec.md) | STRIKON ↔ EnergyFi interface schemas (9 steps) |
+| [Frontend Design](frontend/docs/flutter-design.md) | Investor Flutter app design |
 
 <details>
 <summary><b>Quick Start (click to expand)</b></summary>
@@ -266,18 +265,11 @@ EnergyFi connects established hardware infrastructure with the Avalanche blockch
 git clone https://github.com/Seon-ung/EnergyFi.git
 cd EnergyFi
 
-# Smart Contracts
-cd contracts/c-chain && npm install && npx hardhat compile
-cd ../subnet && npm install && npx hardhat compile
-
-# Oracle Relay
-cd ../../services/oracle-relay && npm install
-
-# Flutter App
-cd ../../frontend && flutter pub get && flutter run
+# L1 Smart Contracts
+cd contracts/l1 && npm install && npx hardhat compile
 ```
 
-> 📖 Full guide: [03_Environment_Setup.md](docs/03_Environment_Setup.md)
+> 📖 Full guide: [Environment Setup](docs/environment-setup.md)
 
 </details>
 

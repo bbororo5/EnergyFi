@@ -2,13 +2,13 @@
   "name": "subnet",
   "version": "1.0.0",
   "type": "module",
-  "description": "This directory contains contracts deployed to the Wingside Subnet (L2). Focus: High-volume Data Logging.",
+  "description": "Smart contracts deployed to the EnergyFi L1 (Avalanche L1 private chain).",
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "clean": "npx hardhat clean",
-    "deploy:wingside": "npx hardhat run scripts/deploy_subnet.ts --network wingside",
-    "deploy:local": "npx hardhat run scripts/deploy_subnet.ts --network localhost"
+    "deploy:testnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-testnet",
+    "deploy:mainnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-mainnet"
   },
   "keywords": [],
   "author": "",

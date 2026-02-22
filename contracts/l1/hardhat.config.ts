@@ -18,11 +18,17 @@ export default defineConfig({
   ],
   solidity: "0.8.20",
   networks: {
-    wingside: {
+    "energyfi-l1-testnet": {
       type: "http",
-      url: process.env.WINGSIDE_SUBNET_RPC || "http://127.0.0.1:9650/ext/bc/YOUR_SUBNET_ID/rpc",
+      url: process.env.ENERGYFI_L1_TESTNET_RPC || "",
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
-      chainId: 12345,
+      chainId: 270626,
+    },
+    "energyfi-l1-mainnet": {
+      type: "http",
+      url: process.env.ENERGYFI_L1_MAINNET_RPC || "",
+      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
+      chainId: 270626,
     },
   },
 });

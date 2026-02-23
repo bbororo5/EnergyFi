@@ -1,6 +1,6 @@
 {
   "config": {
-    "chainId": 12345,
+    "chainId": 270626,
     "homesteadBlock": 0,
     "eip150Block": 0,
     "eip155Block": 0,
@@ -14,17 +14,17 @@
     "feeConfig": {
       "gasLimit": 8000000,
       "targetBlockRate": 2,
-      "minBaseFee": 25000000000,
+      "minBaseFee": 0,
       "targetGas": 15000000,
-      "baseFeeChangeDenominator": 36,
+      "baseFeeChangeDenominator": 1,
       "minBlockGasCost": 0,
-      "maxBlockGasCost": 1000000,
-      "blockGasCostStep": 200000
+      "maxBlockGasCost": 0,
+      "blockGasCostStep": 0
     },
     "allowFeeRecipients": false
   },
   "alloc": {
-    "0xYOUR_DEPLOYER_ADDRESS": {
+    "0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD": {
       "balance": "0x204FCE5E3E25026110000000"
     }
   },

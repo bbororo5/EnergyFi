@@ -204,7 +204,7 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 | ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
 | ⑦ | **Flutter App** | **Claim:** Investors view real-time APY and claim dividends. |
 
-> 📖 Full detail: See [Smart Contract Spec](contracts/l1/docs/smart-contract-spec.md) and [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md)
+> 📖 Full detail: See [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md)
 
 ---
 
@@ -250,8 +250,7 @@ EnergyFi connects established hardware infrastructure with the Avalanche blockch
 | [**Architecture Diagram**](docs/assets/architecture-diagram.html) | Interactive system architecture (HTML) |
 | [Project Overview](docs/project-overview.md) | Vision, differentiators, tech stack |
 | [Architecture](docs/architecture.md) | System architecture & hybrid topology |
-| [Smart Contract Spec](contracts/l1/docs/smart-contract-spec.md) | Contract specifications (9-contract architecture) |
-| [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md) | Phase-by-phase implementation plan |
+| [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md) | Architecture overview, phase-by-phase implementation plan |
 | [ERC Standards Analysis](contracts/l1/docs/erc-standards-analysis.md) | ERC standard compliance analysis |
 | [Environment Setup](docs/environment-setup.md) | Development environment setup |
 | [Deployment Guide](docs/deployment-guide.md) | 3-phase deployment (Dev → Hackathon → Production) |

@@ -30,15 +30,25 @@ To prevent binary conflicts (e.g., Hardhat HHE3 errors), ensure NVM-managed path
 export PATH="$NVM_BIN:/opt/homebrew/bin:/usr/local/bin:$PATH"
 ```
 
-### 2.3 Avalanche-CLI Installation
+### 2.3 L1 인프라 CLI
+
+> **현재 상태**: EnergyFi L1은 AvaCloud Testnet Starter로 이미 배포 완료 (2026.03). 신규 L1 생성은 불필요.
+> **Platform CLI v1.0.1** (`~/bin/platform`)이 Avalanche-CLI를 대체하여 사용 중.
+>
+> ```bash
+> # Platform CLI PATH 설정 (필요 시)
+> export PATH="$HOME/bin:$PATH"
+>
+> # RPC: https://subnets.avax.network/energyfi/testnet/rpc
+> # Chain ID: 270626 (0x42122)
+> ```
+>
+> 아래는 로컬 개발 환경에서 Avalanche-CLI로 직접 L1을 구성하는 경우 참고용 (비권장):
 
 ```bash
-# Install Avalanche-CLI
+# [참고용 — 비권장] Avalanche-CLI를 이용한 로컬 L1 생성
 curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s
-
-# Verify installation
 avalanche --version
-
 # The CLI will automatically download AvalancheGo when needed
 ```
 

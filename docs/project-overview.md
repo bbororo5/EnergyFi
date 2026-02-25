@@ -9,8 +9,8 @@ EnergyFi = **Layer 3** (smart contracts + L1 chain config) + **Layer 4** (invest
 ```
 EnergyFi scope
     Layer 4: Investor Interface (frontend — planned)
-    Layer 3: Avalanche L1 Private Chain (9 smart contracts)
-    ─────────────────────────────────────────────────────
+    Layer 3: Avalanche L1 Private Chain (12 contracts + 1 factory)
+    ──────────────────────────────────────────────────────────────
     Layer 2: STRIKON Platform (external — 30+ microservices)
     Layer 1: Hardware Root of Trust (external — TPM 2.0 SE)
 ```
@@ -22,7 +22,7 @@ EnergyFi scope
 | **Data** | Real-time charging session records | SE-signed data → ChargeTransaction (ERC-721) on-chain |
 | **Carbon** | VM0038 carbon reduction calculation | CarbonReduction (immutable contract) + ParameterRegistry |
 | **Registry** | CPO → Station → Charger hierarchy | StationRegistry on Avalanche L1 |
-| **Tokenization** | Per-region fractional ownership (17 regions) | RegionSTO (ERC-20) via RegionSTOFactory |
+| **Tokenization** | Per-region fractional ownership (17 regions) | RegionSTO (표준 미확정 — 발행 경로 결정 후) via RegionSTOFactory |
 | **Portfolio** | Investor dashboard data | STOPortfolio + ReputationRegistry |
 | **Verification** | Carbon credit pipeline | CarbonBatch → VVB → VCUReference |
 
@@ -42,7 +42,7 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 EnergyFi/
 ├── contracts/
 │   └── l1/                # Unit B: Avalanche L1 private chain contracts
-│       ├── contracts/     # 9-contract architecture (see docs/contracts/smart-contract-spec.md)
+│       ├── contracts/     # 12-contract architecture (see contracts/l1/docs/implementation-roadmap.md)
 │       ├── scripts/       # Deployment scripts
 │       └── hardhat.config.ts
 ├── l1-config/             # Unit A: L1 genesis & runtime config

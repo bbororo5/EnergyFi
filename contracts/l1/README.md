@@ -2,7 +2,7 @@
 
 This directory contains contracts deployed to the EnergyFi L1 (Avalanche L1 private chain).
 
-9-contract architecture (see `docs/contracts/smart-contract-spec.md` for details):
+12-contract architecture (see `docs/implementation-roadmap.md` for architecture overview):
 
 | Category | Contract |
 |:---|:---|

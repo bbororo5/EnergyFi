@@ -34,6 +34,7 @@ export const revenueLifecycleSuite: TestSuite = {
     let cpoStationLabel: string | null = null;
     let cpoId: string | null = null;
     let cpoRevAccBefore = 0n;
+    let stationAccBefore = 0n;
     let historyLenBefore = 0;
     const period = currentPeriod();
 
@@ -59,6 +60,7 @@ export const revenueLifecycleSuite: TestSuite = {
       // 3건 동일 충전소에 기록
       const revBefore = await rt.getStationRevenue(cpoStationId);
       const accBefore = BigInt(revBefore[0] ?? 0);
+      stationAccBefore = accBefore; // R-2 증분 검증용
 
       for (let i = 0; i < 3; i++) {
         await generateAndProcessSession(ctx, stationLabel, "CPO");
@@ -88,16 +90,16 @@ export const revenueLifecycleSuite: TestSuite = {
           const accAfter = BigInt(rev[0] ?? rev.accumulated ?? 0);
           const increase = accAfter - cpoRevAccBefore;
           // R-1에서 3건 기록했으므로 increase > 0이고 정확한 증분 검증
-          // 각 세션의 distributableKrw를 개별 캡처하지 않으므로,
-          // 충전소 수익 증분과 CPO 수익 증분이 동일한지 대조
+          // 충전소 수익 증분과 CPO 수익 증분을 대조
           const stationRev = await rt.getStationRevenue(cpoStationId!);
-          const stationAcc = BigInt(stationRev[0] ?? 0);
-          return { cpoIncrease: increase, stationAcc };
+          const stationAccNow = BigInt(stationRev[0] ?? 0);
+          const stationIncrease = stationAccNow - stationAccBefore;
+          return { cpoIncrease: increase, stationIncrease };
         },
         (r: any) => {
-          // CPO 증분 ≥ stationAcc (CPO에 충전소 여러 개일 수 있으므로 ≥)
-          if (r.cpoIncrease > 0n && r.cpoIncrease >= r.stationAcc) return true;
-          return `CPO 증분=${r.cpoIncrease}, 충전소 acc=${r.stationAcc}`;
+          // CPO 증분 ≥ 충전소 증분 (CPO에 충전소 여러 개일 수 있으므로 ≥)
+          if (r.cpoIncrease > 0n && r.cpoIncrease >= r.stationIncrease) return true;
+          return `CPO 증분=${r.cpoIncrease}, 충전소 증분=${r.stationIncrease}`;
         },
         emit, counts);
     } else {

@@ -183,7 +183,7 @@ TPM 2.0 SE Chip (signs kWh data at hardware level)
 | **Hardware Security** | TPM 2.0 SE | Company-specified secure element for Root of Trust |
 | **Data Source** | STRIKON Platform | 30+ microservice production platform |
 | **AI Engine** | Python, Claude API | Asset valuation (APEX), risk scoring (planned) |
-| **Frontend** | TBD | Will be reimplemented for per-region STO model |
+| **Frontend** | React Native + Expo (SDK 54), TypeScript | Will be implemented for per-region STO model |
 
 ## 6. Trust Chain — Multi-Layer Signature & On-Chain Verification
 

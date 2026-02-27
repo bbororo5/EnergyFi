@@ -8,7 +8,7 @@ This document covers the deployment units, their execution procedures, and the p
 |:---|:---|:---|:---|:---|:---|
 | **A** | L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | AvalancheGo node | Active |
 | **B** | L1 Smart Contracts | `contracts/l1/` | Solidity, Hardhat 3 | **Unit A** running | Active |
-| **C** | Frontend | `frontend/` | TBD | **Unit B** deployed | Planned |
+| **C** | Frontend | `frontend/` | React Native + Expo (SDK 54), TypeScript | **Unit B** deployed | Planned |
 
 > **Note:** Off-chain services (data relay, oracle pattern) are managed by the STRIKON platform and are outside the scope of this repository.
 

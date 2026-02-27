@@ -13,7 +13,8 @@
     "deploy:mainnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-mainnet",
     "dashboard:testnet": "tsx scripts/dashboard/web/server.ts energyfi-l1-testnet",
     "dashboard:local": "tsx scripts/dashboard/web/server.ts localhost",
-    "dashboard:l1-local": "tsx scripts/dashboard/web/server.ts energyfi-l1-local"
+    "dashboard:l1-local": "tsx scripts/dashboard/web/server.ts energyfi-l1-local",
+    "test:integration": "tsx scripts/dashboard/cli-runner.ts energyfi-l1-local"
   },
   "keywords": [],
   "author": "",

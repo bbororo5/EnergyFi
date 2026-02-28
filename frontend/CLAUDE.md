@@ -1,29 +1,67 @@
-# frontend — Agent Instructions
+# EnergyFi Frontend — CLAUDE.md
 
-Inherits all rules from [root CLAUDE.md](../CLAUDE.md). The following are additional constraints specific to this module.
+Agent instructions for the EnergyFi investor frontend. Follows the root [CLAUDE.md](../CLAUDE.md).
 
-## Scope
+---
 
-Investor-facing mobile application for STO portfolio management, revenue tracking, and claim transactions.
+## 1. Stack
 
-## Status
+| Component | Technology | Version |
+|:---|:---|:---|
+| Framework | React Native + Expo | SDK 54 |
+| Language | TypeScript | ~5.9 |
+| Router | expo-router | ~6.x (file-based routing) |
+| Navigation | @react-navigation | v7 |
+| Package Manager | npm | 11.x |
+| Platforms | iOS, Android, Web | via Expo |
 
-**Planned reimplementation.** The frontend will be rebuilt to align with the per-region STO model (17 administrative regions, ISO 3166-2:KR) and the 9-contract architecture.
+## 2. Project Structure
 
-## Planned Stack
+```
+frontend/
+  app/              # File-based routes (expo-router)
+    _layout.tsx     # Root layout
+    (tabs)/         # Tab navigator group
+    +not-found.tsx  # 404 fallback
+  assets/images/    # Icons, splash screen
+  components/       # Reusable UI components
+  constants/        # Theme colors, config
+  hooks/            # Custom React hooks
+  docs/             # Design docs (preserved from Flutter era)
+  app.json          # Expo configuration
+  package.json      # Dependencies
+  tsconfig.json     # TypeScript config
+```
 
-- Flutter + Dart
-- WalletConnect v2 (wallet integration)
-- ethers.js (contract interaction)
+## 3. Commands
 
-## Key Rules
+```bash
+npm start          # Start Expo dev server
+npm run web        # Start web dev server
+npm run ios        # Start iOS simulator
+npm run android    # Start Android emulator
+npm run lint       # Run ESLint
+```
 
-1. **Read-only by default** — The app primarily reads on-chain data. The only write operation is `claim()` for investor withdrawals.
-2. **Never store private keys in app code or local storage** — Use WalletConnect for all signing operations.
-3. **KYC gate required** — All investment-related screens must be gated behind KYC verification status.
-4. **Securities firm role boundary** — KYC/AML and dividend calculation/execution are the securities firm's domain. The app provides on-chain data views only; do not implement dividend logic or KYC verification flows.
+## 4. Conventions
 
-## Reference Docs
+- All new files must be TypeScript (`.ts` / `.tsx`).
+- Use functional components with hooks. No class components.
+- Follow expo-router file-based routing conventions.
+- Reusable components go in `components/`, not in `app/`.
+- Keep `app/` files thin — delegate logic to hooks and components.
+- Use `constants/Colors.ts` for theme colors.
 
-- [Frontend Design](docs/flutter-design.md)
-- [Interface Spec](../docs/strikon-interface-spec.md) — Step ⑨ (investor app → L1)
+## 5. Key Boundaries
+
+- The frontend reads on-chain data from EnergyFi L1 smart contracts (read-only for investors).
+- Wallet connection will use WalletConnect v2 or similar (TBD).
+- KYC/AML flows are handled by the securities firm, not this app.
+- Revenue distribution display only — no on-chain write operations for dividends.
+
+## 6. Dependencies Policy
+
+- Use Expo-compatible libraries only (`npx expo install <package>`).
+- Avoid bare React Native modules that require native linking unless absolutely necessary.
+- Prefer `expo-image` over `react-native-fast-image`.
+- Prefer `@expo/vector-icons` for icons.

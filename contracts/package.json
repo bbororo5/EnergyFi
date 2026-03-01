@@ -4,17 +4,17 @@
   "type": "module",
   "description": "Smart contracts deployed to the EnergyFi L1 (Avalanche L1 private chain).",
   "scripts": {
-    "compile": "npx hardhat compile",
+    "compile": "npx hardhat compile && npm run typechain",
+    "typechain": "typechain --target ethers-v6 --out-dir typechain-types 'artifacts/contracts/**/*.json'",
     "test": "npx hardhat test",
+    "test:integration": "npx hardhat test test/integration/ChargeRouter.test.ts",
+    "test:all": "npm test && npm run test:integration",
+    "test:live": "tsx tools/dashboard/cli-runner.ts energyfi-l1-local",
     "clean": "npx hardhat clean",
     "node": "npx hardhat node",
     "deploy:local": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-local",
-    "deploy:testnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-testnet",
-    "deploy:mainnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-mainnet",
-    "dashboard:testnet": "tsx scripts/dashboard/web/server.ts energyfi-l1-testnet",
-    "dashboard:local": "tsx scripts/dashboard/web/server.ts localhost",
-    "dashboard:l1-local": "tsx scripts/dashboard/web/server.ts energyfi-l1-local",
-    "test:integration": "tsx scripts/dashboard/cli-runner.ts energyfi-l1-local"
+    "dashboard:local": "tsx tools/dashboard/server.ts localhost",
+    "dashboard:l1-local": "tsx tools/dashboard/server.ts energyfi-l1-local"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +32,7 @@
     "@nomicfoundation/ignition-core": "^3.0.7",
     "@openzeppelin/contracts": "^5.3.0",
     "@openzeppelin/contracts-upgradeable": "^5.6.1",
+    "@typechain/ethers-v6": "^0.5.1",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.13",
@@ -41,6 +42,7 @@
     "hardhat": "^3.1.7",
     "mocha": "^11.7.5",
     "tsx": "^4.21.0",
+    "typechain": "^8.3.2",
     "typescript": "^5.7.0"
   },
   "dependencies": {

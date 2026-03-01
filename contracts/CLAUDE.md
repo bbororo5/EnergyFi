@@ -1,4 +1,4 @@
-# contracts/l1 — Agent Instructions
+# contracts — Agent Instructions
 
 Inherits all rules from [root CLAUDE.md](../../CLAUDE.md). The following are additional constraints specific to this module.
 

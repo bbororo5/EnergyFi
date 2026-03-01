@@ -204,7 +204,7 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 | ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
 | ⑦ | **Investor App** | **Claim:** Investors view real-time APY and claim dividends. |
 
-> 📖 Full detail: See [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md)
+> 📖 Full detail: See [Implementation Roadmap](contracts/docs/implementation-roadmap.md)
 
 ---
 
@@ -250,8 +250,8 @@ EnergyFi connects established hardware infrastructure with the Avalanche blockch
 | [**Architecture Diagram**](docs/assets/architecture-diagram.html) | Interactive system architecture (HTML) |
 | [Project Overview](docs/project-overview.md) | Vision, differentiators, tech stack |
 | [Architecture](docs/architecture.md) | System architecture & hybrid topology |
-| [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md) | Architecture overview, phase-by-phase implementation plan |
-| [ERC Standards Analysis](contracts/l1/docs/erc-standards-analysis.md) | ERC standard compliance analysis |
+| [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Architecture overview, phase-by-phase implementation plan |
+| [ERC Standards Analysis](contracts/docs/erc-standards-analysis.md) | ERC standard compliance analysis |
 | [Environment Setup](docs/environment-setup.md) | Development environment setup |
 | [Deployment Guide](docs/deployment-guide.md) | 3-phase deployment (Dev → Hackathon → Production) |
 | [Interface Spec](docs/strikon-interface-spec.md) | STRIKON ↔ EnergyFi interface schemas (9 steps) |
@@ -265,7 +265,7 @@ git clone https://github.com/Seon-ung/EnergyFi.git
 cd EnergyFi
 
 # L1 Smart Contracts
-cd contracts/l1 && npm install && npx hardhat compile
+cd contracts && npm install && npx hardhat compile
 ```
 
 > 📖 Full guide: [Environment Setup](docs/environment-setup.md)

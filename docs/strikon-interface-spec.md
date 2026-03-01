@@ -22,8 +22,8 @@
 9. [STEP ⑧ Blockchain Bridge → PostgreSQL](#9-step--blockchain-bridge--postgresql)
 10. [STEP ⑨ 투자자 앱 → Avalanche L1 (claim)](#10-step--투자자-앱--avalanche-l1-claim)
 11. [스마트컨트랙트 인터페이스](#11-스마트컨트랙트-인터페이스)
-    - [STOFactory.sol](#stofactorysol)
-    - [ChargerSTO.sol](#chargerstosol)
+    - [RegionSTOFactory.sol](#regionstofactorysol)
+    - [RegionSTO.sol](#regionstosol)
 12. [오류 코드 정의](#12-오류-코드-정의)
 
 ---
@@ -137,6 +137,7 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
     "charger_id": "chrg_9f8e7d6c-5b4a-3210-fedc-ba9876543210",
     "charger_serial": "ELEC-2026-GN-001-005",
     "station_id": "stn_1a2b3c4d-5e6f-7890-1234-abcdef567890",
+    "region_id": "KR-11",
     "connector_id": 2,
     "id_tag": "A1B2C3D4",
     "meter_start": 38450,
@@ -162,11 +163,12 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
 | 필드명 | 타입 | 필수 | 설명 |
 |--------|------|------|------|
 | `event_id` | `UUID v4` | ✓ | 전역 고유 이벤트 식별자. 하위 서비스 멱등성 처리 키. |
-| `charger_id` | `UUID v4` | ✓ | STRIKON 충전기 엔티티 ID. Blockchain Bridge가 `charger_sto_contracts` 조회에 사용. |
+| `charger_id` | `UUID v4` | ✓ | STRIKON 충전기 엔티티 ID. |
 | `charger_serial` | `string` | ✓ | 물리 시리얼. 형식: `ELEC-{년도}-{지역}-{스테이션}-{유닛}` |
 | `energy_delivered_wh` | `integer` | ✓ | 청구 대상 전력량(Wh). DERA가 통계적 이상치 여부 검증. |
 | `dera_anomaly_flag` | `boolean` | ✓ | `true` 시 과금 및 블록체인 제출 보류. DERA가 별도 조사 큐로 라우팅. |
-| `station_id` | `UUID v4` | ✓ | 프랜차이즈 스테이션 ID. 1 스테이션 = 1 STO 컨트랙트. |
+| `station_id` | `UUID v4` | ✓ | 프랜차이즈 스테이션 ID. Blockchain Bridge가 StationRegistry를 통해 region_id를 조회하여 Region STO 컨트랙트로 라우팅. |
+| `region_id`  | `string`  | ✓ | 행정구역 코드 (ISO 3166-2:KR). 예: `"KR-11"` (서울). 1 행정구역 = 1 STO 컨트랙트. Blockchain Bridge가 `region_sto_contracts` 테이블 조회에 사용. |
 | `stop_reason` | `enum` | ✓ | `EVDisconnected` \| `Local` \| `Remote` \| `EmergencyStop` \| `PowerLoss` \| `Reboot` \| `Other` |
 
 > **RabbitMQ 라우팅**  
@@ -189,6 +191,7 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
   "session_id": "sess_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "charger_id": "chrg_9f8e7d6c-5b4a-3210-fedc-ba9876543210",
   "station_id": "stn_1a2b3c4d-5e6f-7890-1234-abcdef567890",
+  "region_id": "KR-11",
   "cpo_id": "cpo_f1e2d3c4-b5a6-9870-fedc-ba0987654321",
   "user_id": "usr_a0b1c2d3-e4f5-6789-0abc-def123456789",
   "billing_mode": "POSTPAID",
@@ -321,6 +324,7 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
     "session_id": "sess_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "charger_id": "chrg_9f8e7d6c-5b4a-3210-fedc-ba9876543210",
     "station_id": "stn_1a2b3c4d-5e6f-7890-1234-abcdef567890",
+    "region_id": "KR-11",
     "cpo_id": "cpo_f1e2d3c4-b5a6-9870-fedc-ba0987654321",
     "amount": {
       "gross_krw": 16000,
@@ -351,12 +355,14 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
 | `gross_krw` | `integer` | ✓ | PG 수령 총액(원). AVAX 환산의 입력값. |
 | `platform_fee_krw` | `integer` | ✓ | STRIKON 플랫폼 수수료 10%. 공제 후 `distributable_krw` 산출. |
 | `distributable_krw` | `integer` | ✓ | `gross_krw - platform_fee_krw`. 이 금액만큼 AVAX 구매 후 홀더에게 배분. |
-| `charger_id` | `UUID v4` | ✓ | Blockchain Bridge가 `charger_sto_contracts` 테이블 조회에 사용. 없으면 ACK 후 스킵. |
+| `charger_id` | `UUID v4` | ✓ | 충전기 ID. |
+| `station_id` | `UUID v4` | ✓ | 스테이션 ID. RegionSTO의 `distributeRevenue()` 호출 시 매출 원천 추적에 사용. |
+| `region_id` | `string` | ✓ | 행정구역 코드 (ISO 3166-2:KR). Blockchain Bridge가 `region_sto_contracts` 테이블 조회에 사용. 해당 구역에 Region STO 컨트랙트가 없으면 ACK 후 스킵. |
 
-> **RabbitMQ 라우팅**  
-> 라우팅 키: `invoice.paid` · Exchange: `strikon.billing` · Queue: `blockchain-bridge.invoice-paid`  
-> 중요: `result_code="0000"` 인 결제 성공 건만 이 이벤트를 발행한다.  
-> STO 컨트랙트 없는 충전기면 즉시 ACK하고 블록체인 동작 없이 종료.
+> **RabbitMQ 라우팅**
+> 라우팅 키: `invoice.paid` · Exchange: `strikon.billing` · Queue: `blockchain-bridge.invoice-paid`
+> 중요: `result_code="0000"` 인 결제 성공 건만 이 이벤트를 발행한다.
+> Region STO 컨트랙트 없는 행정구역이면 즉시 ACK하고 블록체인 동작 없이 종료.
 
 ---
 
@@ -371,6 +377,8 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
 ```json
 {
   "invoice_id": "inv_c3d4e5f6-7890-abcd-ef12-345678901234",
+  "region_id": "KR-11",
+  "station_id": "stn_1a2b3c4d-5e6f-7890-1234-abcdef567890",
   "contract_address": "0xAbC1234567890dEf1234567890ABCdef12345678",
   "distributable_krw": 14400,
   "avax_amount_wei": "28800000000000000",
@@ -413,11 +421,11 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
 
 | 필드 | 값 | 설명 |
 |------|-----|------|
-| `to` | `ChargerSTO 주소` | 대상 스마트컨트랙트 |
+| `to` | `RegionSTO 주소` | 대상 스마트컨트랙트 (행정구역별 1개) |
 | `value` | `distributable AVAX (wei, hex)` | 전송할 AVAX |
-| `data` | `distributeRevenue(invoiceId, amount) ABI 인코딩` | 함수 호출 데이터 |
+| `data` | `distributeRevenue(invoiceId, amount, stationId) ABI 인코딩` | 함수 호출 데이터 |
 | `chainId` | `424242` | STRIKON Avalanche L1 전용 체인 ID |
-| `gasLimit` | `200,000` | `distributeRevenue` 홀더 수 기반 추산 |
+| `gasLimit` | `200,000` | `distributeRevenue` 리전 홀더 수 기반 추산 |
 
 ### eth_sendRawTransaction 응답
 
@@ -490,6 +498,8 @@ ELECTRA 충전기에서 투자자 AVAX 수령까지 9단계 인터페이스. 각
 {
   "event": "RevenueDistributed",
   "contract_address": "0xAbC1234567890dEf1234567890ABCdef12345678",
+  "region_id": "KR-11",
+  "station_id": "stn_1a2b3c4d-5e6f-7890-1234-abcdef567890",
   "tx_hash": "0x7f3a8b2c...9f0a",
   "block_number": 1715004,
   "block_timestamp": 1740059730,
@@ -538,6 +548,7 @@ WHERE id = 'inv_c3d4e5f6-7890-abcd-ef12-345678901234';
   "invoice_id": "inv_c3d4e5f6-7890-abcd-ef12-345678901234",
   "charger_id": "chrg_9f8e7d6c-5b4a-3210-fedc-ba9876543210",
   "station_id": "stn_1a2b3c4d-5e6f-7890-1234-abcdef567890",
+  "region_id": "KR-11",
   "contract_address": "0xAbC1234567890dEf1234567890ABCdef12345678",
   "gross_amount_krw": 16000,
   "platform_fee_krw": 1600,
@@ -568,7 +579,7 @@ WHERE id = 'inv_c3d4e5f6-7890-abcd-ef12-345678901234';
 ## 10. STEP ⑨ 투자자 앱 → Avalanche L1 (claim)
 
 **프로토콜**: JSON-RPC 2.0 · `eth_sendRawTransaction` · WalletConnect v2  
-**방향**: `ELECTRA STO 투자자 앱` → `Avalanche L1 (ChargerSTO 컨트랙트)`
+**방향**: `ELECTRA STO 투자자 앱` → `Avalanche L1 (RegionSTO 컨트랙트)`
 
 ### 출금 전 잔액 조회 — getClaimable()
 
@@ -652,15 +663,16 @@ Avalanche L1에 배포되는 2개 컨트랙트의 전체 함수, 파라미터, �
 
 ---
 
-### STOFactory.sol
+### RegionSTOFactory.sol
 
-충전소별 `ChargerSTO` 컨트랙트를 표준화 배포하고, 전체 레지스트리를 관리하는 팩토리 컨트랙트.
+행정구역별 `RegionSTO` 컨트랙트를 표준화 배포하고, 전체 레지스트리를 관리하는 팩토리 컨트랙트. 전국 17개 행정구역 각각에 대해 최대 1개의 RegionSTO를 배포한다.
 
-#### 함수 — deployChargerSTO()
+#### 함수 — deployRegionSTO()
 
 ```solidity
-function deployChargerSTO(
-  bytes32        stationId,
+function deployRegionSTO(
+  bytes4         regionId,
+  string calldata regionName,
   string calldata tokenSymbol,
   address[] calldata holders,
   uint256[] calldata tokenAmounts,
@@ -672,20 +684,22 @@ function deployChargerSTO(
 
 | 파라미터 | JSON 타입 | Solidity | 설명 |
 |----------|-----------|----------|------|
-| `stationId` | `string (bytes32)` | `bytes32` | 충전소 고유 ID. `station_id` UUID를 bytes32로 변환. |
-| `tokenSymbol` | `string` | `string` | 토큰 심볼. 예: `"ELEC-GN-001"`. 중복 허용 안 됨. |
+| `regionId` | `string (bytes4)` | `bytes4` | 행정구역 코드 (ISO 3166-2:KR). 예: `0x4b523131` = `"KR-11"` (서울). |
+| `regionName` | `string` | `string` | 행정구역 명칭. 예: `"서울특별시"`. |
+| `tokenSymbol` | `string` | `string` | 토큰 심볼. 예: `"ELEC-SEOUL"`. 중복 허용 안 됨. |
 | `holders` | `string[]` | `address[]` | KYC 완료 투자자 지갑 주소 배열. |
-| `tokenAmounts` | `integer[]` | `uint256[]` | 각 홀더 보유 토큰 수. 합산 = `totalSupply` (통상 1,000). |
+| `tokenAmounts` | `integer[]` | `uint256[]` | 각 홀더 초기 보유 토큰 수. 합산 = 초기 `totalSupply`. |
 | `bridgeAddress` | `string` | `address` | Blockchain Bridge Service 지갑 주소. `distributeRevenue` 권한 부여. |
 
 **요청 JSON 예시**
 
 ```json
 {
-  "method": "deployChargerSTO",
+  "method": "deployRegionSTO",
   "params": {
-    "stationId": "0x73746e5f31613262336334642d356536662d373839302d313233342d616263646566353637383930",
-    "tokenSymbol": "ELEC-GN-001",
+    "regionId": "0x4b523131",
+    "regionName": "서울특별시",
+    "tokenSymbol": "ELEC-SEOUL",
     "holders": [
       "0xAaa...111",
       "0xBbb...222",
@@ -700,9 +714,10 @@ function deployChargerSTO(
 **이벤트**
 
 ```solidity
-event ChargerSTODeployed(
-  bytes32 indexed stationId,
+event RegionSTODeployed(
+  bytes4  indexed regionId,
   address indexed contractAddress,
+  string          regionName,
   string          tokenSymbol,
   uint256         totalSupply,
   uint256         deployedAt
@@ -713,7 +728,7 @@ event ChargerSTODeployed(
 
 ```solidity
 function getContract(
-  bytes32 stationId
+  bytes4 regionId
 ) external view returns (address contractAddress, bool isActive)
 ```
 
@@ -721,7 +736,8 @@ function getContract(
 
 ```json
 {
-  "stationId": "0x73746e5f...",
+  "regionId": "0x4b523131",
+  "regionName": "서울특별시",
   "contractAddress": "0xAbC1234567890dEf1234567890ABCdef12345678",
   "isActive": true
 }
@@ -729,18 +745,18 @@ function getContract(
 
 ---
 
-### ChargerSTO.sol
+### RegionSTO.sol
 
-충전소 1개소당 1개 배포되는 핵심 STO 컨트랙트. 토큰 보유, 수익 배분, 출금 전체를 처리한다.
+행정구역 1개당 1개 배포되는 핵심 STO 컨트랙트. 리전 내 모든 충전소의 수익을 풀링하여 토큰 보유자에게 배분한다. 동적 공급량(mint)을 지원한다.
 
 #### 상태 변수 (Storage Layout)
 
 ```json
 {
-  "chargerSerial":      "string   — 물리 충전기 시리얼 번호",
-  "stationId":          "bytes32  — 충전소 고유 ID",
-  "tokenSymbol":        "string   — 예: 'ELEC-GN-001'",
-  "totalSupply":        "uint256  — 발행 총 토큰 수 (통상 1,000)",
+  "regionId":           "bytes4   — 행정구역 코드 (ISO 3166-2:KR)",
+  "regionName":         "string   — 행정구역 명칭 (예: '서울특별시')",
+  "tokenSymbol":        "string   — 예: 'ELEC-SEOUL'",
+  "totalSupply":        "uint256  — 현재 총 토큰 수 (동적 민팅 가능)",
   "bridgeAddress":      "address  — onlyBridge modifier 대상",
   "totalRevenue":       "uint256  — 누적 배분 AVAX 총액 (wei)",
   "tokenBalances":      "mapping(address => uint256) — 홀더별 토큰 수",
@@ -757,13 +773,15 @@ function getContract(
 ```solidity
 function distributeRevenue(
   bytes32 invoiceId,
-  uint256 amount
+  uint256 amount,
+  bytes32 stationId
 ) external payable onlyBridge
 ```
 
-> 충전 1회 수익을 홀더별 지분율(`share_pct`)로 자동 배분.  
-> 호출 시 AVAX를 함께 전송(`msg.value`).  
+> 충전 1회 수익을 홀더별 지분율(`share_pct`)로 자동 배분.
+> 호출 시 AVAX를 함께 전송(`msg.value`).
 > 동일 `invoiceId` 이중 실행 방지 (nonce 체크).
+> `stationId`는 매출 원천 추적용 — 라우팅에는 사용하지 않음.
 
 **파라미터**
 
@@ -771,6 +789,7 @@ function distributeRevenue(
 |----------|-----------|----------|------|
 | `invoiceId` | `string (bytes32)` | `bytes32` | STRIKON 인보이스 ID. bytes32 변환. 이중 배분 방지 nonce 역할. |
 | `amount` | `string` | `uint256` | 배분할 총 AVAX 금액(wei). `msg.value`와 반드시 일치 검증. |
+| `stationId` | `string (bytes32)` | `bytes32` | 매출이 발생한 스테이션 ID. 투자자 투명성을 위한 이벤트 기록용. |
 
 **요청 JSON 예시**
 
@@ -781,7 +800,8 @@ function distributeRevenue(
   "value_wei": "28800000000000000",
   "params": {
     "invoiceId": "0x696e765f63336434653566362d373839302d616263642d656631322d333435363738393031323334",
-    "amount": "28800000000000000"
+    "amount": "28800000000000000",
+    "stationId": "0x73746e5f31613262336334642d356536662d373839302d313233342d616263646566353637383930"
   }
 }
 ```
@@ -790,7 +810,7 @@ function distributeRevenue(
 
 ```solidity
 // Solidity 의사코드 — distributeRevenue 내부 처리
-function distributeRevenue(bytes32 invoiceId, uint256 amount) external payable onlyBridge {
+function distributeRevenue(bytes32 invoiceId, uint256 amount, bytes32 stationId) external payable onlyBridge {
 
   // 1. 검증
   require(msg.sender == bridgeAddress,        "onlyBridge");
@@ -807,8 +827,8 @@ function distributeRevenue(bytes32 invoiceId, uint256 amount) external payable o
   processedInvoices[invoiceId] = true;  // 이중 실행 방지
   totalRevenue += amount;
 
-  // 4. 이벤트 발행
-  emit RevenueDistributed(invoiceId, amount, holders.length);
+  // 4. 이벤트 발행 (stationId로 매출 원천 추적 가능)
+  emit RevenueDistributed(invoiceId, amount, holders.length, totalRevenue, stationId);
 }
 ```
 
@@ -819,7 +839,8 @@ event RevenueDistributed(
   bytes32 indexed invoiceId,
   uint256         totalAmountWei,
   uint256         holderCount,
-  uint256         cumulativeRevenue
+  uint256         cumulativeRevenue,
+  bytes32         stationId
 );
 ```
 
@@ -901,6 +922,39 @@ event HolderRegistered(
 
 ---
 
+#### 함수 — mint()
+
+```solidity
+function mint(
+  address to,
+  uint256 amount
+) external onlyAdmin
+```
+
+> 리전 내 충전 인프라 확장에 따른 동적 토큰 추가 발행.
+> 새 충전소/충전기 설치 시 인프라 확대분을 반영하여 `totalSupply`를 증가시킴.
+> 기존 홀더 지분율 보호를 위해 비례 배분 또는 신규 투자자 배정 가능.
+
+**파라미터**
+
+| 파라미터 | JSON 타입 | Solidity | 설명 |
+|----------|-----------|----------|------|
+| `to` | `string` | `address` | 신규 민팅 토큰 수령 지갑 주소. |
+| `amount` | `integer` | `uint256` | 추가 발행할 토큰 수량. |
+
+**이벤트**
+
+```solidity
+event TokensMinted(
+  address indexed to,
+  uint256         amount,
+  uint256         newTotalSupply,
+  uint256         mintedAt
+);
+```
+
+---
+
 #### 함수 — getClaimable()
 
 ```solidity
@@ -964,9 +1018,11 @@ function getHolderInfo(
 
 | 이벤트 | 발생 함수 | 설명 |
 |--------|-----------|------|
-| `RevenueDistributed(bytes32 invoiceId, uint256 totalAmountWei, uint256 holderCount, uint256 cumulativeRevenue)` | `distributeRevenue()` | Bridge Service가 이 이벤트로 온체인 실행 성공을 확인하고 DB를 `CONFIRMED`로 업데이트. |
+| `RegionSTODeployed(bytes4 regionId, address contractAddress, string regionName, string tokenSymbol, uint256 totalSupply, uint256 deployedAt)` | `deployRegionSTO()` | 행정구역별 RegionSTO 컨트랙트 배포 완료. STRIKON 백오피스가 `region_sto_contracts` 테이블 동기화. |
+| `RevenueDistributed(bytes32 invoiceId, uint256 totalAmountWei, uint256 holderCount, uint256 cumulativeRevenue, bytes32 stationId)` | `distributeRevenue()` | Bridge Service가 이 이벤트로 온체인 실행 성공을 확인하고 DB를 `CONFIRMED`로 업데이트. `stationId`로 매출 원천 추적. |
 | `RevenueClaimed(address holder, uint256 amountWei, uint256 claimedAt)` | `claim()` | 투자자 앱이 이 이벤트를 구독하여 실시간 출금 완료 알림 표시. |
 | `HolderRegistered(address wallet, uint256 tokenAmount, uint256 totalRegistered)` | `registerHolder()` | STRIKON 백오피스가 이 이벤트로 `sto_token_holders` 테이블을 동기화. |
+| `TokensMinted(address to, uint256 amount, uint256 newTotalSupply, uint256 mintedAt)` | `mint()` | 리전 내 인프라 확장에 따른 추가 토큰 발행. |
 
 ---
 
@@ -981,7 +1037,7 @@ function getHolderInfo(
 | 3 | `PAYMENT_FAILED` | Step ④ | `result_code ≠ "0000"`. `invoice.paid` 발행 안 함. 블록체인 동작 없음. |
 | 4 | `HMAC_INVALID` | Step ④ | PG 웹훅 서명 불일치. HTTP 400 즉시 반환. 보안 알림 발송. |
 | 5 | `DUPLICATE_PG_TX` | Step ④ | 동일 `pg_transaction_id` 재수신. 무시 후 HTTP 202 반환. |
-| 6 | `NO_STO_CONTRACT` | Step ⑥ | `charger_sto_contracts` 조회 결과 없음. 이벤트 ACK 후 종료. |
+| 6 | `NO_REGION_STO_CONTRACT` | Step ⑥ | `region_sto_contracts` 조회 결과 없음 (해당 행정구역에 RegionSTO 미배포). 이벤트 ACK 후 종료. |
 | 7 | `TX_REVERTED` | Step ⑦ | `receipt.status=0x0`. DLQ 이관 + 운영자 알림 + 원인 분석. |
 | 8 | `DUPLICATE_INVOICE` | SC | `processedInvoices[invoiceId]=true`. Solidity `require` 실패 → TX revert. |
 | 9 | `AMOUNT_MISMATCH` | SC | `msg.value ≠ amount` 파라미터. Solidity `require` 실패 → TX revert. |

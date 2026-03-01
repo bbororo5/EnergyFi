@@ -1,14 +1,14 @@
 {
-  "name": "c-chain",
+  "name": "subnet",
   "version": "1.0.0",
   "type": "module",
-  "description": "This directory contains contracts deployed to the Avalanche C-Chain (L1). Focus: STO Tokens, DeFi Logic, Compliance.",
+  "description": "Smart contracts deployed to the EnergyFi L1 (Avalanche L1 private chain).",
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "clean": "npx hardhat clean",
-    "deploy:fuji": "npx hardhat run scripts/deploy_cchain.ts --network fuji",
-    "deploy:local": "npx hardhat run scripts/deploy_cchain.ts --network localhost"
+    "deploy:testnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-testnet",
+    "deploy:mainnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-mainnet"
   },
   "keywords": [],
   "author": "",

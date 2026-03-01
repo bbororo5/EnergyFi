@@ -13,7 +13,7 @@
 
 import hre from "hardhat";
 import { expect } from "chai";
-import { Wallet, ZeroHash, HDNodeWallet } from "ethers";
+import { Wallet, ZeroHash, HDNodeWallet, hexlify } from "ethers";
 import {
   expectRevert,
   expectRevertCustomError,
@@ -180,7 +180,7 @@ describe("ChargeTransaction", function () {
       expect(await ct.ownerOf(1n)).to.equal(ctProxyAddr);
     });
 
-    it("getSession() 저장된 값 정확성", async function () {
+    it("getSession() 저장된 값 정확성 (seSignature 제외)", async function () {
       const session = makeSession();
       await ct.mint(session);
 
@@ -194,6 +194,8 @@ describe("ChargeTransaction", function () {
       expect(stored.endTimestamp).to.equal(session.endTimestamp);
       expect(stored.gridRegionCode).to.equal(session.gridRegionCode);
       expect(stored.cpoId).to.equal(session.cpoId);
+      // seSignature is NOT stored — verified at mint time, preserved in event only
+      expect(stored.seSignature).to.equal("0x");
     });
 
     // T05: getTokenIdBySessionId 정확성
@@ -215,7 +217,7 @@ describe("ChargeTransaction", function () {
     });
 
     // B-1: 이벤트 파라미터 검증
-    it("ChargeSessionRecorded 이벤트 파라미터 검증", async function () {
+    it("ChargeSessionRecorded 이벤트 파라미터 검증 (seSignature 포함)", async function () {
       const session = makeSession();
       const tx = await ct.mint(session);
       const receipt = await tx.wait();
@@ -231,6 +233,8 @@ describe("ChargeTransaction", function () {
       expect(event!.args.distributableKrw).to.equal(session.distributableKrw);
       expect(event!.args.startTimestamp).to.equal(session.startTimestamp);
       expect(event!.args.endTimestamp).to.equal(session.endTimestamp);
+      // seSignature preserved in event for off-chain audit
+      expect(event!.args.seSignature).to.equal(hexlify(session.seSignature));
     });
   });
 

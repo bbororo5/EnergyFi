@@ -337,6 +337,175 @@ describe("RevenueTracker", function () {
     });
   });
 
+  // ── claimPaginated 성공 ─────────────────────────────────────────────────────
+
+  describe("claimPaginated 성공", function () {
+    beforeEach(async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_2, 3000n, PERIOD);
+    });
+
+    it("전체 범위 페이지네이션 — offset=0, limit=10", async function () {
+      const [totalClaimed, processed, hasMore] = await rt.claimPaginated.staticCall(CPO_1, PERIOD, 0n, 10n);
+      expect(totalClaimed).to.equal(8000n);
+      expect(processed).to.equal(2n);
+      expect(hasMore).to.equal(false);
+    });
+
+    it("부분 페이지네이션 — offset=0, limit=1 → hasMore=true", async function () {
+      const [totalClaimed, processed, hasMore] = await rt.claimPaginated.staticCall(CPO_1, PERIOD, 0n, 1n);
+      expect(processed).to.equal(1n);
+      expect(hasMore).to.equal(true);
+      expect(totalClaimed > 0n).to.be.true;
+    });
+
+    it("2단계 페이지네이션 — 두 번 호출로 전체 정산", async function () {
+      await rt.claimPaginated(CPO_1, PERIOD, 0n, 1n);
+      await rt.claimPaginated(CPO_1, PERIOD, 1n, 1n);
+
+      const [, , pend1] = await rt.getStationRevenue(STN_1);
+      const [, , pend2] = await rt.getStationRevenue(STN_2);
+      expect(pend1).to.equal(0n);
+      expect(pend2).to.equal(0n);
+    });
+
+    it("CPOClaimed 이벤트 emit (totalClaimed > 0 일 때만)", async function () {
+      const tx = await rt.claimPaginated(CPO_1, PERIOD, 0n, 10n);
+      const receipt = await tx.wait();
+      const event = findEvent(receipt!, rt, "CPOClaimed");
+      expect(event).to.not.be.null;
+      expect(event!.args.totalAmount).to.equal(8000n);
+    });
+
+    it("pending=0인 배치 — CPOClaimed 이벤트 미emit", async function () {
+      await rt.claim(CPO_1, PERIOD); // 전체 정산
+      const tx = await rt.claimPaginated(CPO_1, PERIOD, 0n, 10n);
+      const receipt = await tx.wait();
+      const event = findEvent(receipt!, rt, "CPOClaimed");
+      expect(event).to.be.null;
+    });
+  });
+
+  // ── claimPaginated 실패 ─────────────────────────────────────────────────────
+
+  describe("claimPaginated 실패", function () {
+    it("LimitZero — limit=0", async function () {
+      await expectRevertCustomError(
+        rt.claimPaginated(CPO_1, PERIOD, 0n, 0n),
+        "LimitZero"
+      );
+    });
+
+    it("CPOHasNoStations — 미등록 CPO", async function () {
+      await expectRevertCustomError(
+        rt.claimPaginated(CPO_99, PERIOD, 0n, 10n),
+        "CPOHasNoStations"
+      );
+    });
+
+    it("OffsetOutOfBounds — offset >= 스테이션 수", async function () {
+      await expectRevertCustomError(
+        rt.claimPaginated(CPO_1, PERIOD, 100n, 10n),
+        "OffsetOutOfBounds"
+      );
+    });
+
+    it("비인가 호출자 → revert", async function () {
+      await expectRevert(
+        rt.connect(nonAdmin).claimPaginated(CPO_1, PERIOD, 0n, 10n)
+      );
+    });
+  });
+
+  // ── claimStation 성공 ─────────────────────────────────────────────────────
+
+  describe("claimStation 성공", function () {
+    beforeEach(async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_2, 3000n, PERIOD);
+    });
+
+    it("개별 스테이션 정산", async function () {
+      const amount = await rt.claimStation.staticCall(STN_1, PERIOD);
+      expect(amount).to.equal(5000n);
+
+      await rt.claimStation(STN_1, PERIOD);
+
+      const [, , pend1] = await rt.getStationRevenue(STN_1);
+      expect(pend1).to.equal(0n);
+
+      // STN_2는 영향 없음
+      const [, , pend2] = await rt.getStationRevenue(STN_2);
+      expect(pend2).to.equal(3000n);
+    });
+
+    it("StationClaimed 이벤트 emit", async function () {
+      const tx = await rt.claimStation(STN_1, PERIOD);
+      const receipt = await tx.wait();
+
+      const event = findEvent(receipt!, rt, "StationClaimed");
+      expect(event).to.not.be.null;
+      expect(event!.args.stationId).to.equal(STN_1);
+      expect(event!.args.amount).to.equal(5000n);
+      expect(event!.args.period_yyyyMM).to.equal(PERIOD);
+    });
+
+    it("정산 이력 기록", async function () {
+      await rt.claimStation(STN_1, PERIOD);
+
+      const history = await rt.getSettlementHistory(STN_1);
+      expect(history.length).to.equal(1);
+      expect(history[0].amount).to.equal(5000n);
+    });
+  });
+
+  // ── claimStation 실패 ─────────────────────────────────────────────────────
+
+  describe("claimStation 실패", function () {
+    it("StationNotRegistered — 미등록 stationId", async function () {
+      await expectRevertCustomError(
+        rt.claimStation(STN_99, PERIOD),
+        "StationNotRegistered"
+      );
+    });
+
+    it("NothingToClaim — pending=0", async function () {
+      await expectRevertCustomError(
+        rt.claimStation(STN_1, PERIOD),
+        "NothingToClaim"
+      );
+    });
+
+    it("비인가 호출자 → revert", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await expectRevert(
+        rt.connect(nonAdmin).claimStation(STN_1, PERIOD)
+      );
+    });
+  });
+
+  // ── Pausable: 새 함수 ──────────────────────────────────────────────────────
+
+  describe("Pausable: 새 함수", function () {
+    it("paused 상태에서 claimPaginated() → revert EnforcedPause", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.pause();
+      await expectRevertCustomError(
+        rt.claimPaginated(CPO_1, PERIOD, 0n, 10n),
+        "EnforcedPause"
+      );
+    });
+
+    it("paused 상태에서 claimStation() → revert EnforcedPause", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.pause();
+      await expectRevertCustomError(
+        rt.claimStation(STN_1, PERIOD),
+        "EnforcedPause"
+      );
+    });
+  });
+
   // ── View 함수 ──────────────────────────────────────────────────────────────
 
   describe("View 함수", function () {
@@ -431,6 +600,81 @@ describe("RevenueTracker", function () {
     it("getSettlementHistory(정산 미진행 충전소) → 빈 배열", async function () {
       const history = await rt.getSettlementHistory(STN_1);
       expect(history.length).to.equal(0);
+    });
+  });
+
+  // ── 페이지네이션 View 함수 ──────────────────────────────────────────────────
+
+  describe("페이지네이션 View 함수", function () {
+    beforeEach(async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_2, 3000n, PERIOD);
+      await rt.recordRevenue(STN_3, 10000n, PERIOD);  // EnergyFi Seoul
+      await rt.recordRevenue(STN_4, 7000n, PERIOD);   // EnergyFi Busan
+    });
+
+    it("getCPORevenuePaginated — 전체 범위", async function () {
+      const [acc, set, pend, processed, hasMore] = await rt.getCPORevenuePaginated(CPO_1, 0n, 10n);
+      expect(acc).to.equal(8000n);
+      expect(pend).to.equal(8000n);
+      expect(processed).to.equal(2n);
+      expect(hasMore).to.equal(false);
+    });
+
+    it("getCPORevenuePaginated — 부분 범위", async function () {
+      const [acc1, , , processed1, hasMore1] = await rt.getCPORevenuePaginated(CPO_1, 0n, 1n);
+      expect(processed1).to.equal(1n);
+      expect(hasMore1).to.equal(true);
+
+      const [acc2, , , processed2, hasMore2] = await rt.getCPORevenuePaginated(CPO_1, 1n, 1n);
+      expect(processed2).to.equal(1n);
+      expect(hasMore2).to.equal(false);
+
+      // 합계 = 전체와 동일
+      expect(acc1 + acc2).to.equal(8000n);
+    });
+
+    it("getCPORevenuePaginated — 빈 CPO는 0 반환", async function () {
+      const [acc, set, pend, processed, hasMore] = await rt.getCPORevenuePaginated(CPO_99, 0n, 10n);
+      expect(acc).to.equal(0n);
+      expect(processed).to.equal(0n);
+      expect(hasMore).to.equal(false);
+    });
+
+    it("getCPORevenuePaginated — LimitZero", async function () {
+      await expectRevertCustomError(
+        rt.getCPORevenuePaginated(CPO_1, 0n, 0n),
+        "LimitZero"
+      );
+    });
+
+    it("getCPORevenuePaginated — OffsetOutOfBounds", async function () {
+      await expectRevertCustomError(
+        rt.getCPORevenuePaginated(CPO_1, 100n, 10n),
+        "OffsetOutOfBounds"
+      );
+    });
+
+    it("getEnergyFiRegionRevenuePaginated — 전체 범위", async function () {
+      const [pend, processed, hasMore] = await rt.getEnergyFiRegionRevenuePaginated(REGION_SEOUL, 0n, 10n);
+      expect(pend).to.equal(10000n);
+      expect(processed).to.equal(1n); // STN_3 only
+      expect(hasMore).to.equal(false);
+    });
+
+    it("getEnergyFiRegionRevenuePaginated — 빈 지역은 0 반환", async function () {
+      const REGION_JEJU = regionBytes4("KR49");
+      const [pend, processed, hasMore] = await rt.getEnergyFiRegionRevenuePaginated(REGION_JEJU, 0n, 10n);
+      expect(pend).to.equal(0n);
+      expect(processed).to.equal(0n);
+      expect(hasMore).to.equal(false);
+    });
+
+    it("getEnergyFiRegionRevenuePaginated — LimitZero", async function () {
+      await expectRevertCustomError(
+        rt.getEnergyFiRegionRevenuePaginated(REGION_SEOUL, 0n, 0n),
+        "LimitZero"
+      );
     });
   });
 

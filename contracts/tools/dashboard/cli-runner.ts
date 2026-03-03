@@ -10,6 +10,7 @@ import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 import { ethers } from "ethers";
+import { LiveTestSigner } from "./lib/live-test-signer.js";
 import type { ContractCtx } from "./server.js";
 import type { TestSuite } from "./lib/test-suite.js";
 import type { VerifyEvent, EmitFn, SuiteResult } from "./lib/test-helpers.js";
@@ -187,7 +188,7 @@ async function main() {
   // Provider + Signer
   const rpcUrl = getRpcUrl(networkArg);
   const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const wallet = new ethers.Wallet(privateKey, provider);
+  const wallet = new LiveTestSigner(privateKey, provider);
   const signer = wallet;
   console.log(`Signer : ${wallet.address}`);
 

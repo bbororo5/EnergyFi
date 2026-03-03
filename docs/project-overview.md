@@ -40,15 +40,16 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 
 ```
 EnergyFi/
-├── contracts/
-│   └── l1/                # Unit B: Avalanche L1 private chain contracts
-│       ├── contracts/     # 12-contract architecture (see contracts/docs/implementation-roadmap.md)
-│       ├── scripts/       # Deployment scripts
-│       └── hardhat.config.ts
+├── contracts/             # Unit B: Avalanche L1 smart contracts (Hardhat 3)
+│   ├── contracts/         # 12 contracts + ChargeRouter (see contracts/docs/implementation-roadmap.md)
+│   ├── scripts/           # deploy.ts, live-test.ts
+│   ├── tools/             # dashboard/ (Express 웹 대시보드 + 통합 테스트 스위트)
+│   ├── test/              # Hardhat unit tests
+│   └── hardhat.config.ts
 ├── l1-config/             # Unit A: L1 genesis & runtime config
 │   ├── genesis.json
 │   └── config.json
-├── frontend/              # Unit C: Investor frontend (planned reimplementation)
+├── frontend/              # Unit C: React Native + Expo SDK 54 (TypeScript, expo-router v6)
 ├── docs/                  # Project documentation
 └── .env.example           # Environment variable template
 ```

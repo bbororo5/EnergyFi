@@ -30,7 +30,7 @@ Cross-platform application for STO investors and CPO dashboards.
 | **Wallet** | Wallet integration for RegionSTO token management |
 | **KYC Module** | Compliance gate for onboarding |
 
-> **Note:** The `frontend/` scaffold has been removed. The frontend will be reimplemented to align with the per-region STO model and 9-contract architecture. Frontend spec is planned for a future phase.
+> **Note:** Frontend은 React Native + Expo SDK 54 (TypeScript)로 마이그레이션 완료. `expo-router` v6 기반. iOS / Android / Web 지원. 상세 설계는 `frontend/docs/` 참조.
 
 ### 2.2 Layer 3: Avalanche L1 Private Chain — Smart Contracts (`contracts/`)
 12 contracts + 1 factory organized into 4 functional categories on a dedicated Avalanche L1 (zero-gas, BFT consensus). Contracts are divided into **Essential** (Phase 1-2 data pipeline, cannot operate without) and **Derived** (consume Essential data).
@@ -178,7 +178,7 @@ TPM 2.0 SE Chip (signs kWh data at hardware level)
 
 | Component | Technology | Description |
 |:---|:---|:---|
-| **Smart Contracts** | Solidity ^0.8.20, Hardhat 3 | 9 contracts across 4 categories on L1 |
+| **Smart Contracts** | Solidity ^0.8.20, Hardhat 3 | 12 contracts + ChargeRouter (13개) across 4 categories on L1 |
 | **L1 Runtime** | Avalanche L1 (Subnet-EVM) | Private chain, zero-gas, BFT consensus |
 | **Hardware Security** | TPM 2.0 SE | Company-specified secure element for Root of Trust |
 | **Data Source** | STRIKON Platform | 30+ microservice production platform |

@@ -8,7 +8,12 @@ pragma solidity ^0.8.20;
  * Accumulates per-station revenue after each invoice.paid event and provides
  * CPO / EnergyFi region aggregation views.
  *
- * @dev Essential contract — data source for Phase 3 STOPortfolio.
+ * Phase 3 additions:
+ *  - claimRegion(): 지역별 EnergyFi 소유 충전소 수익 확정 (전통증권 모델 배당의 온체인 근거)
+ *  - RegionAttestation: 확정된 수익의 불변 기록 (KSD 총량관리 노드 검증용)
+ *  - getCPORegionRevenue(): CPO의 특정 지역 내 충전소 수익 합계
+ *
+ * @dev Essential contract — data source for Phase 3 RegionSTO.
  */
 interface IRevenueTracker {
     /// @notice Monthly revenue record for a station.
@@ -22,6 +27,16 @@ interface IRevenueTracker {
         uint256 period_yyyyMM;
         uint256 amount;
         uint256 settledAt;      // block.timestamp
+    }
+
+    /// @notice 지역별 수익 확정 기록 (오프체인 정산의 법적 근거).
+    ///         claimRegion() 호출 시 생성. KSD 총량관리 노드가 조회 가능.
+    struct RegionAttestation {
+        bytes4  regionId;          // ISO 3166-2:KR bytes4 지역 코드
+        uint256 period_yyyyMM;     // 정산 기간 (e.g. 202603)
+        uint256 distributableKrw;  // 확정된 지역 수익 (원)
+        uint256 stationCount;      // 정산에 포함된 EnergyFi 소유 충전소 수
+        uint256 finalizedAt;       // block.timestamp
     }
 
     /**
@@ -159,4 +174,5 @@ interface IRevenueTracker {
      */
     function getMonthlyHistory(bytes32 stationId)
         external view returns (MonthlyRevenue[] memory);
+
 }

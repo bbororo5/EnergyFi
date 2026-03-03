@@ -8,6 +8,7 @@ import type { TestSuite } from "../lib/test-suite.js";
 import type { ContractCtx } from "../server.js";
 import {
   newCounts, expectSuccess, expectValue, expectRevert,
+  chargeRouterConcreteInterface,
   type EmitFn, type Counts,
 } from "../lib/test-helpers.js";
 import {
@@ -64,12 +65,14 @@ export const phase2HappySuite: TestSuite = {
     // S-4. getSession() 저장 데이터 정확성 — 다중 필드 검증
     let cpoTokenId: bigint | null = null;
     if (cpoReceipt && cpoSession) {
+      // IChargeRouter에는 ChargeProcessed 이벤트가 없으므로 concrete interface 사용
+      const crConcreteIface = chargeRouterConcreteInterface();
       await expectValue("S-4 getSession 저장 데이터 정확성 (다중 필드)",
         async () => {
           const processedEvent = cpoReceipt.logs.find((log: any) => {
-            try { return cr.interface.parseLog(log)?.name === "ChargeProcessed"; } catch { return false; }
+            try { return crConcreteIface.parseLog(log)?.name === "ChargeProcessed"; } catch { return false; }
           });
-          const tokenId = processedEvent ? cr.interface.parseLog(processedEvent)?.args[0] : null;
+          const tokenId = processedEvent ? crConcreteIface.parseLog(processedEvent)?.args[0] : null;
           if (!tokenId) return null;
           cpoTokenId = BigInt(tokenId);
           const session = await ct.getSession(tokenId);

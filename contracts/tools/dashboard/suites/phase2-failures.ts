@@ -8,7 +8,7 @@ import { ethers, encodeBytes32String, Wallet, hexlify, randomBytes } from "ether
 import type { TestSuite } from "../lib/test-suite.js";
 import type { ContractCtx } from "../server.js";
 import {
-  newCounts, expectRevert, decodeCustomError,
+  newCounts, expectRevert, decodeCustomError, allErrorInterfaces,
   type EmitFn, type Counts,
 } from "../lib/test-helpers.js";
 import {
@@ -30,7 +30,8 @@ export const phase2FailuresSuite: TestSuite = {
     const ct = ctx.chargeTransaction!;
     const rt = ctx.revenueTracker!;
     const dr = ctx.deviceRegistryAdmin; // enrollChip/revokeChip — 비인터페이스 write ops
-    const ifaces = [cr.interface, ct.interface, rt.interface, dr.interface];
+    // concrete 컨트랙트 ABI 사용 — Interface ABI에는 custom error 선언이 없으므로
+    const ifaces = allErrorInterfaces();
 
     const exp = (label: string, txFn: () => Promise<unknown>, expected: string) =>
       expectRevert(label, txFn, expected, ifaces, emit, counts);

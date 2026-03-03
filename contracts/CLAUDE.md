@@ -4,7 +4,7 @@ Inherits all rules from [root CLAUDE.md](../../CLAUDE.md). The following are add
 
 ## Scope
 
-Avalanche L1 smart contracts — 12-contract architecture deployed on a single private chain (Chain ID 270626, zero-gas).
+Avalanche L1 smart contracts — 12 contracts + ChargeRouter (13개) deployed on a single private chain (Chain ID 270626, zero-gas).
 
 ## Key Rules
 
@@ -45,19 +45,17 @@ Differs from Hardhat v2:
 
 ## Smart Contract Map
 
-12 contracts + 1 factory, organized in 4 phases. Data flows from Physical Layer → Investment Layer.
+12 contracts + ChargeRouter (13개), organized in 4 phases. Data flows from Physical Layer → Investment Layer.
 
 ### Dependency Graph
 
 ```
-DeviceRegistry ←── ChargeTransaction (ROOT) ──→ RevenueTracker [StationRegistry 참조]
-                          │                              │
-                          ↓                              ↓
-                    CarbonReduction              STOPortfolio → RegionSTO (via RegionSTOFactory)
-                    (+ ParameterRegistry)        ReputationRegistry
-                          │
-                          ↓
-                    CarbonBatch → VCUReference
+Bridge → ChargeRouter → { ChargeTransaction (ROOT), RevenueTracker }
+ChargeTransaction → { DeviceRegistry (verifySignature), StationRegistry (isRegistered) }
+RevenueTracker → StationRegistry [ownerType]
+ChargeTransaction → CarbonReduction (+ ParameterRegistry) → CarbonBatch → VCUReference
+RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
+                 ReputationRegistry
 ```
 
 ### Contract Table
@@ -66,6 +64,7 @@ DeviceRegistry ←── ChargeTransaction (ROOT) ──→ RevenueTracker [Stat
 |:---|:---|:---|:---|:---|:---|:---|
 | 0 | **DeviceRegistry** | A: Infra | N/A | Yes | Phase 1 | Upgradeable |
 | 1 | **StationRegistry** | A: Infra | N/A | Yes | Phase 1 | Upgradeable |
+| — | **ChargeRouter** | B: Transaction | N/A | Yes | Phase 2 | Upgradeable |
 | 2 | **ChargeTransaction** | B: Transaction | ERC-721 | No | Phase 2 | Upgradeable |
 | 3 | **RevenueTracker** | B: Transaction | N/A | Yes | Phase 2 | Upgradeable |
 | 4 | **CarbonReduction** | B: Carbon | ERC-721 | **Immutable** | Phase 4 | **Non-upgradeable** |
@@ -80,9 +79,10 @@ DeviceRegistry ←── ChargeTransaction (ROOT) ──→ RevenueTracker [Stat
 
 ### Essential vs Derived
 
-- **Essential** (4): DeviceRegistry, StationRegistry, ChargeTransaction, RevenueTracker — Phase 1-2 핵심 데이터 파이프라인. 없으면 시스템 동작 불가.
+- **Essential** (5): DeviceRegistry, StationRegistry, ChargeRouter, ChargeTransaction, RevenueTracker — Phase 1-2 핵심 데이터 파이프라인. 없으면 시스템 동작 불가.
   - DeviceRegistry: ChargeTransaction이 `verifySignature()`를 직접 호출. SE 서명 검증의 기반.
   - StationRegistry: RevenueTracker가 ownerType(CPO/ENERGYFI) 조회에 의존. 수익 귀속 불가능.
+  - ChargeRouter: Bridge의 유일한 진입점. mint() + recordRevenue()를 단일 TX 원자적 실행. 없으면 Bridge 호출 불가.
   - ChargeTransaction: 전체 시스템의 ROOT 데이터 소스.
   - RevenueTracker: mint() 직후 수익 누적. CPO/STO 투자자 수익 추적 불가.
 - **Derived** (8): All others — consume data produced by Essential contracts.
@@ -91,8 +91,8 @@ DeviceRegistry ←── ChargeTransaction (ROOT) ──→ RevenueTracker [Stat
 
 | Phase | 목표 | Contracts | Timeline |
 |:---|:---|:---|:---|
-| **1** | 충전 인프라 등록 | DeviceRegistry, StationRegistry | Now ~ 2026.04 |
-| **2** | 충전 트랜잭션 + 수익 추적 | ChargeTransaction, RevenueTracker | 2026.04 ~ 06 |
+| **1** ✅ | 충전 인프라 등록 | DeviceRegistry, StationRegistry | 완료 |
+| **2** ✅ | 충전 트랜잭션 + 수익 추적 | ChargeTransaction, RevenueTracker, ChargeRouter | 완료 |
 | **3** | STO 발행 | RegionSTO, RegionSTOFactory, STOPortfolio, ReputationRegistry(선택) | 2027.01~ |
 | **4** | 탄소배출권 | ParameterRegistry, CarbonReduction, CarbonBatch, VCUReference | VVB 개시~ |
 
@@ -120,7 +120,7 @@ DeviceRegistry ←── ChargeTransaction (ROOT) ──→ RevenueTracker [Stat
 | **Phase 4 스펙** | `docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인. VM0038 수식, CarbonBatch, VCUReference. |
 | **ERC Standards Analysis** | `docs/erc-standards-analysis.md` | ERC 표준 매핑, 감사 준비 참고. |
 | **T-REX Architecture** | `docs/trex-architecture.md` | 참고용 (발행 경로 확정 + 대통령령 세부 요건 확인 후 재검토). |
-| **Interface Spec** | `../../docs/strikon-interface-spec.md` | STRIKON ↔ EnergyFi 파이프라인. invoice.paid 페이로드, se_signature 필드(추가 예정). |
+| **Interface Spec** | `../../docs/strikon-interface-spec.md` | STRIKON ↔ EnergyFi 파이프라인. invoice.paid 페이로드, se_signature 필드 포함 확정. |
 
 ### External Standards
 

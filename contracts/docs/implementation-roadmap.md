@@ -581,11 +581,11 @@ P5 (내부 계산)   ─────→ Phase 4: CarbonReduction 구현
 
 | 문서 | 경로 | 참조 내용 |
 |------|------|----------|
-| Phase 1 스펙 | `contracts/l1/docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 상세 |
-| Phase 2 스펙 | `contracts/l1/docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker + ChargeRouter 상세 |
-| Phase 3 스펙 | `contracts/l1/docs/phase3-sto-spec.md` | STO 차수 발행 상세 |
-| Phase 4 스펙 | `contracts/l1/docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인 상세 |
-| T-REX Architecture | `contracts/l1/docs/trex-architecture.md` | ERC-3643 구현 설계 |
+| Phase 1 스펙 | `contracts/docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 상세 |
+| Phase 2 스펙 | `contracts/docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker + ChargeRouter 상세 |
+| Phase 3 스펙 | `contracts/docs/phase3-sto-spec.md` | STO 차수 발행 상세 |
+| Phase 4 스펙 | `contracts/docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인 상세 |
+| T-REX Architecture | `contracts/docs/trex-architecture.md` | ERC-3643 구현 설계 |
 | Interface Spec | `docs/strikon-interface-spec.md` | invoice.paid 페이로드, Bridge 아키텍처 |
 
 ---

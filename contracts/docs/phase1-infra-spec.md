@@ -20,7 +20,7 @@
 
 **목적**: TPM 2.0 SE 칩 공개키(P-256, 64 bytes)를 chargerId에 바인딩. Phase 2 ChargeTransaction.mint()에서 모든 SE 서명을 검증하는 Root of Trust.
 
-**현재 구현 상태**: `contracts/l1/contracts/DeviceRegistry.sol` 배포 완료.
+**현재 구현 상태**: `contracts/contracts/DeviceRegistry.sol` 배포 완료.
 
 #### ChipRecord struct
 
@@ -212,7 +212,7 @@ event StationDeactivated(bytes32 indexed stationId);
 ### 파일 구조
 
 ```
-contracts/l1/scripts/dashboard/
+contracts/scripts/dashboard/
 ├── phase1-dashboard.ts          # 기존 CLI (유지 — CI/자동화용)
 └── web/
     ├── server.ts                # Express API 서버

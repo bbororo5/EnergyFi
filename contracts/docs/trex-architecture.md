@@ -630,7 +630,7 @@ Phase 1에서는 ERC-3643 컴플라이언스 시스템을 **실 구현하지 않
 **생성할 파일:**
 
 ```
-contracts/l1/
+contracts/
 ├── interfaces/
 │   ├── IERC3643/
 │   │   ├── IToken.sol              // ERC-3643 Token 인터페이스

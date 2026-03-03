@@ -292,7 +292,7 @@ ChargeTransaction (ERC-721, tokenId: 12345)
 
 ## Mock Oracle 서버
 
-**파일**: `contracts/l1/scripts/oracle/phase4-oracle.ts`
+**파일**: `contracts/scripts/oracle/phase4-oracle.ts`
 
 ```typescript
 async function calculateAndMintReductions(startId: number, endId: number) {

@@ -31,7 +31,7 @@ EOF
 # ↑ 이 private key는 Hardhat 기본 Account #0 (테스트 전용, 실제 자금 없음)
 
 # 3. 패키지 설치
-cd contracts/l1
+cd contracts
 npm install
 
 # 4. 터미널 A — 로컬 EVM 노드 실행 (계속 켜놓기)
@@ -334,7 +334,7 @@ console.log("Token ID:", receipt.logs[0].args.tokenId);
 컴파일 후 (`npm run compile`) artifacts 폴더에 생성:
 
 ```
-contracts/l1/artifacts/contracts/
+contracts/artifacts/contracts/
 ├── ChargeRouter.sol/ChargeRouter.json       ← "abi" 필드
 ├── ChargeTransaction.sol/ChargeTransaction.json
 ├── RevenueTracker.sol/RevenueTracker.json
@@ -364,8 +364,8 @@ npm run dashboard:l1-local # 웹 대시보드 (로컬 노드 연결)
 | 문서 | 경로 | 내용 |
 |:---|:---|:---|
 | STRIKON 인터페이스 명세 | `docs/strikon-interface-spec.md` | invoice.paid 페이로드 전체 정의 |
-| Phase 2 스펙 | `contracts/l1/docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker 상세 설계 |
-| Phase 1 스펙 | `contracts/l1/docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 상세 설계 |
+| Phase 2 스펙 | `contracts/docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker 상세 설계 |
+| Phase 1 스펙 | `contracts/docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 상세 설계 |
 | 프로젝트 아키텍처 | `docs/architecture.md` | 3-Layer 전체 구조 |
 
 ---

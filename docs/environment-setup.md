@@ -32,79 +32,43 @@ export PATH="$NVM_BIN:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 ### 2.3 L1 인프라 CLI
 
-> **현재 상태**: EnergyFi L1은 AvaCloud Testnet Starter로 이미 배포 완료 (2026.03). 신규 L1 생성은 불필요.
-> **Platform CLI v1.0.1** (`~/bin/platform`)이 Avalanche-CLI를 대체하여 사용 중.
->
-> ```bash
-> # Platform CLI PATH 설정 (필요 시)
-> export PATH="$HOME/bin:$PATH"
->
-> # RPC: https://subnets.avax.network/energyfi/testnet/rpc
-> # Chain ID: 270626 (0x42122)
-> ```
->
-> 아래는 로컬 개발 환경에서 Avalanche-CLI로 직접 L1을 구성하는 경우 참고용 (비권장):
+EnergyFi L1은 Avalanche-CLI로 로컬 서브넷을 구동합니다. `genesis.json`과 `config.json`은 `l1-config/`에 위치합니다.
 
 ```bash
-# [참고용 — 비권장] Avalanche-CLI를 이용한 로컬 L1 생성
+# Avalanche-CLI 설치
 curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s
 avalanche --version
-# The CLI will automatically download AvalancheGo when needed
+# AvalancheGo는 CLI가 자동으로 설치
+
+# 로컬 서브넷 구동 (l1-config/genesis.json 기반)
+# Chain ID: 270626 (0x42122), zero-gas
 ```
 
-### 2.4 Fuji Testnet AVAX
+### 2.4 개발 환경 구성
 
-Deploying an L1 on Fuji requires AVAX on the P-Chain for staking and transaction fees.
+| 환경 | 용도 | 네트워크 | Deploy Command |
+|:---|:---|:---|:---|
+| **Hardhat EVM** | 유닛 테스트, 오라클 빠른 검증 | `localhost` (8545) | — |
+| **로컬 서브넷** | 통합 테스트, E2E | `energyfi-l1-local` | `npm run deploy:local` |
 
-```bash
-# 1. Get test AVAX from the Fuji Faucet
-#    Visit: https://faucet.avax.network
-#    Select "Fuji (C-Chain)" and enter your wallet address
-
-# 2. Create a key for the CLI (if you haven't already)
-avalanche key create deployer
-
-# 3. Export the key's C-Chain address
-avalanche key list
-
-# 4. Transfer AVAX from C-Chain to P-Chain (required for L1 deployment)
-#    Use the Core wallet (https://core.app) or Avalanche-CLI:
-avalanche key transfer deployer --amount 2 --from c-chain --to p-chain --fuji
-```
-
-### 2.5 Deployment Phases
-
-EnergyFi L1 progresses through 3 deployment phases. All phases use the same `genesis.json` (Chain ID 270626, zero-gas). Only the infrastructure provider and RPC URL differ.
-
-| Environment | Phase | Infrastructure | RPC Source | Deploy Command |
-|:---|:---|:---|:---|:---|
-| **Testnet** | Development | Avalanche-CLI `--fuji` | CLI 출력 URL | `npm run deploy:testnet` |
-| **Testnet** | Hackathon | AvaCloud Testnet Starter | AvaCloud 콘솔 | `npm run deploy:testnet` |
-| **Mainnet** | Production (June 2026~) | AvaCloud Mainnet | AvaCloud 콘솔 | `npm run deploy:mainnet` |
-
-> **Development → Hackathon transition:** Replace `ENERGYFI_L1_TESTNET_RPC` in `.env` with the AvaCloud-provided URL. Contracts must be redeployed on the new AvaCloud chain.
->
-> For detailed phase-by-phase instructions, see [deployment-guide.md](deployment-guide.md).
-
-### 2.6 Clone & Environment Variables
+### 2.5 Clone & Environment Variables
 ```bash
 git clone <repo-url> && cd EnergyFi
 cp .env.example .env
 # Edit .env:
-#   DEPLOYER_PRIVATE_KEY        — wallet for contract deployment
-#   ENERGYFI_L1_TESTNET_RPC     — Testnet RPC (Development: CLI, Hackathon: AvaCloud)
-#   ENERGYFI_L1_MAINNET_RPC     — Mainnet RPC (Production: AvaCloud Mainnet)
+#   DEPLOYER_PRIVATE_KEY    — 컨트랙트 배포 및 오라클 서명용 지갑
+#   ENERGYFI_L1_LOCAL_RPC   — 로컬 Avalanche-CLI 서브넷 RPC URL
 ```
 
-### 2.7 Install Dependencies
+### 2.6 Install Dependencies
 ```bash
 # Unit B: L1 Contracts
-cd contracts/l1 && npm install
+cd contracts && npm install
 ```
 
-### 2.8 Compile & Verify
+### 2.7 Compile & Verify
 ```bash
-cd contracts/l1 && npm run compile    # solc 0.8.20
+cd contracts && npm run compile    # solc 0.8.20
 ```
 
 ## 3. Version Matrix
@@ -112,7 +76,7 @@ cd contracts/l1 && npm run compile    # solc 0.8.20
 | Unit | Path | Runtime | Module System | Key Dependencies | Status |
 |:---|:---|:---|:---|:---|:---|
 | **A** (L1 Config) | `l1-config/` | Avalanche-CLI | JSON | — | Active |
-| **B** (L1 Contracts) | `contracts/l1/` | Node.js 24 | ESM (`"type": "module"`) | hardhat@3.1.7, ethers@6, OZ@5 | Active |
+| **B** (L1 Contracts) | `contracts/` | Node.js 24 | ESM (`"type": "module"`) | hardhat@3.1.7, ethers@6, OZ@5 | Active |
 | **C** (Frontend) | `frontend/` | Node.js 24 | ESM | expo@54, react-native, expo-router | Planned |
 
 ## 4. Hardhat 3 Notes

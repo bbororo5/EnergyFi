@@ -1,7 +1,7 @@
 # Platform Team Questions & Confirmed Policies
 
 > 이 문서는 STRIKON 플랫폼팀과 협의하여 확정된 정책 및 미결 사항을 관리합니다.
-> 온체인 설계 결정은 [implementation-roadmap.md](../contracts/l1/docs/implementation-roadmap.md) 참조.
+> 온체인 설계 결정은 [implementation-roadmap.md](../contracts/docs/implementation-roadmap.md) 참조.
 
 ## Confirmed Policies
 

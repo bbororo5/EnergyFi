@@ -170,6 +170,7 @@ cd contracts && npm install
 | Frontend Design | `frontend/docs/flutter-design.md` | Investor app design, screens |
 | Platform Policies | `docs/platform-policies.md` | Confirmed policies P1~P5 |
 | Environment Setup | `docs/environment-setup.md` | Prerequisites, toolchain |
+| Local Subnet Guide | `docs/local-subnet-guide.md` | Local L1 creation, anti-patterns, troubleshooting |
 | Deployment Guide | `docs/deployment-guide.md` | L1 infra, validator roadmap |
 
 ---

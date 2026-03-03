@@ -29,7 +29,7 @@ export const phase2FailuresSuite: TestSuite = {
     const cr = ctx.chargeRouter!;
     const ct = ctx.chargeTransaction!;
     const rt = ctx.revenueTracker!;
-    const dr = ctx.deviceRegistry;
+    const dr = ctx.deviceRegistryAdmin; // enrollChip/revokeChip — 비인터페이스 write ops
     const ifaces = [cr.interface, ct.interface, rt.interface, dr.interface];
 
     const exp = (label: string, txFn: () => Promise<unknown>, expected: string) =>

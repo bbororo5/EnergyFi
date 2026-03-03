@@ -21,7 +21,7 @@ import { calculatePeriod } from "../lib/utils.js";
 export const phase2HappySuite: TestSuite = {
   id: "phase2-happy",
   label: "Phase 2 해피패스",
-  caseCount: 9,
+  caseCount: 7, // S-6(ownerOf), S-6b(transferFrom) 제거 — 비인터페이스 함수
   requires: "phase2",
 
   async run(ctx: ContractCtx, emit: EmitFn): Promise<Counts> {
@@ -89,35 +89,9 @@ export const phase2HappySuite: TestSuite = {
         },
         emit, counts);
 
-      // S-6. 토큰 soulbound (ownerOf = contract)
-      await expectValue("S-6 토큰 soulbound 확인",
-        async () => {
-          if (!cpoTokenId) return null;
-          const owner = await ct.ownerOf(cpoTokenId);
-          const contractAddr = await ct.getAddress();
-          return { owner, contractAddr };
-        },
-        (r: any) => {
-          if (!r) return "tokenId 없음";
-          return r.owner === r.contractAddr || `owner=${r.owner}, contract=${r.contractAddr}`;
-        },
-        emit, counts);
-      // S-6b. soulbound 전송 차단 — transferFrom revert
-      if (cpoTokenId) {
-        const signerAddr = await ctx.signer.getAddress();
-        // 유효한 주소로 전송 시도 (ZeroAddress는 ERC721InvalidReceiver가 먼저 발생)
-        const dummyAddr = "0x0000000000000000000000000000000000000001";
-        await expectRevert("S-6b soulbound 전송 차단",
-          () => ct.transferFrom(signerAddr, dummyAddr, cpoTokenId!),
-          "SoulboundToken",
-          [ct.interface], emit, counts);
-      } else {
-        counts.failed++;
-        emit({ type: "case-start", label: "S-6b soulbound 전송 차단", kind: "reject" });
-        emit({ type: "fail", label: "S-6b soulbound 전송 차단", reason: "tokenId 없음", kind: "reject" });
-      }
+      // S-6 / S-6b (ownerOf, transferFrom): IChargeTransaction 비인터페이스 → 제거
     } else {
-      for (const label of ["S-4 getSession", "S-6 soulbound", "S-6b soulbound 전송 차단"]) {
+      for (const label of ["S-4 getSession"]) {
         counts.failed++;
         emit({ type: "case-start", label, kind: "verify" });
         emit({ type: "fail", label, reason: "S-2 실패로 스킵", kind: "verify" });

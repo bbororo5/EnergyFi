@@ -27,7 +27,8 @@ export const revenueLifecycleSuite: TestSuite = {
     const counts = newCounts();
     const rt = ctx.revenueTracker!;
     const sr = ctx.stationRegistry;
-    const ifaces = [rt.interface, sr.interface];
+    const srAdmin = ctx.stationRegistryAdmin; // registerStation/Charger/deactivate* — 비인터페이스 write ops
+    const ifaces = [rt.interface, srAdmin.interface];
 
     // CPO 충전소에 다수 세션 기록
     let cpoStationId: string | null = null;
@@ -343,16 +344,16 @@ export const revenueLifecycleSuite: TestSuite = {
       const regionKR11 = "0x4b523131";
 
       // 충전소 등록
-      const stnTx = await sr.registerStation(testStationId, testCpoId, 0, regionKR11, `R11 테스트 충전소`);
+      const stnTx = await srAdmin.registerStation(testStationId, testCpoId, 0, regionKR11, `R11 테스트 충전소`);
       await stnTx.wait();
 
       // SE칩 + 충전기 등록
       const { publicKey, wallet } = generateP256KeyPair();
-      const enrollTx = await ctx.deviceRegistry.enrollChip(testChargerId, publicKey, 0);
+      const enrollTx = await ctx.deviceRegistryAdmin.enrollChip(testChargerId, publicKey, 0);
       await enrollTx.wait();
       chipKeyPairs.set(testChargerId, { publicKey, wallet });
 
-      const chgTx = await sr.registerCharger(testChargerId, testStationId, 0);
+      const chgTx = await srAdmin.registerCharger(testChargerId, testStationId, 0);
       await chgTx.wait();
 
       // 세션 기록
@@ -364,9 +365,9 @@ export const revenueLifecycleSuite: TestSuite = {
       const pendingMid = BigInt(revMid[2] ?? 0);
 
       // 충전기 비활성화 → 충전소 비활성화
-      const deChgTx = await sr.deactivateCharger(testChargerId);
+      const deChgTx = await srAdmin.deactivateCharger(testChargerId);
       await deChgTx.wait();
-      const deStTx = await sr.deactivateStation(testStationId);
+      const deStTx = await srAdmin.deactivateStation(testStationId);
       await deStTx.wait();
 
       // claim — 비활성 충전소의 pending도 정산 가능해야 함

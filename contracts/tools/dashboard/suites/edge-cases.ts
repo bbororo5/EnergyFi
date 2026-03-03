@@ -12,6 +12,7 @@ import {
 } from "../lib/test-helpers.js";
 import {
   chipKeyPairs,
+  STATION_CHARGER_MAP,
   buildRandomSession,
   generateMockSignature,
   generateAndProcessSession,
@@ -31,6 +32,7 @@ export const edgeCasesSuite: TestSuite = {
     const ct = ctx.chargeTransaction!;
     const rt = ctx.revenueTracker!;
     const dr = ctx.deviceRegistry;
+    const drAdmin = ctx.deviceRegistryAdmin; // enrollChip/revokeChip — 비인터페이스 write ops
 
     // E-1. 월경계: 이번달 말 23:59 세션 → 기간 A
     const now = new Date();
@@ -144,12 +146,12 @@ export const edgeCasesSuite: TestSuite = {
       const cid = encodeBytes32String("CHARGER-001");
 
       // 비활성화
-      const deactTx = await dr.revokeChip(cid);
+      const deactTx = await drAdmin.revokeChip(cid);
       await deactTx.wait();
 
       // 새 키로 재등록
       const { publicKey, wallet } = generateP256KeyPair();
-      const enrollTx = await dr.enrollChip(cid, publicKey, 0);
+      const enrollTx = await drAdmin.enrollChip(cid, publicKey, 0);
       await enrollTx.wait();
       chipKeyPairs.set(cid, { publicKey, wallet });
 
@@ -185,9 +187,8 @@ export const edgeCasesSuite: TestSuite = {
       // 다른 충전기 확보
       if (s2.chargerId === s1.chargerId) {
         // 충전기가 같으면 다른 것을 시도
-        const chargerIds: string[] = await ctx.stationRegistry.getChargersByStation(
-          encodeBytes32String("STATION-001"),
-        );
+        const chargerIds: string[] = STATION_CHARGER_MAP["STATION-001"].map(c => encodeBytes32String(c));
+        // STATION_CHARGER_MAP 사용 — IStationRegistry 비인터페이스 getChargersByStation 제거
         const alt = chargerIds.find(c => c !== s1.chargerId && chipKeyPairs.has(c));
         if (alt) {
           s2.chargerId = alt;

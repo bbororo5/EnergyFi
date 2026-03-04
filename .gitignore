@@ -133,3 +133,6 @@ Desktop.ini
 .project
 .classpath
 .settings/
+
+# Claude Code
+.claude/

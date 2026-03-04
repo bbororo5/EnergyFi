@@ -52,7 +52,7 @@ Differs from Hardhat v2:
 ```
 Bridge → ChargeRouter → { ChargeTransaction (ROOT), RevenueTracker }
 ChargeTransaction → { DeviceRegistry (verifySignature), StationRegistry (isRegistered) }
-RevenueTracker → StationRegistry [ownerType]
+RevenueTracker → StationRegistry [regionId]
 ChargeTransaction → CarbonReduction (+ ParameterRegistry) → CarbonBatch → VCUReference
 RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
                  ReputationRegistry
@@ -81,10 +81,10 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 
 - **Essential** (5): DeviceRegistry, StationRegistry, ChargeRouter, ChargeTransaction, RevenueTracker — Phase 1-2 핵심 데이터 파이프라인. 없으면 시스템 동작 불가.
   - DeviceRegistry: ChargeTransaction이 `verifySignature()`를 직접 호출. SE 서명 검증의 기반.
-  - StationRegistry: RevenueTracker가 ownerType(CPO/ENERGYFI) 조회에 의존. 수익 귀속 불가능.
+  - StationRegistry: RevenueTracker가 regionId 조회에 의존. 수익 귀속 불가능.
   - ChargeRouter: Bridge의 유일한 진입점. mint() + recordRevenue()를 단일 TX 원자적 실행. 없으면 Bridge 호출 불가.
   - ChargeTransaction: 전체 시스템의 ROOT 데이터 소스.
-  - RevenueTracker: mint() 직후 수익 누적. CPO/STO 투자자 수익 추적 불가.
+  - RevenueTracker: mint() 직후 수익 누적. 지역별 STO 투자자 수익 추적 불가.
 - **Derived** (8): All others — consume data produced by Essential contracts.
 
 ### Implementation Phases
@@ -114,7 +114,7 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 | 문서 | 경로 | 참조 시점 |
 |:---|:---|:---|
 | **Implementation Roadmap** | `docs/implementation-roadmap.md` | 전체 아키텍처 파악, Phase별 의존성 그래프, 이중 서명 신뢰 모델, 리스크 레지스트리 |
-| **Phase 1 스펙** | `docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 구현. SE 칩 등록, CPO·충전소·충전기 계층 설계. |
+| **Phase 1 스펙** | `docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 구현. SE 칩 등록, 충전소·충전기 계층 설계. |
 | **Phase 2 스펙** | `docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker 구현. invoice.paid 매핑, 수익 귀속 모델. |
 | **Phase 3 스펙** | `docs/phase3-sto-spec.md` | STO 발행 경로(Path A/B) + Revenue Attestation 인프라. 토큰 구현은 경로 확정 후 보류. |
 | **Phase 4 스펙** | `docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인. VM0038 수식, CarbonBatch, VCUReference. |

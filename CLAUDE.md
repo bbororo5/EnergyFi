@@ -14,7 +14,7 @@ Agent instructions for the EnergyFi codebase. All technical decisions must align
 
 **Solution**: Issue per-region Security Token Offerings (STO) on Avalanche L1 so apartment residents and small investors can fractionally own charging infrastructure and receive revenue distributions.
 
-**Target users**: Apartment-resident small investors, charging station operators (CPOs).
+**Target users**: Apartment-resident small investors. Charging station operators (CPOs) use STRIKON software only (off-chain).
 
 **Launch target**: June 2026, South Korea apartment complexes. Charger + on-chain data recording from day one; STO activation January 2027 (Electronic Securities Act effective date).
 
@@ -134,9 +134,9 @@ cd contracts && npm install
 | **Token holder** | STO investor holding RegionSTO tokens. Token standard and issuance location determined after Presidential Decree finalizes requirements: Path A (EnergyFi as issuer-account manager → tokens on EnergyFi L1, KSD participates as validator node), Path B (delegation to securities firm → tokens on securities firm's ledger), or CCIP Path (Revenue Attestation sent to KSD chain via CCIP, preferred). KYC/AML and compliance are the securities firm's domain. |
 | **STRIKON oracle** | Internal module within STRIKON that calls EnergyFi contracts via the Bridge wallet (`onlyBridge`). |
 | **Bridge wallet** | AWS KMS HSM-backed wallet. Single entry point from STRIKON to EnergyFi L1. |
-| **CPO** | Charge Point Operator — owns and operates charging stations. Registered in StationRegistry. |
+| **CPO** | Charge Point Operator — third-party entity that uses STRIKON software to operate charging stations. **Off-chain STRIKON platform only.** CPOs are not registered on-chain. All on-chain stations are EnergyFi-owned. |
 | **Region** | South Korean administrative division (ISO 3166-2:KR, 17 regions). The investment unit for STO tokenization. |
-| **Station** | Physical charging station. Belongs to a CPO (or EnergyFi directly) and a region. ownerType determines revenue routing: CPO-owned → CPO; EnergyFi-owned → STO investor pool. |
+| **Station** | Physical charging station. All on-chain stations are EnergyFi-owned. Belongs to a region (regionId). Revenue flows 100% to the region's STO investor pool. |
 | **SE signature** | TPM 2.0 Secure Element digital signature on raw metering data (P-256/secp256r1). Active from Phase 1 (platform + hardware launch simultaneously). Verified on-chain via DeviceRegistry. |
 | **DeviceRegistry** | 10th contract in the architecture. Stores SE chip public keys (P-256, 64 bytes) bound to chargerId. Called by ChargeTransaction.mint() to verify every seSignature. |
 | **RIP-7212** | EIP-7212 P-256 verification precompile at address(0x100). Required for DeviceRegistry SE signature verification. Must be enabled in l1-config/genesis.json (separate approval). |
@@ -147,9 +147,9 @@ cd contracts && npm install
 | **Derived contracts** | All other 8 contracts — consume data produced by Essential contracts. |
 | **`invoice.paid`** | STRIKON event indicating payment complete. Sole trigger for `ChargeTransaction.mint()` + `RevenueTracker.recordRevenue()` (called consecutively by Bridge). |
 | **Bookend signature model** | SE chip (Layer 1) + Bridge wallet (Layer 2) sign at both ends. If both match, intermediate path integrity is proven. |
-| **RevenueTracker** | Phase 2 contract. Accumulates `distributableKrw` per station after each `invoice.paid`. Distinguishes CPO-owned vs EnergyFi-owned revenue. Source for STOPortfolio. |
+| **RevenueTracker** | Phase 2 contract. Accumulates `distributableKrw` per station after each `invoice.paid`. All revenue flows to the region's STO investor pool. Source for STOPortfolio. |
 | **Tranche (차수)** | Batch issuance unit for STO. Each Tranche records issuance date, token amount, and the list of EnergyFi-owned stations added. No real-time minting; issuance is periodic. |
-| **ownerType** | StationRegistry field: `CPO` or `ENERGYFI`. Determines whether station revenue flows to CPO or STO investor pool. |
+| **ownerType** | **(Removed)** Previously a StationRegistry field (`CPO` or `ENERGYFI`). Removed because all on-chain stations are now EnergyFi-owned. CPO concept exists only in STRIKON off-chain platform. |
 
 ---
 

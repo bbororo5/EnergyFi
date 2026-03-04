@@ -72,7 +72,8 @@ contract ChargeTransaction is
         uint256         energyKwh,
         uint256         distributableKrw,
         uint256         startTimestamp,
-        uint256         endTimestamp
+        uint256         endTimestamp,
+        bytes           seSignature
     );
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -160,11 +161,12 @@ contract ChargeTransaction is
         tokenId = _nextTokenId++;
         _mint(address(this), tokenId);
 
-        // 6. Store session
+        // 6. Store session (excluding seSignature — verified above, preserved in event only)
         _sessions[tokenId] = session;
+        delete _sessions[tokenId].seSignature;
         _sessionToToken[session.sessionId] = tokenId;
 
-        // 7. Emit event
+        // 7. Emit event (seSignature preserved here for off-chain audit)
         emit ChargeSessionRecorded(
             tokenId,
             session.sessionId,
@@ -174,7 +176,8 @@ contract ChargeTransaction is
             session.energyKwh,
             session.distributableKrw,
             session.startTimestamp,
-            session.endTimestamp
+            session.endTimestamp,
+            session.seSignature
         );
     }
 

@@ -39,6 +39,9 @@ contract RevenueTracker is
     error ZeroAmount();
     error NothingToClaim();
     error CPOHasNoStations();
+    error StationNotOwned();
+    error OffsetOutOfBounds();
+    error LimitZero();
 
     // ─────────────────────────────────────────────────────────────────────────
     // Storage
@@ -83,6 +86,13 @@ contract RevenueTracker is
     event CPOClaimed(
         bytes32 indexed cpoId,
         uint256         totalAmount,
+        uint256         period_yyyyMM,
+        uint256         claimedAt
+    );
+
+    event StationClaimed(
+        bytes32 indexed stationId,
+        uint256         amount,
         uint256         period_yyyyMM,
         uint256         claimedAt
     );
@@ -187,7 +197,79 @@ contract RevenueTracker is
         bytes32[] memory stationIds = stationRegistry.getStationsByCPO(cpoId);
         if (stationIds.length == 0) revert CPOHasNoStations();
 
-        for (uint256 i = 0; i < stationIds.length; i++) {
+        totalClaimed = _settleStations(stationIds, cpoId, period_yyyyMM, 0, stationIds.length);
+
+        if (totalClaimed == 0) revert NothingToClaim();
+
+        emit CPOClaimed(cpoId, totalClaimed, period_yyyyMM, block.timestamp);
+    }
+
+    /// @inheritdoc IRevenueTracker
+    function claimPaginated(
+        bytes32 cpoId,
+        uint256 period_yyyyMM,
+        uint256 offset,
+        uint256 limit
+    )
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        whenNotPaused
+        returns (uint256 totalClaimed, uint256 processed, bool hasMore)
+    {
+        if (limit == 0) revert LimitZero();
+        bytes32[] memory stationIds = stationRegistry.getStationsByCPO(cpoId);
+        if (stationIds.length == 0) revert CPOHasNoStations();
+        if (offset >= stationIds.length) revert OffsetOutOfBounds();
+
+        uint256 end = offset + limit;
+        if (end > stationIds.length) {
+            end = stationIds.length;
+        }
+
+        totalClaimed = _settleStations(stationIds, cpoId, period_yyyyMM, offset, end);
+        processed = end - offset;
+        hasMore = end < stationIds.length;
+
+        if (totalClaimed > 0) {
+            emit CPOClaimed(cpoId, totalClaimed, period_yyyyMM, block.timestamp);
+        }
+    }
+
+    /// @inheritdoc IRevenueTracker
+    function claimStation(bytes32 stationId, uint256 period_yyyyMM)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        whenNotPaused
+        returns (uint256 amount)
+    {
+        if (!stationRegistry.isRegistered(stationId)) revert StationNotRegistered();
+
+        amount = stationAccumulated[stationId] - stationSettled[stationId];
+        if (amount == 0) revert NothingToClaim();
+
+        stationSettled[stationId] += amount;
+
+        _settlementHistory[stationId].push(SettlementRecord({
+            period_yyyyMM: period_yyyyMM,
+            amount: amount,
+            settledAt: block.timestamp
+        }));
+
+        emit StationClaimed(stationId, amount, period_yyyyMM, block.timestamp);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Internal: shared settlement logic
+    // ─────────────────────────────────────────────────────────────────────────
+
+    function _settleStations(
+        bytes32[] memory stationIds,
+        bytes32 cpoId,
+        uint256 period_yyyyMM,
+        uint256 start,
+        uint256 end
+    ) internal returns (uint256 totalClaimed) {
+        for (uint256 i = start; i < end; i++) {
             bytes32 sid = stationIds[i];
             uint256 pending = stationAccumulated[sid] - stationSettled[sid];
             if (pending > 0) {
@@ -203,10 +285,6 @@ contract RevenueTracker is
                 emit SettlementRecorded(sid, cpoId, pending, period_yyyyMM, block.timestamp);
             }
         }
-
-        if (totalClaimed == 0) revert NothingToClaim();
-
-        emit CPOClaimed(cpoId, totalClaimed, period_yyyyMM, block.timestamp);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -242,6 +320,38 @@ contract RevenueTracker is
     }
 
     /// @inheritdoc IRevenueTracker
+    function getCPORevenuePaginated(
+        bytes32 cpoId,
+        uint256 offset,
+        uint256 limit
+    )
+        external view returns (
+            uint256 accumulated,
+            uint256 settled,
+            uint256 pending,
+            uint256 processed,
+            bool hasMore
+        )
+    {
+        if (limit == 0) revert LimitZero();
+        bytes32[] memory stationIds = stationRegistry.getStationsByCPO(cpoId);
+        if (offset >= stationIds.length && stationIds.length > 0) revert OffsetOutOfBounds();
+
+        uint256 end = offset + limit;
+        if (end > stationIds.length) {
+            end = stationIds.length;
+        }
+
+        for (uint256 i = offset; i < end; i++) {
+            accumulated += stationAccumulated[stationIds[i]];
+            settled += stationSettled[stationIds[i]];
+        }
+        pending = accumulated - settled;
+        processed = end - offset;
+        hasMore = end < stationIds.length;
+    }
+
+    /// @inheritdoc IRevenueTracker
     function getEnergyFiRegionRevenue(bytes4 regionId)
         external view returns (uint256 pending)
     {
@@ -250,6 +360,31 @@ contract RevenueTracker is
             bytes32 sid = stationIds[i];
             pending += stationAccumulated[sid] - stationSettled[sid];
         }
+    }
+
+    /// @inheritdoc IRevenueTracker
+    function getEnergyFiRegionRevenuePaginated(
+        bytes4 regionId,
+        uint256 offset,
+        uint256 limit
+    )
+        external view returns (uint256 pending, uint256 processed, bool hasMore)
+    {
+        if (limit == 0) revert LimitZero();
+        bytes32[] memory stationIds = stationRegistry.getEnergyFiStationsByRegion(regionId);
+        if (offset >= stationIds.length && stationIds.length > 0) revert OffsetOutOfBounds();
+
+        uint256 end = offset + limit;
+        if (end > stationIds.length) {
+            end = stationIds.length;
+        }
+
+        for (uint256 i = offset; i < end; i++) {
+            bytes32 sid = stationIds[i];
+            pending += stationAccumulated[sid] - stationSettled[sid];
+        }
+        processed = end - offset;
+        hasMore = end < stationIds.length;
     }
 
     /// @inheritdoc IRevenueTracker

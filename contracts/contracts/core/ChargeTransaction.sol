@@ -59,22 +59,8 @@ contract ChargeTransaction is
     mapping(uint256 => ChargeSession) private _sessions;
     mapping(bytes32 => uint256) private _sessionToToken;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Events
-    // ─────────────────────────────────────────────────────────────────────────
-
-    event ChargeSessionRecorded(
-        uint256 indexed tokenId,
-        bytes32 indexed sessionId,
-        bytes32 indexed chargerId,
-        bytes32         stationId,
-        bytes4          gridRegionCode,
-        uint256         energyKwh,
-        uint256         distributableKrw,
-        uint256         startTimestamp,
-        uint256         endTimestamp,
-        bytes           seSignature
-    );
+    // Events are inherited from IChargeTransaction:
+    //   ChargeSessionRecorded
 
     // ─────────────────────────────────────────────────────────────────────────
     // Initializer

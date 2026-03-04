@@ -1,6 +1,6 @@
 # EnergyFi — CLAUDE.md
 
-<!-- Contract-specific details (smart contract map, Hardhat config, ERC standards) are in contracts/l1/CLAUDE.md -->
+<!-- Contract-specific details (smart contract map, Hardhat config, ERC standards) are in contracts/CLAUDE.md -->
 
 Agent instructions for the EnergyFi codebase. All technical decisions must align with this document.
 
@@ -43,7 +43,7 @@ Layer 3 (Blockchain): EnergyFi — Avalanche L1 private chain (this repository)
 
 **Key boundaries**:
 - STRIKON is an external platform. From EnergyFi's perspective, it is a **trusted external caller** via the Bridge wallet (`onlyBridge` modifier).
-- EnergyFi repo scope: smart contracts (`contracts/l1/`) + L1 chain config (`l1-config/`) + investor frontend (`frontend/`, planned).
+- EnergyFi repo scope: smart contracts (`contracts/`) + L1 chain config (`l1-config/`) + investor frontend (`frontend/`, planned).
 - Data flow: SE chip signature → Embedded System → STRIKON → Bridge wallet → On-chain `ChargeTransaction.mint()` → `DeviceRegistry.verifySignature()`.
 - Trust model: Bookend Signature — SE chip signs at origin (P-256), Bridge wallet signs on-chain TX. DeviceRegistry verifies the SE signature on every mint(). Both match = path integrity verified.
 - SE chip public keys are pre-enrolled in DeviceRegistry before charger launch. From Phase 1, all charging sessions carry real SE signatures.
@@ -54,7 +54,7 @@ Layer 3 (Blockchain): EnergyFi — Avalanche L1 private chain (this repository)
 
 ```
 EnergyFi/
-├── contracts/l1/       # Avalanche L1 smart contracts (Hardhat 3, ESM)
+├── contracts/       # Avalanche L1 smart contracts (Hardhat 3, ESM)
 │   └── docs/           # Contract-specific docs (spec, roadmap, ERC analysis)
 ├── l1-config/          # L1 chain configuration (genesis.json, config.json)
 ├── frontend/           # Investor app (React Native + Expo)
@@ -73,7 +73,7 @@ EnergyFi/
 | Deployment Unit | Path | Stack | Status |
 |:---|:---|:---|:---|
 | L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | Active |
-| L1 Smart Contracts | `contracts/l1/` | Solidity ^0.8.20, Hardhat 3 | Active |
+| L1 Smart Contracts | `contracts/` | Solidity ^0.8.20, Hardhat 3 | Active |
 | Frontend | `frontend/` | React Native + Expo, TypeScript | Planned |
 
 ---
@@ -98,7 +98,7 @@ These rules are absolute. Never bypass them.
 | TypeScript | TypeScript | ^5.7.0 |
 | Module System | ESM | `"type": "module"` throughout |
 | Blockchain | Avalanche L1 (Subnet-EVM) | Chain ID 270626 |
-| Smart Contracts | Solidity ^0.8.20, Hardhat 3 | See `contracts/l1/CLAUDE.md` |
+| Smart Contracts | Solidity ^0.8.20, Hardhat 3 | See `contracts/CLAUDE.md` |
 | Frontend | React Native + Expo (SDK 54), TypeScript, expo-router | TBD (planned) |
 
 ---
@@ -110,7 +110,7 @@ These rules are absolute. Never bypass them.
 ```bash
 nvm install 24 && nvm use 24
 cp .env.example .env     # Fill in DEPLOYER_PRIVATE_KEY, RPC URLs
-cd contracts/l1 && npm install
+cd contracts && npm install
 ```
 
 ### Network Configuration
@@ -159,13 +159,13 @@ cd contracts/l1 && npm install
 |:---|:---|:---|
 | Architecture | `docs/architecture.md` | System-level understanding, data flows |
 | Project Overview | `docs/project-overview.md` | Quick orientation, scope |
-| Implementation Roadmap | `contracts/l1/docs/implementation-roadmap.md` | Architecture overview, dependency graph, dual-signature model, risk registry |
-| Phase 1 Spec | `contracts/l1/docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 구현 가이드 |
-| Phase 2 Spec | `contracts/l1/docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker 구현 가이드 |
-| Phase 3 Spec | `contracts/l1/docs/phase3-sto-spec.md` | STO 발행 경로(Path A/B) + Revenue Attestation 인프라. 토큰 구현 보류 |
-| Phase 4 Spec | `contracts/l1/docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인 구현 가이드 |
-| ERC Standards Analysis | `contracts/l1/docs/erc-standards-analysis.md` | ERC standard mapping, audit preparation |
-| T-REX Architecture | `contracts/l1/docs/trex-architecture.md` | 참고용 (발행 경로 확정 후 재검토) |
+| Implementation Roadmap | `contracts/docs/implementation-roadmap.md` | Architecture overview, dependency graph, dual-signature model, risk registry |
+| Phase 1 Spec | `contracts/docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 구현 가이드 |
+| Phase 2 Spec | `contracts/docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker 구현 가이드 |
+| Phase 3 Spec | `contracts/docs/phase3-sto-spec.md` | STO 발행 경로(Path A/B) + Revenue Attestation 인프라. 토큰 구현 보류 |
+| Phase 4 Spec | `contracts/docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인 구현 가이드 |
+| ERC Standards Analysis | `contracts/docs/erc-standards-analysis.md` | ERC standard mapping, audit preparation |
+| T-REX Architecture | `contracts/docs/trex-architecture.md` | 참고용 (발행 경로 확정 후 재검토) |
 | Interface Spec | `docs/strikon-interface-spec.md` | STRIKON ↔ EnergyFi pipeline |
 | Frontend Design | `frontend/docs/flutter-design.md` | Investor app design, screens |
 | Platform Policies | `docs/platform-policies.md` | Confirmed policies P1~P5 |

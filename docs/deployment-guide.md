@@ -7,7 +7,7 @@ This document covers the deployment units, their execution procedures, and the p
 | Unit | Name | Path | Stack | Depends On | Status |
 |:---|:---|:---|:---|:---|:---|
 | **A** | L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | AvalancheGo node | Active |
-| **B** | L1 Smart Contracts | `contracts/l1/` | Solidity, Hardhat 3 | **Unit A** running | Active |
+| **B** | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | **Unit A** running | Active |
 | **C** | Frontend | `frontend/` | React Native + Expo (SDK 54), TypeScript | **Unit B** deployed | Planned |
 
 > **Note:** Off-chain services (data relay, oracle pattern) are managed by the STRIKON platform and are outside the scope of this repository.
@@ -25,7 +25,7 @@ cp .env.example .env
 
 ### 2.2 Install Dependencies
 ```bash
-cd contracts/l1 && npm install
+cd contracts && npm install
 ```
 
 ## 3. [Unit A] L1 Infrastructure
@@ -83,7 +83,7 @@ For hackathon submission, the L1 is deployed via [AvaCloud](https://avacloud.io)
 #    ENERGYFI_L1_TESTNET_RPC=<AvaCloud console에서 제공하는 RPC URL>
 
 # 4. Deploy contracts (same command as Phase 1)
-cd contracts/l1
+cd contracts
 npm run deploy:testnet
 ```
 
@@ -107,7 +107,7 @@ For production launch (June 2026~), the L1 is deployed via AvaCloud Mainnet with
 #    ENERGYFI_L1_MAINNET_RPC=<AvaCloud console에서 제공하는 RPC URL>
 
 # 4. Deploy contracts
-cd contracts/l1
+cd contracts
 npm run deploy:mainnet
 ```
 
@@ -145,7 +145,7 @@ avalanche blockchain describe energyfi-l1 --fuji
 Deploy contracts onto the EnergyFi L1 (requires Unit A running).
 
 ```bash
-cd contracts/l1
+cd contracts
 npm run compile
 npm run test              # 47 passing, 1 pending (P-256 skip) — Phase 1 완료
 
@@ -154,7 +154,7 @@ npm run deploy:testnet    # Testnet (Development or Hackathon)
 npm run deploy:mainnet    # Mainnet (Production)
 ```
 
-> **Note:** `hardhat.config.ts` loads `.env` from the project root (`../../.env`), not from `contracts/l1/`. Environment variables are centrally managed in the root `.env` file.
+> **Note:** `hardhat.config.ts` loads `.env` from the project root (`../.env`), not from `contracts/`. Environment variables are centrally managed in the root `.env` file.
 
 > **Deployer funding:** The deployer wallet (`0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD`) must have EFI balance on the target chain before deployment. Fund it from the Core wallet via AvaCloud console or Core Wallet app.
 
@@ -167,11 +167,11 @@ npm run deploy:mainnet    # Mainnet (Production)
 
 Deployed on **2026.03.03** to `energyfi-l1-testnet` (Chain ID 270626).
 
-Deployment produces `contracts/l1/deployments.json` with addresses per network.
+Deployment produces `contracts/deployments.json` with addresses per network.
 
 After deployment, run the Mock Oracle to register test data:
 ```bash
-cd contracts/l1
+cd contracts
 npm run oracle:testnet    # 대화형 CLI — 옵션 5 (전체 등록) 선택
 npm run dashboard:testnet # 3-화면 ASCII 대시보드 출력
 ```

@@ -32,7 +32,7 @@ Cross-platform application for STO investors and CPO dashboards.
 
 > **Note:** The `frontend/` scaffold has been removed. The frontend will be reimplemented to align with the per-region STO model and 9-contract architecture. Frontend spec is planned for a future phase.
 
-### 2.2 Layer 3: Avalanche L1 Private Chain — Smart Contracts (`contracts/l1/`)
+### 2.2 Layer 3: Avalanche L1 Private Chain — Smart Contracts (`contracts/`)
 12 contracts + 1 factory organized into 4 functional categories on a dedicated Avalanche L1 (zero-gas, BFT consensus). Contracts are divided into **Essential** (Phase 1-2 data pipeline, cannot operate without) and **Derived** (consume Essential data).
 
 **Category A: Physical Infrastructure Layer — Essential**
@@ -73,7 +73,7 @@ Cross-platform application for STO investors and CPO dashboards.
 |:---|:---|:---|
 | **RegionSTOFactory** | Deploys RegionSTO instances per region | Phase 3 (2027.01~, 보류) |
 
-> See [implementation-roadmap.md](../contracts/l1/docs/implementation-roadmap.md) for full architecture and contract specifications.
+> See [implementation-roadmap.md](../contracts/docs/implementation-roadmap.md) for full architecture and contract specifications.
 
 ### 2.3 Layer 2: Platform Services (External — STRIKON Platform)
 Off-chain services bridging physical infrastructure to on-chain state. **This layer is managed by the STRIKON platform and is outside the scope of EnergyFi.** EnergyFi provides the on-chain contracts (Layer 3) that the platform calls.
@@ -106,7 +106,7 @@ Dedicated Avalanche L1 private chain for all EnergyFi smart contracts.
 | **EVM Compatible** | Supports ERC-20, ERC-721, ERC-1155, ERC-3643 standards |
 | **Cross-chain** | Avalanche Warp Messaging (AWM) for future public chain connectivity |
 
-See [implementation-roadmap.md](../contracts/l1/docs/implementation-roadmap.md) for the full 12-contract specification.
+See [implementation-roadmap.md](../contracts/docs/implementation-roadmap.md) for the full 12-contract specification.
 
 ## 3. Cross-Chain Communication
 
@@ -170,7 +170,7 @@ TPM 2.0 SE Chip (signs kWh data at hardware level)
         └── Securities Firm (KYC/AML, 배당 계산·집행)
 ```
 
-> Path A(직접 발행)에서는 RegionSTO가 EnergyFi L1에 배포되며 KSD가 밸리데이터로 참여. 발행 경로는 2027년 대통령령 확정 + KSD 체인 확정 후 결정. 자세한 내용은 [phase3-sto-spec.md](../contracts/l1/docs/phase3-sto-spec.md) 참조.
+> Path A(직접 발행)에서는 RegionSTO가 EnergyFi L1에 배포되며 KSD가 밸리데이터로 참여. 발행 경로는 2027년 대통령령 확정 + KSD 체인 확정 후 결정. 자세한 내용은 [phase3-sto-spec.md](../contracts/docs/phase3-sto-spec.md) 참조.
 
 > See [implementation-roadmap.md](../contracts/implementation-roadmap.md) for the phased implementation roadmap.
 

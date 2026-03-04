@@ -33,7 +33,7 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 | Unit | Name | Path | Stack | Status |
 |:---|:---|:---|:---|:---|
 | A | L1 Infrastructure | `l1-config/` | Avalanche-CLI, JSON config | Active |
-| B | L1 Smart Contracts | `contracts/l1/` | Solidity, Hardhat 3 | Active |
+| B | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | Active |
 | C | Frontend | `frontend/` | React Native + Expo (SDK 54), TypeScript | Planned (per-region STO model) |
 
 ## 4. Repository Structure
@@ -42,7 +42,7 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 EnergyFi/
 ├── contracts/
 │   └── l1/                # Unit B: Avalanche L1 private chain contracts
-│       ├── contracts/     # 12-contract architecture (see contracts/l1/docs/implementation-roadmap.md)
+│       ├── contracts/     # 12-contract architecture (see contracts/docs/implementation-roadmap.md)
 │       ├── scripts/       # Deployment scripts
 │       └── hardhat.config.ts
 ├── l1-config/             # Unit A: L1 genesis & runtime config

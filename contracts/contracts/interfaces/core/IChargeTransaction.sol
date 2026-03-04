@@ -9,23 +9,46 @@ pragma solidity ^0.8.20;
  * non-transferable ERC-721 token. The SE chip signature proves physical
  * metering integrity (Bookend signature model).
  *
+ * All on-chain charging stations are EnergyFi-owned.
+ *
  * @dev Essential contract — ROOT data source for the entire EnergyFi system.
  */
 interface IChargeTransaction {
+    // ─────────────────────────────────────────────────────────────────────────
+    // Events
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Emitted when a new charging session token is minted.
+    event ChargeSessionRecorded(
+        uint256 indexed tokenId,
+        bytes32 indexed sessionId,
+        bytes32 indexed chargerId,
+        bytes32         stationId,
+        bytes4          gridRegionCode,
+        uint256         energyKwh,
+        uint256         distributableKrw,
+        uint256         startTimestamp,
+        uint256         endTimestamp,
+        bytes           seSignature
+    );
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Structs
+    // ─────────────────────────────────────────────────────────────────────────
+
     /// @notice On-chain record for a single EV charging session.
     struct ChargeSession {
         bytes32 sessionId;         // STRIKON UUID -> bytes32
-        bytes32 chargerId;         // DeviceRegistry에 등록된 충전기 ID
+        bytes32 chargerId;         // Charger ID registered in DeviceRegistry
         uint8   chargerType;       // 0: L1, 1: L2, 2: DCFC
         uint256 energyKwh;         // kWh x 100 (6.780 kWh -> 678)
         uint256 startTimestamp;    // Unix timestamp
         uint256 endTimestamp;      // Unix timestamp
         uint8   vehicleCategory;   // 0: UNKNOWN, 1: BEV, 2: PHEV
-        bytes4  gridRegionCode;    // ISO 3166-2:KR (탄소 EFkw 조회용)
-        bytes32 cpoId;             // CPO ID
+        bytes4  gridRegionCode;    // ISO 3166-2:KR (for carbon EFkw lookup)
         bytes32 stationId;         // Station ID
-        uint256 distributableKrw;  // STRIKON 수수료 차감 후 배분 가능 금액(원)
-        bytes   seSignature;       // TPM 2.0 SE 칩 서명
+        uint256 distributableKrw;  // Revenue after STRIKON fee deduction (KRW)
+        bytes   seSignature;       // TPM 2.0 SE chip signature
     }
 
     /**

@@ -113,7 +113,7 @@ cd contracts/l1 && npm run compile    # solc 0.8.20
 |:---|:---|:---|:---|:---|:---|
 | **A** (L1 Config) | `l1-config/` | Avalanche-CLI | JSON | — | Active |
 | **B** (L1 Contracts) | `contracts/l1/` | Node.js 24 | ESM (`"type": "module"`) | hardhat@3.1.7, ethers@6, OZ@5 | Active |
-| **C** (Frontend) | `frontend/` | TBD | TBD | TBD | Planned |
+| **C** (Frontend) | `frontend/` | Node.js 24 | ESM | expo@54, react-native, expo-router | Planned |
 
 ## 4. Hardhat 3 Notes
 
@@ -141,6 +141,6 @@ Individual plugins used (no toolbox meta-package):
 
 - **VS Code** with extensions:
   - `NomicFoundation.hardhat-solidity` — Solidity syntax & compilation
-  - `Dart-Code.flutter` — Flutter & Dart support
+  - `msjsdiag.vscode-react-native` — React Native Tools
   - `dbaeumer.vscode-eslint` — TypeScript linting
 - **Solidity version**: Set to `^0.8.20` in IDE settings to match compiler

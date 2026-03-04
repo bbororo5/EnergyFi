@@ -57,8 +57,8 @@ EnergyFi/
 ├── contracts/l1/       # Avalanche L1 smart contracts (Hardhat 3, ESM)
 │   └── docs/           # Contract-specific docs (spec, roadmap, ERC analysis)
 ├── l1-config/          # L1 chain configuration (genesis.json, config.json)
-├── frontend/           # Investor app (planned reimplementation)
-│   └── docs/           # Frontend-specific docs (Flutter design, screenshots)
+├── frontend/           # Investor app (React Native + Expo)
+│   └── docs/           # Frontend-specific docs (design, screenshots)
 ├── docs/               # Cross-cutting documentation
 │   ├── architecture.md
 │   ├── project-overview.md
@@ -74,7 +74,7 @@ EnergyFi/
 |:---|:---|:---|:---|
 | L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | Active |
 | L1 Smart Contracts | `contracts/l1/` | Solidity ^0.8.20, Hardhat 3 | Active |
-| Frontend | `frontend/` | Flutter + WalletConnect v2 | Planned |
+| Frontend | `frontend/` | React Native + Expo, TypeScript | Planned |
 
 ---
 
@@ -99,7 +99,7 @@ These rules are absolute. Never bypass them.
 | Module System | ESM | `"type": "module"` throughout |
 | Blockchain | Avalanche L1 (Subnet-EVM) | Chain ID 270626 |
 | Smart Contracts | Solidity ^0.8.20, Hardhat 3 | See `contracts/l1/CLAUDE.md` |
-| Frontend | Flutter + WalletConnect v2 | TBD (planned) |
+| Frontend | React Native + Expo (SDK 54), TypeScript, expo-router | TBD (planned) |
 
 ---
 

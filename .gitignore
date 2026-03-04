@@ -92,14 +92,15 @@ build/
 .dynamodb/
 .tern-port
 
-# Flutter
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-*.iml
+# Expo / React Native
+.expo/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+web-build/
+ios/
+android/
 
 # Caches
 .cache/

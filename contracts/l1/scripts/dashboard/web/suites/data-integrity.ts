@@ -26,8 +26,25 @@ export const dataIntegritySuite: TestSuite = {
     const sr = ctx.stationRegistry;
 
     // 세션 2건 추가 (교차 검증 데이터 확보)
-    const result1 = await generateAndProcessSession(ctx, "STATION-001", "CPO");
-    const result2 = await generateAndProcessSession(ctx, undefined, "ENERGYFI", "KR11");
+    let result1: any;
+    let result2: any;
+    try {
+      result1 = await generateAndProcessSession(ctx, "STATION-001", "CPO");
+      result2 = await generateAndProcessSession(ctx, undefined, "ENERGYFI", "KR11");
+    } catch (err: unknown) {
+      const reason = `초기 세션 생성 실패: ${String(err).slice(0, 200)}`;
+      for (const label of [
+        "DI-1 CPO 총수익 = 충전소 수익 합",
+        "DI-2 EFI 지역 수익 = 충전소 pending 합",
+        "DI-3 감사 추적: 세션ID로 온체인 기록 조회",
+        "DI-4 CPO 소속 충전소 전수 유효성",
+      ]) {
+        counts.failed++;
+        emit({ type: "case-start", label, kind: "verify" });
+        emit({ type: "fail", label, reason, kind: "verify" });
+      }
+      return counts;
+    }
 
     // DI-1. CPO 총수익 = 소속 충전소 수익 합
     const cpo1Id = encodeBytes32String("CPO-001");

@@ -104,8 +104,9 @@ async function main() {
   // Provider + Signer
   const rpcUrl = getRpcUrl(networkArg);
   const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const signer = new ethers.Wallet(privateKey, provider);
-  console.log(`Signer  : ${signer.address}`);
+  const wallet = new ethers.Wallet(privateKey, provider);
+  const signer = wallet;
+  console.log(`Signer  : ${wallet.address}`);
 
   // 컨트랙트 주소
   const addrs = loadDeployments(networkArg);
@@ -164,7 +165,7 @@ async function main() {
   app.get("/api/status", (_req, res) => {
     res.json({
       network: networkArg,
-      signer: signer.address,
+      signer: wallet.address,
       contracts: {
         DeviceRegistry: addrs.DeviceRegistry,
         StationRegistry: addrs.StationRegistry,

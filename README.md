@@ -14,7 +14,7 @@
 [![Avalanche](https://img.shields.io/badge/Avalanche-Evergreen%20Standard-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
 [![Hardware Security](https://img.shields.io/badge/TPM%202.0-Hardware%20Anchor-blue?logo=intel)](https://en.wikipedia.org/wiki/Trusted_Platform_Module)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?logo=solidity)](https://soliditylang.org/)
-[![Flutter](https://img.shields.io/badge/Flutter-Mobile_App-02569B?logo=flutter)](https://flutter.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?logo=expo)](https://expo.dev/)
 
 </div>
 
@@ -202,7 +202,7 @@ EnergyFi introduces a self-replicating economic model powered by AI and Blockcha
 | ④ | **STRIKON Platform** | **Bridge:** Verifies off-chain revenue data and pushes it on-chain. |
 | ⑤ | **RevenueVault** | **Distribution:** Converts fiat revenue to **Stablecoins (USDC)** and distributes yield via Smart Contracts. |
 | ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
-| ⑦ | **Flutter App** | **Claim:** Investors view real-time APY and claim dividends. |
+| ⑦ | **Investor App** | **Claim:** Investors view real-time APY and claim dividends. |
 
 > 📖 Full detail: See [Implementation Roadmap](contracts/l1/docs/implementation-roadmap.md)
 
@@ -238,7 +238,7 @@ EnergyFi connects established hardware infrastructure with the Avalanche blockch
 | **Asset (Off-chain)** | **EV Charger** | Custom Hardware, TPM 2.0, metering IC |
 | **Platform (Off-chain)** | **STRIKON** | Golang 30+ microservices, Python AI Agents (APEX) |
 | **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche L1**, Hardhat 3 |
-| **Interface** | **App** | Flutter, WalletConnect v2, ethers.js |
+| **Interface** | **App** | React Native + Expo (TypeScript), WalletConnect v2, ethers.js |
 
 > **Hackathon Focus:** During this hackathon, we built the **EnergyFi Protocol** (Smart Contracts & L1 config) that records TPM 2.0 SE-signed charging data on-chain and applies VM0038 carbon reduction calculations.
 ---

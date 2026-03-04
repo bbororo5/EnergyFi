@@ -157,9 +157,8 @@ export const phase1InfraSuite: TestSuite = {
 
     // ── SE칩 사전 등록 (registerCharger는 isActiveChip을 검증) ────────────
     await setup("SE칩 사전 등록 (충전기 테스트용)", async () => {
-      let nonce = await ctx.signer.getNonce();
       for (const cid of [CHG_ID_1, CHG_ID_2, CHG_NO_STN, CHG_INACT]) {
-        const tx = await dr.enrollChip(cid, randomPubKey(64), 0, { nonce: nonce++ });
+        const tx = await dr.enrollChip(cid, randomPubKey(64), 0);
         await tx.wait();
       }
     }, emit, counts);

@@ -7,25 +7,43 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "clean": "npx hardhat clean",
+    "node": "npx hardhat node",
+    "deploy:local": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-local",
     "deploy:testnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-testnet",
-    "deploy:mainnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-mainnet"
+    "deploy:mainnet": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-mainnet",
+    "dashboard:testnet": "tsx scripts/dashboard/web/server.ts energyfi-l1-testnet",
+    "dashboard:local": "tsx scripts/dashboard/web/server.ts localhost",
+    "dashboard:l1-local": "tsx scripts/dashboard/web/server.ts energyfi-l1-local"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@noble/curves": "^2.0.1",
+    "@nomicfoundation/hardhat-chai-matchers": "^3.0.0",
     "@nomicfoundation/hardhat-ethers": "^4.0.4",
     "@nomicfoundation/hardhat-ignition": "^3.0.7",
     "@nomicfoundation/hardhat-ignition-ethers": "^3.0.7",
     "@nomicfoundation/hardhat-keystore": "^3.0.4",
+    "@nomicfoundation/hardhat-mocha": "^3.0.11",
     "@nomicfoundation/hardhat-network-helpers": "^3.0.3",
     "@nomicfoundation/hardhat-verify": "^3.0.10",
     "@nomicfoundation/ignition-core": "^3.0.7",
     "@openzeppelin/contracts": "^5.3.0",
+    "@openzeppelin/contracts-upgradeable": "^5.6.1",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.13",
+    "chai": "^6.2.2",
     "dotenv": "^16.4.0",
     "ethers": "^6.14.0",
     "hardhat": "^3.1.7",
+    "mocha": "^11.7.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "express": "^5.2.1"
   }
 }

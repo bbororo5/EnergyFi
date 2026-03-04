@@ -1,0 +1,16 @@
+{
+  "energyfi-l1-testnet": {
+    "DeviceRegistry": "0x3078Da6Bedb0f6092Ed35f542C84cFD83963A2dc",
+    "StationRegistry": "0x8034f8Ed4942Cb74CDE08d6690e5a8aCcd0Cc40A",
+    "ChargeTransaction": "0x912c3C7567b6223114420aB5a5ae8AbcEc8892Ff",
+    "RevenueTracker": "0xc2dCaDc55d89dD532567aB672D3ca574285234eC",
+    "ChargeRouter": "0xC7eC95d251Ed20a837360c22faC9c6a2B876dC06"
+  },
+  "energyfi-l1-local": {
+    "DeviceRegistry": "0x17Df6a809BAe3249fC07eB4EEFb3e2b282Ad4959",
+    "StationRegistry": "0xADCfD47925F526a8abf51bE745B68d18D33952f9",
+    "ChargeTransaction": "0xad54760b6c7Af14a39d6C16B2c94E03883e78156",
+    "RevenueTracker": "0x295574ED07FB2901376FEa6D21b98F81c80dD6AC",
+    "ChargeRouter": "0xFc78C4e202A5a681864d6D3E80a58F3B14DbAEa8"
+  }
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergyFi Integration Test Runner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="logo">EnergyFi</h1>
+      <span class="header-subtitle">Integration Test Runner</span>
+    </div>
+    <div class="header-right">
+      <span id="networkBadge" class="badge badge-muted">--</span>
+      <span id="phase2Badge" class="badge badge-muted">Phase 2: --</span>
+      <span id="connectionStatus" class="connection-dot offline"></span>
+    </div>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button id="btnRunAll" class="btn btn-primary" onclick="runAllSuites()">&#9654; 전체 실행</button>
+      <div id="suiteButtons" class="suite-buttons"></div>
+    </div>
+    <div class="toolbar-right">
+      <span id="totalProgress" class="progress-text">0 / 0</span>
+      <div class="progress-bar-wrap">
+        <div id="progressBar" class="progress-bar" style="width:0%"></div>
+      </div>
+      <span id="timerDisplay" class="timer">0.0s</span>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="test-layout">
+    <!-- Left Sidebar: Suite Navigation -->
+    <aside class="suite-nav" id="suiteNav">
+      <div class="nav-section-title">Test Suites</div>
+      <!-- dynamically populated -->
+    </aside>
+
+    <!-- Right: Results -->
+    <main class="suite-results" id="suiteResults">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">&#9881;</div>
+        <p>"전체 실행" 또는 개별 Suite 버튼을 눌러 테스트를 시작하세요.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Summary Bar -->
+  <footer class="summary-bar" id="summaryBar" style="display:none">
+    <div class="summary-item summary-passed">
+      <span class="summary-label">통과</span>
+      <span id="summaryPassed" class="summary-value">0</span>
+    </div>
+    <div class="summary-item summary-failed">
+      <span class="summary-label">실패</span>
+      <span id="summaryFailed" class="summary-value">0</span>
+    </div>
+    <div class="summary-item summary-gaps">
+      <span class="summary-label">갭</span>
+      <span id="summaryGaps" class="summary-value">0</span>
+    </div>
+    <div class="summary-item summary-time">
+      <span class="summary-label">소요</span>
+      <span id="summaryTime" class="summary-value">--</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@ EnergyFi employs a **4-layer architecture** on a dedicated Avalanche L1 private 
 
 ```
 Layer 4 (Top)    : Investor Interface          — Frontend (planned reimplementation)      ← EnergyFi
-Layer 3          : Avalanche L1 Private Chain   — 9 Smart Contracts (4 categories)         ← EnergyFi
+Layer 3          : Avalanche L1 Private Chain   — 12 Contracts + 1 Factory (4 categories)  ← EnergyFi
 Layer 2          : Platform Services            — STRIKON Platform (30+ microservices)      ← External
 Layer 1 (Bottom) : Hardware Root of Trust       — TPM 2.0 SE + Embedded System              ← External
 ```
@@ -33,44 +33,47 @@ Cross-platform application for STO investors and CPO dashboards.
 > **Note:** The `frontend/` scaffold has been removed. The frontend will be reimplemented to align with the per-region STO model and 9-contract architecture. Frontend spec is planned for a future phase.
 
 ### 2.2 Layer 3: Avalanche L1 Private Chain — Smart Contracts (`contracts/l1/`)
-9 smart contracts organized into 4 functional categories on a dedicated Avalanche L1 (zero-gas, BFT consensus).
+12 contracts + 1 factory organized into 4 functional categories on a dedicated Avalanche L1 (zero-gas, BFT consensus). Contracts are divided into **Essential** (Phase 1-2 data pipeline, cannot operate without) and **Derived** (consume Essential data).
 
-**Category A: Physical Infrastructure Layer**
-
-| Contract | Role | Phase |
-|:---|:---|:---|
-| **StationRegistry** | CPO -> Station -> Charger tree structure | June 2026 |
-
-**Category B: Charging Data & Carbon Reduction Layer**
+**Category A: Physical Infrastructure Layer — Essential**
 
 | Contract | Role | Phase |
 |:---|:---|:---|
-| **ChargeTransaction** | ERC-721 token per charging session (SE-signed) | June 2026 |
-| **CarbonReduction** | VM0038 emission reduction calculation (immutable) | June 2026 |
-| **ParameterRegistry** | Versioned emission factors (EFkw, AFEC, etc.) | June 2026 |
+| **DeviceRegistry** | SE 칩 공개키(P-256, 64 bytes) 저장소. ChargeTransaction.mint() 호출 시 SE 서명 검증 | Phase 1 (2026.04) |
+| **StationRegistry** | CPO → Station → Charger tree structure. ownerType(CPO/ENERGYFI) 결정 | Phase 1 (2026.04) |
 
-**Category C: Carbon Credit Pipeline Layer**
-
-| Contract | Role | Phase |
-|:---|:---|:---|
-| **CarbonBatch** | Groups reductions into verification batches, prevents double-counting | 2027+ |
-| **VCUReference** | Records Verra VCU issuance results on-chain | 2027+ |
-
-**Category D: Investment & Operations Layer**
+**Category B: Charging Data & Revenue Layer — Essential**
 
 | Contract | Role | Phase |
 |:---|:---|:---|
-| **ReputationRegistry** | CPO operational quality scores (oracle pattern) | 2026 H2 |
-| **STOPortfolio** | Maps investor wallets to region holdings | 2027 Jan |
-| **RegionSTO** | ERC-3643 security token per region (17 regions, ISO 3166-2:KR) | 2027 Jan |
+| **ChargeTransaction** | ERC-721 token per charging session (SE-signed). ROOT data source | Phase 2 (2026.06) |
+| **RevenueTracker** | 결제 완료 건 수익 누적. CPO 수익 vs EnergyFi 지역 수익 풀 분리 | Phase 2 (2026.06) |
+
+**Category C: Carbon Credit Pipeline Layer — Derived**
+
+| Contract | Role | Phase |
+|:---|:---|:---|
+| **ParameterRegistry** | Versioned emission factors (EFkw, AFEC, etc.) | Phase 4 (2027+) |
+| **CarbonReduction** | VM0038 emission reduction calculation (immutable) | Phase 4 (2027+) |
+| **CarbonBatch** | Groups reductions into verification batches, prevents double-counting | Phase 4 (2027+) |
+| **VCUReference** | Records Verra VCU issuance results on-chain | Phase 4 (2027+) |
+
+**Category D: Investment & Operations Layer — Derived**
+
+| Contract | Role | Phase |
+|:---|:---|:---|
+| **CCIPRevenueSender** | RevenueTracker 데이터를 Revenue Attestation으로 포맷 후 CCIP Router로 KSD 지원 체인에 전송 | Phase 3 (2027.01~, 보류) |
+| **ReputationRegistry** | CPO operational quality scores (oracle pattern, 선택) | Phase 3 (2027.01~, 보류) |
+| **STOPortfolio** | Maps investor wallets to region holdings | Phase 3 (2027.01~, 보류) |
+| **RegionSTO** | Security token per region (17 regions, ISO 3166-2:KR). 토큰 표준 미확정. CCIP Path에서는 KSD 지원 체인에 배포 | Phase 3 (2027.01~, 보류) |
 
 **Factory Contract:**
 
 | Contract | Role | Phase |
 |:---|:---|:---|
-| **RegionSTOFactory** | Deploys RegionSTO instances per region, dynamic mintable supply | 2027 Jan |
+| **RegionSTOFactory** | Deploys RegionSTO instances per region | Phase 3 (2027.01~, 보류) |
 
-> See [smart-contract-spec.md](../contracts/smart-contract-spec.md) for full contract specifications.
+> See [implementation-roadmap.md](../contracts/l1/docs/implementation-roadmap.md) for full architecture and contract specifications.
 
 ### 2.3 Layer 2: Platform Services (External — STRIKON Platform)
 Off-chain services bridging physical infrastructure to on-chain state. **This layer is managed by the STRIKON platform and is outside the scope of EnergyFi.** EnergyFi provides the on-chain contracts (Layer 3) that the platform calls.
@@ -103,14 +106,20 @@ Dedicated Avalanche L1 private chain for all EnergyFi smart contracts.
 | **EVM Compatible** | Supports ERC-20, ERC-721, ERC-1155, ERC-3643 standards |
 | **Cross-chain** | Avalanche Warp Messaging (AWM) for future public chain connectivity |
 
-See [smart-contract-spec.md](../contracts/smart-contract-spec.md) for the full 9-contract specification.
+See [implementation-roadmap.md](../contracts/l1/docs/implementation-roadmap.md) for the full 12-contract specification.
 
-## 3. Cross-Chain Communication (Future)
+## 3. Cross-Chain Communication
 
-### 3.1 Avalanche Warp Messaging (AWM)
+### 3.1 Chainlink CCIP — Phase 3 Revenue Attestation (권장 경로)
+- **Direction**: EnergyFi L1 (Avalanche) → KSD 지원 체인 (Hyperledger Besu 등)
+- **Purpose**: RevenueTracker 데이터를 Revenue Attestation 메시지 (regionId, distributableKrw, Merkle root)로 포맷하여 KSD 지원 체인에 전달. KSD 체인 측에서 RegionSTO 차수 발행 및 배당 계산 트리거.
+- **Phase**: Phase 3 (2027.01~). KSD 지원 체인 기술 확정 후 CCIPRevenueSender 구현 착수.
+- **근거**: DTCC(미국 KSD)가 Avalanche + Hyperledger Besu + CCIP 구조로 2025년 실증 완료. ISO 27001 + SOC 2 인증. Risk Management Network(독립 검증), Blockchain Privacy Manager(민감 데이터 암호화) 지원.
+
+### 3.2 Avalanche Warp Messaging (AWM) — Phase 4
 - **Direction**: L1 Private Chain → Avalanche C-Chain (public)
 - **Purpose**: State anchoring for data integrity verification; future public market VCU trading.
-- **Phase**: Launch phase uses public chain anchoring for pre-production data integrity. Full cross-chain bridge planned for Phase 4.
+- **Phase**: Full cross-chain bridge planned for Phase 4 (2027+).
 
 ## 4. Data Flow
 
@@ -140,23 +149,28 @@ TPM 2.0 SE Chip (signs kWh data at hardware level)
   └─────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Investment Pipeline
+### 4.2 Investment Pipeline (CCIP Path — 권장)
 ```
   StationRegistry (CPO → Station → Charger tree)
         │
-        ├── ChargeTransaction (revenue data)
+        ├── ChargeTransaction (revenue data, ERC-721)
         ├── CarbonReduction (reduction data)
         ├── ReputationRegistry (CPO quality scores)
         │
         ▼
-  STOPortfolio (region-level aggregated investor view)
+  RevenueTracker (지역별 distributableKrw 누적)
         │
         ▼
-  RegionSTO (ERC-3643, per-region token via RegionSTOFactory)
+  CCIPRevenueSender [EnergyFi L1]
+        │  Revenue Attestation 메시지 (regionId, distributableKrw, merkleRoot)
+        ▼  ──── CCIP ────▶
+  KSD 지원 체인 CCIP Receiver
         │
-        ▼
-  Securities Firm Platform (dividend calculation & execution)
+        ├── RegionSTO.issueNewTranche() (차수 발행, KSD 노드 총량 확인)
+        └── Securities Firm (KYC/AML, 배당 계산·집행)
 ```
+
+> Path A(직접 발행)에서는 RegionSTO가 EnergyFi L1에 배포되며 KSD가 밸리데이터로 참여. 발행 경로는 2027년 대통령령 확정 + KSD 체인 확정 후 결정. 자세한 내용은 [phase3-sto-spec.md](../contracts/l1/docs/phase3-sto-spec.md) 참조.
 
 > See [implementation-roadmap.md](../contracts/implementation-roadmap.md) for the phased implementation roadmap.
 
@@ -207,11 +221,13 @@ SE 서명 원본 데이터  vs  온체인 ChargeSession 데이터  → 일치 �
 
 ### 6.4 Phase별 신뢰 진화 (요약)
 
+> **설계 변경 (2026.03)**: 플랫폼과 충전기는 동시에 런칭한다. Phase 1부터 실제 SE 칩이 장착되고 seSignature는 실제 값이다. 기존 "Phase 1: seSignature = 0x" 가정은 폐기.
+
 | Phase | 시점 | L1 (HW) | L2 (Platform) | 온체인 검증 |
 |:---|:---|:---|:---|:---|
-| **1** | ~2026.05 | 비활성 (`seSignature = 0x`) | `onlyBridge` + 결제 완료 게이트 | DERA 이상치 탐지 + Bridge 권한 제어 |
-| **2** | 2026.06~ | SE 서명 저장 (검증은 off-chain) | 동일 | VVB가 off-chain에서 SE 서명 검증 가능 |
-| **3+** | 2027.01~ | SE 서명 온체인 검증 | 동일 | 컨트랙트가 SE 서명 직접 검증 (P-256 precompile). 완전한 HW→온체인 Chain of Trust |
+| **1** | ~2026.04 | ✅ DeviceRegistry 배포, SE 칩 공개키 사전 등록 | — (ChargeTransaction 미배포) | 온체인 등록 준비 단계. mint() 호출 전 상태. |
+| **2** | 2026.06~ | ✅ SE 서명 실제 값 + DeviceRegistry 온체인 검증 활성 | ✅ `onlyBridge` + 결제 완료 게이트 | Bookend 신뢰 모델 완전 가동. DeviceRegistry 등록 공개키로 SE 서명 즉시 검증. |
+| **3+** | 2027.01~ | ✅ 동일 | ✅ 동일 | STO 발행 활성화. 동일한 하드웨어 신뢰 모델 유지. |
 
 > **상세**: [implementation-roadmap.md §1 — 이중 서명 신뢰 모델](../contracts/implementation-roadmap.md#1-이중-서명-신뢰-모델)
 
@@ -224,4 +240,4 @@ SE 서명 원본 데이터  vs  온체인 ChargeSession 데이터  → 일치 �
 | **Chain reliability** | Multi-party validator: company nodes + financial institution + professional node operators. |
 | **Data immutability** | CarbonReduction deployed as immutable contract. New methodology versions get new contract deployments. |
 | **L1 permissioning** | Only whitelisted validators; IoT gateways authorized via DeviceRegistry. |
-| **Transfer compliance** | RegionSTO implements ERC-3643 (T-REX) with on-chain identity verification and modular compliance rules. ERC-3643 sub-contract interfaces defined in Phase 1; full implementation with securities firm in Phase 2~3. |
+| **Transfer compliance** | RegionSTO 토큰 표준 및 컴플라이언스 모듈 설계는 보류 상태. 발행 경로(CCIP Path / Path A / Path B) + 대통령령 세부 요건 확정 후 증권사와 협의. KYC/AML·배당 집행은 증권사 영역. |

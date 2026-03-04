@@ -147,20 +147,53 @@ Deploy contracts onto the EnergyFi L1 (requires Unit A running).
 ```bash
 cd contracts/l1
 npm run compile
+npm run test              # 47 passing, 1 pending (P-256 skip) — Phase 1 완료
 
 # Deploy to target environment:
 npm run deploy:testnet    # Testnet (Development or Hackathon)
 npm run deploy:mainnet    # Mainnet (Production)
 ```
 
-As the 9-contract architecture is implemented, deployment scripts and addresses will be updated:
+> **Note:** `hardhat.config.ts` loads `.env` from the project root (`../../.env`), not from `contracts/l1/`. Environment variables are centrally managed in the root `.env` file.
+
+> **Deployer funding:** The deployer wallet (`0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD`) must have EFI balance on the target chain before deployment. Fund it from the Core wallet via AvaCloud console or Core Wallet app.
+
+### Phase 1 Contracts (2026.03, Testnet)
+
+| Contract | Address |
+|:---|:---|
+| DeviceRegistry | `0xcE3d3c32a0DC659f5166d41003F4538E87E91d50` |
+| StationRegistry | `0x17Df6a809BAe3249fC07eB4EEFb3e2b282Ad4959` |
+
+Deployed on **2026.03.03** to `energyfi-l1-testnet` (Chain ID 270626).
+
+Deployment produces `contracts/l1/deployments.json` with addresses per network.
+
+After deployment, run the Mock Oracle to register test data:
+```bash
+cd contracts/l1
+npm run oracle:testnet    # 대화형 CLI — 옵션 5 (전체 등록) 선택
+npm run dashboard:testnet # 3-화면 ASCII 대시보드 출력
 ```
+
+As the 12-contract + 1 factory architecture is implemented in phases, deployment scripts and addresses will be updated:
+```
+# Phase 1 (Essential — 2026.03 구현 완료, 테스트넷 배포 진행 중)
+DEVICE_REGISTRY_ADDRESS=0x...
 STATION_REGISTRY_ADDRESS=0x...
+
+# Phase 2 (Essential — Phase 1 완료 후)
 CHARGE_TRANSACTION_ADDRESS=0x...
-CARBON_REDUCTION_ADDRESS=0x...
+REVENUE_TRACKER_ADDRESS=0x...
+
+# Phase 4 (Derived — Carbon)
 PARAMETER_REGISTRY_ADDRESS=0x...
+CARBON_REDUCTION_ADDRESS=0x...
 CARBON_BATCH_ADDRESS=0x...
 VCU_REFERENCE_ADDRESS=0x...
+
+# Phase 3 (Derived — STO, 발행 경로 확정 후)
+CCIP_REVENUE_SENDER_ADDRESS=0x...
 REPUTATION_REGISTRY_ADDRESS=0x...
 STO_PORTFOLIO_ADDRESS=0x...
 REGION_STO_FACTORY_ADDRESS=0x...
@@ -168,7 +201,7 @@ REGION_STO_FACTORY_ADDRESS=0x...
 
 ## 5. [Unit C] Frontend — PLANNED
 
-> The frontend will be reimplemented to support the per-region STO model (17 administrative regions, ISO 3166-2:KR) and the 9-contract architecture. Frontend spec is planned for a future phase.
+> The frontend will be reimplemented to support the per-region STO model (17 administrative regions, ISO 3166-2:KR) and the 12-contract + 1 factory architecture. Frontend spec is planned for a future phase.
 
 ## 6. Deployment Checklist
 
@@ -192,7 +225,9 @@ REGION_STO_FACTORY_ADDRESS=0x...
 
 | Network | Chain ID | RPC | Explorer |
 |:---|:---|:---|:---|
-| EnergyFi L1 Testnet | 270626 | `ENERGYFI_L1_TESTNET_RPC` (Avalanche-CLI or AvaCloud) | [subnets-test.avax.network](https://subnets-test.avax.network) |
-| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet) | TBD |
+| EnergyFi L1 Testnet | 270626 | `https://subnets.avax.network/energyfi/testnet/rpc` (AvaCloud) | `https://explorer-test.avax.network/energyfi` |
+| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet, 미구성) | TBD |
 | Avalanche Fuji C-Chain | 43113 | `https://api.avax-test.network/ext/bc/C/rpc` | [testnet.snowtrace.io](https://testnet.snowtrace.io) |
 | Avalanche Mainnet | 43114 | `https://api.avax.network/ext/bc/C/rpc` | [snowtrace.io](https://snowtrace.io) |
+
+> **AvaCloud 테스트넷 상태 (2026.03):** Chain ID 270626 확인, 블록 생성 중, Node Region: Seoul (Validator 2, RPC 2), Explorer Indexer: Tokyo. Testnet Starter 5일 무료 체험 중.

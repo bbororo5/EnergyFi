@@ -127,7 +127,7 @@ struct RevenueAttestation {
 
 ## 비즈니스 제약 (경로 공통)
 
-1. **EnergyFi 소유 충전소만 STO 참여**. CPO 소유 충전소 미참여.
+1. **온체인에 등록된 모든 충전소가 STO 참여 대상** (모두 EnergyFi 소유). 제3자 CPO는 STRIKON 오프체인에서만 관리되며 온체인에 없음.
 2. **발행 단위**: 지역 (17개 광역자치단체, ISO 3166-2:KR).
 3. **발행 방식**: 차수(Tranche) — 일정 충전소 추가 시 묶어서 일괄 발행. 실시간 mint 아님.
 4. **발행인-증권사 역할 분리**: EnergyFi는 충전 데이터·수익 데이터 제공. KYC/AML·배당 계산·집행은 증권사 영역.
@@ -141,10 +141,11 @@ struct RevenueAttestation {
 
 ### 수익 귀속 원칙
 
-| 충전소 소유자 | 수익 귀속 | STO 관련성 |
+| 충전소 | 수익 귀속 | STO 관련성 |
 |:---|:---|:---|
-| CPO 소유 (`ownerType = CPO`) | CPO에게 100% | 없음 |
-| EnergyFi 소유 (`ownerType = ENERGYFI`) | 해당 지역 STO 투자자 풀 | Phase 3 대상 |
+| 온체인 충전소 (모두 EnergyFi 소유) | 해당 지역 STO 투자자 풀 100% | Phase 3 대상 |
+
+> 제3자 CPO 소유 충전소는 온체인에 등록되지 않으며 STRIKON 오프체인에서 별도 정산.
 
 ### 지역(Region) 체계
 
@@ -175,9 +176,9 @@ struct RevenueAttestation {
 ### 차수(Tranche) 발행 원칙
 
 모든 경로에서 유효:
-- 일정 EnergyFi 소유 충전소가 추가될 때마다 묶어서 일괄 발행
+- 일정 충전소가 추가될 때마다 묶어서 일괄 발행
 - 실시간 mint가 아닌 주기적 배치 발행
-- 각 차수는 발행일, 토큰 수량, 포함된 EnergyFi 소유 충전소 목록을 기록
+- 각 차수는 발행일, 토큰 수량, 포함된 충전소 목록을 기록
 
 ---
 
@@ -188,7 +189,7 @@ struct RevenueAttestation {
 | EnergyFi 소유 충전소 지역별 수익 집계 | ✅ 확정 (Phase 2 구현) | 전체 |
 | regionId 체계 (ISO 3166-2:KR) | ✅ 확정 (Phase 1-2 사용 중) | 전체 |
 | RevenueTracker view 함수 인터페이스 | ✅ 확정 (Phase 2 구현) | 전체 |
-| ownerType 구분 (CPO / ENERGYFI) | ✅ 확정 (Phase 1 구현) | 전체 |
+| 모든 온체인 충전소 EnergyFi 소유 (CPO 온체인 제거) | ✅ 확정 | 전체 |
 | 차수(Tranche) 발행 원칙 | ✅ 확정 (비즈니스 결정) | 전체 |
 | KSD를 EnergyFi L1 노드로 추가 (기술 가능성) | ✅ 확정 (Avalanche L1 구조) | Path A |
 | **CCIP Revenue Attestation 메시지 구조 초안** | ⚠️ 초안 가능 | CCIP Path |
@@ -233,7 +234,7 @@ RegionSTO 토큰이 유통될 장외거래소. 현재 한국에서 인가를 두
 ## STO 차수 발행 흐름 (CCIP Path 기준 — 구현 확정 후)
 
 ```
-1. EnergyFi 신규 충전소 n개 설치 완료 (StationRegistry에 ENERGYFI로 등록됨)
+1. EnergyFi 신규 충전소 n개 설치 완료 (StationRegistry에 등록됨)
 
 2. 정산 기간 종료 → Bridge가 CCIPRevenueSender.sendAttestation() 호출
    → RevenueTracker에서 지역별 distributableKrw 집계
@@ -260,11 +261,11 @@ RegionSTO 토큰이 유통될 장외거래소. 현재 한국에서 인가를 두
 ### Phase 2 view 함수 — KSD/증권사 데이터 소스 (예정)
 
 ```solidity
-// 지역별 EnergyFi 소유 충전소 수익 집계
+// 지역별 충전소 수익 집계
 // → CCIP Path: CCIPRevenueSender가 읽어 RevenueAttestation.distributableKrw 소스
 // → Path A: RegionSTO 차수 발행 근거 데이터
 // → Path B: 증권사가 배당 계산 시 조회
-function getEnergyFiRegionRevenue(bytes4 regionId)
+function getRegionRevenue(bytes4 regionId)
     external view returns (uint256 distributableKrw);
 
 // 충전소별 수익 조회
@@ -283,7 +284,7 @@ function getChargeTransactionsByPeriod(bytes4 regionId, uint256 from, uint256 to
 
 Phase 2 완료 후 Phase 3 착수 전까지 확인할 사항:
 
-- [ ] RevenueTracker.getEnergyFiRegionRevenue() 정확성 검증 (6개월 이상 데이터)
+- [ ] RevenueTracker.getRegionRevenue() 정확성 검증 (6개월 이상 데이터)
 - [ ] 대통령령 세부 요건 발표 → 발행인계좌관리기관 자격 충족 여부 법률 자문
 - [ ] 발행 경로 내부 결정 (CCIP Path / Path A / Path B)
 - [ ] CCIP Path 선택 시: KSD 지원 체인 기술 확정 + CCIP Receiver 체인 협의

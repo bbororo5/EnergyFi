@@ -44,7 +44,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  *     인터페이스 파일에 정의된 함수만 ABI에 포함.
  *     테스트 assertion은 오직 이 인스턴스만 사용.
  * - Admin 인스턴스 (deviceRegistryAdmin, stationRegistryAdmin):
- *     full ABI. 테스트 셋업(enrollChip, registerCPO 등)에서만 사용.
+ *     full ABI. 테스트 셋업(enrollChip, registerStation 등)에서만 사용.
  *     인터페이스에 없는 write/read 함수는 여기서만 호출.
  */
 export interface ContractCtx {

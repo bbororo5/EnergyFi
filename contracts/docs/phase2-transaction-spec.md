@@ -160,9 +160,10 @@ function mint(ChargeSession calldata session)
 //      msgHash = keccak256(abi.encodePacked(chargerId, energyKwh, startTimestamp, endTimestamp))
 //   5. tokenId = _nextTokenId++
 //   6. ERC-721 _mint(address(this), tokenId) — Soulbound
-//   7. _sessions[tokenId] = session 저장
+//   7. _sessions[tokenId] = session 저장 후 seSignature 삭제 (스토리지 미저장, 이벤트로만 보존)
+//      delete _sessions[tokenId].seSignature
 //   8. _sessionToToken[session.sessionId] = tokenId
-//   9. emit ChargeSessionRecorded(...)
+//   9. emit ChargeSessionRecorded(..., session.seSignature)  // 이벤트에는 포함
 
 // View
 function getSession(uint256 tokenId) external view returns (ChargeSession memory)
@@ -182,7 +183,8 @@ event ChargeSessionRecorded(
     uint256         energyKwh,
     uint256         distributableKrw,
     uint256         startTimestamp,
-    uint256         endTimestamp
+    uint256         endTimestamp,
+    bytes           seSignature     // 오프체인 감사용 보존 (스토리지 미저장)
 );
 ```
 
@@ -192,6 +194,9 @@ event ChargeSessionRecorded(
 error SoulboundToken();          // 전송 시도 시
 error DuplicateSession();        // 동일 sessionId 중복 mint
 error StationNotRegistered();    // StationRegistry 미등록 stationId
+error ChipNotActive();           // DeviceRegistry 미등록 chargerId
+error InvalidSESignature();      // SE 서명 검증 실패
+error SessionNotFound(uint256 tokenId); // getSession() 존재하지 않는 tokenId
 error CallerNotBridge();         // onlyBridge 위반
 ```
 
@@ -254,12 +259,13 @@ EnergyFi 소유 충전소 (isEnergyFiOwned = true):
 
 ```solidity
 // 기본 수익 추적
-mapping(bytes32 stationId => uint256) public stationAccumulated;  // 누적 수익(원)
-mapping(bytes32 stationId => uint256) public stationSettled;      // 정산 완료(원)
+mapping(bytes32 => uint256) public stationAccumulated;   // 누적 수익(원)
+mapping(bytes32 => uint256) public stationSettled;        // 정산 완료(원)
 
 // 월별 이력 — 배열 + 매핑 이중 구조로 조회 효율 확보
-mapping(bytes32 stationId => MonthlyRevenue[]) public monthlyHistory;
-mapping(bytes32 stationId => mapping(uint256 period => uint256 amount)) private _monthlyAmounts;
+mapping(bytes32 => MonthlyRevenue[]) private _monthlyHistory;             // getMonthlyHistory()로 조회
+mapping(bytes32 => mapping(uint256 => uint256)) private _monthlyAmounts;  // stationId → period → amount
+mapping(bytes32 => mapping(uint256 => uint256)) private _monthlyIndex;    // stationId → period → array index+1
 
 struct MonthlyRevenue {
     uint256 period_yyyyMM;   // 예: 202606 = 2026년 6월
@@ -267,7 +273,7 @@ struct MonthlyRevenue {
 }
 
 // 정산 이력
-mapping(bytes32 stationId => SettlementRecord[]) public settlementHistory;
+mapping(bytes32 => SettlementRecord[]) private _settlementHistory;  // getSettlementHistory()로 조회
 
 struct SettlementRecord {
     uint256 period_yyyyMM;
@@ -333,6 +339,29 @@ function getEnergyFiRegionRevenue(bytes4 regionId)
 // 각 충전소의 pending 합산 반환
 // Phase 3 STOPortfolio.getRegionPoolRevenue() 에서 호출
 
+// Admin 전용 (단건 충전소 정산 — claimPaginated 대안)
+function claimStation(bytes32 stationId, uint256 period_yyyyMM)
+    external onlyRole(DEFAULT_ADMIN_ROLE)
+    returns (uint256 amount)
+// 효과: 해당 충전소 pending 전액 정산. emit StationClaimed.
+
+// Admin 전용 (CPO 페이지네이션 정산 — 충전소 수 많을 때)
+function claimPaginated(bytes32 cpoId, uint256 period_yyyyMM, uint256 offset, uint256 limit)
+    external onlyRole(DEFAULT_ADMIN_ROLE)
+    returns (uint256 totalClaimed, uint256 processed, bool hasMore)
+
+// View — 페이지네이션 버전
+function getCPORevenuePaginated(bytes32 cpoId, uint256 offset, uint256 limit)
+    external view
+    returns (uint256 accumulated, uint256 settled, uint256 pending, uint256 processed, bool hasMore)
+
+function getEnergyFiRegionRevenuePaginated(bytes4 regionId, uint256 offset, uint256 limit)
+    external view
+    returns (uint256 pending, uint256 processed, bool hasMore)
+
+function getMonthlyHistory(bytes32 stationId)
+    external view returns (MonthlyRevenue[] memory)
+
 function getSettlementHistory(bytes32 stationId)
     external view returns (SettlementRecord[] memory)
 ```
@@ -361,6 +390,13 @@ event CPOClaimed(
     uint256         period_yyyyMM,
     uint256         claimedAt
 );
+
+event StationClaimed(
+    bytes32 indexed stationId,
+    uint256         amount,
+    uint256         period_yyyyMM,
+    uint256         claimedAt
+);
 ```
 
 #### 커스텀 에러
@@ -370,6 +406,9 @@ error StationNotRegistered();    // StationRegistry 미등록 stationId
 error ZeroAmount();              // distributableKrw == 0
 error NothingToClaim();          // claim() 시 pending == 0
 error CPOHasNoStations();        // claim() 시 CPO 소속 충전소 없음
+error StationNotOwned();         // claimStation() 시 소유권 불일치
+error OffsetOutOfBounds();       // 페이지네이션 offset 범위 초과
+error LimitZero();               // 페이지네이션 limit == 0
 error CallerNotBridge();         // onlyBridge 위반
 ```
 
@@ -603,7 +642,7 @@ STRIKON → invoice.paid 이벤트 발생
 | `StationRegistry.getCharger(chargerId)` | `chargerType` (uint8) | Bridge가 온체인 조회. |
 | (현재 항상 UNKNOWN(0)) | `vehicleCategory` (uint8) | OCPP 2.0.1 전환 시 실제 값 활성화 예정. |
 | `amount.distributable_krw` | `distributableKrw` (uint256) | STRIKON 수수료 차감 후 금액 |
-| `se_signature` | `seSignature` (bytes) | STRIKON invoice.paid에 추가 예정 (Bookend 필수). 현재 미제공. |
+| `se_signature` | `seSignature` (bytes) | 포함 확정. Bridge가 ChargeRouter를 통해 전달. mint()에서 검증 후 스토리지 저장 제외, `ChargeSessionRecorded` 이벤트로만 보존 (오프체인 감사용). |
 | (Bridge 오프체인 계산) | — | `period_yyyyMM` (uint256) — ChargeRouter.processCharge() 파라미터로 전달 |
 
 > **수익 인식 기준시점**: `invoice.paid` 이벤트 처리 시각(= `block.timestamp`). `endTimestamp`(충전 종료시각)이나 `pg_paid_at`(결제 확정시각)이 아님.
@@ -915,7 +954,7 @@ SSE 스트리밍 기반 자동화 검증. Phase 1에서 23개 테스트(6 STEP) 
 
 ## 통합 테스트 체크리스트
 
-> **통합 검증 패턴**: Phase 1에서 `routes/verify.ts`로 SSE 스트리밍 기반 23개 테스트를 실행하는 패턴이 확립됨 (탭 6: 통합 테스트). Phase 2 통합 검증도 동일 패턴으로 확장 예정 (`routes/phase2-verify.ts`). 아래 체크리스트 항목을 SSE 스트리밍 STEP으로 자동화.
+> **구현 현황**: Phase 2 통합 테스트 스위트 구현 완료. `npm run test:live` (`scripts/live-test.ts`)로 실행. 스위트: `phase2-happy`, `phase2-failures`, `revenue-lifecycle`, `cross-contract`, `edge-cases`, `data-integrity`, `settlement-boundary` (총 8개 스위트).
 
 ### ChargeTransaction
 
@@ -1009,23 +1048,33 @@ Oracle 메뉴가 체크리스트의 모든 항목을 커버하는지 검증:
 ## 대시보드 파일 구조
 
 ```
-scripts/dashboard/
-├── phase1-dashboard.ts              # CLI-only ASCII 대시보드 (3화면)
-└── web/                             # Express 웹 대시보드
-    ├── server.ts                    # Express 앱 + ContractCtx 초기화
-    ├── public/
-    │   ├── index.html               # 6-탭 UI
-    │   ├── style.css                # 다크 테마
-    │   └── app.js                   # 클라이언트 JavaScript
-    ├── lib/
-    │   └── utils.ts                 # UUID↔bytes32, 포맷팅, period 계산
-    └── routes/
-        ├── query.ts                 # Phase 1 GET (지역 조회, CPO 목록)
-        ├── oracle.ts                # Phase 1 POST (등록 + 배치)
-        ├── phase2-query.ts          # Phase 2 GET (세션, 수익, 정산)
-        ├── phase2-oracle.ts         # Phase 2 POST (세션 생성, P-256)
-        ├── events.ts                # SSE 브로드캐스트
-        └── verify.ts                # Phase 1 통합 검증 (23개 테스트)
+tools/dashboard/                     # Express 웹 대시보드 + 통합 테스트 러너
+├── server.ts                        # Express 앱 + ContractCtx 초기화
+├── lib/
+│   ├── utils.ts                     # UUID↔bytes32, 포맷팅, period 계산
+│   ├── bulk-setup.ts                # Phase 1/2 초기 데이터 일괄 등록
+│   ├── p256-keys.ts                 # P-256 키페어 생성/관리
+│   ├── live-test-signer.ts          # 라이브 테스트 서명자
+│   ├── test-helpers.ts              # VerifyEvent, EmitFn, SuiteResult 타입
+│   └── test-suite.ts                # TestSuite 인터페이스
+├── routes/
+│   ├── query.ts                     # Phase 1 GET (지역 조회, CPO 목록)
+│   ├── oracle.ts                    # Phase 1 POST (등록 + 배치)
+│   ├── phase2-query.ts              # Phase 2 GET (세션, 수익, 정산)
+│   ├── phase2-oracle.ts             # Phase 2 POST (세션 생성, P-256)
+│   ├── events.ts                    # SSE 브로드캐스트
+│   └── verify.ts                    # 통합 검증 엔드포인트
+└── suites/                          # 통합 테스트 스위트 (live-test.ts에서 실행)
+    ├── phase1-infra.ts
+    ├── phase2-happy.ts
+    ├── phase2-failures.ts
+    ├── revenue-lifecycle.ts
+    ├── cross-contract.ts
+    ├── edge-cases.ts
+    ├── data-integrity.ts
+    └── settlement-boundary.ts
+
+scripts/live-test.ts                 # CLI 통합 테스트 러너 (npm run test:live)
 ```
 
 ---

@@ -30,19 +30,23 @@ To prevent binary conflicts (e.g., Hardhat HHE3 errors), ensure NVM-managed path
 export PATH="$NVM_BIN:/opt/homebrew/bin:/usr/local/bin:$PATH"
 ```
 
-### 2.3 L1 인프라 CLI
-
-EnergyFi L1은 Avalanche-CLI로 로컬 서브넷을 구동합니다. `genesis.json`과 `config.json`은 `l1-config/`에 위치합니다.
+### 2.3 L1 Infrastructure CLI
 
 ```bash
-# Avalanche-CLI 설치
+# Install Avalanche CLI
 curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s
 avalanche --version
-# AvalancheGo는 CLI가 자동으로 설치
+# AvalancheGo is auto-installed by the CLI
 
-# 로컬 서브넷 구동 (l1-config/genesis.json 기반)
-# Chain ID: 270626 (0x42122), zero-gas
+# Create and deploy local subnet
+avalanche blockchain create energyfitest --test-defaults --evm --latest
+avalanche blockchain deploy energyfitest --local
+
+# Update .env with the RPC URL from deploy output
+# ENERGYFI_L1_LOCAL_RPC=http://127.0.0.1:9654/ext/bc/<BlockchainID>/rpc
 ```
+
+> For full details on local subnet configuration, anti-patterns, and troubleshooting, see **[Local Subnet Guide](local-subnet-guide.md)**.
 
 ### 2.4 개발 환경 구성
 

@@ -9,12 +9,14 @@
  * T04: UUPS 업그레이드 데이터 보존.
  * T05: View 함수 커버리지 강화.
  *
- * P-256 (secp256r1) 테스트는 RIP-7212 precompile이 필요하므로 로컬 네트워크에서 skip.
+ * P-256 (secp256r1) 테스트는 RIP-7212 precompile이 필요하므로 Hardhat in-memory에서는 skip.
+ * energyfi-l1-local 네트워크에서는 통과: npx hardhat test --network energyfi-l1-local
  */
 
 import hre from "hardhat";
 import { expect } from "chai";
-import { Wallet, encodeBytes32String, ZeroHash, hexlify, keccak256, solidityPacked, HDNodeWallet } from "ethers";
+import { Wallet, encodeBytes32String, ZeroHash, hexlify, keccak256, solidityPacked, HDNodeWallet, getBytes } from "ethers";
+import { p256 } from "@noble/curves/nist.js";
 import {
   expectRevert,
   expectRevertCustomError,
@@ -30,6 +32,7 @@ import type { DeviceRegistry } from "../../typechain-types/index.js";
 const CHARGER_1 = encodeBytes32String("CHARGER-001");
 const CHARGER_2 = encodeBytes32String("CHARGER-002");
 const SECP256K1 = 0;
+const P256_SECP256R1 = 1;
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -201,11 +204,42 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.verifySignature(CHARGER_1, msgHash, sig)).to.equal(false);
     });
 
-    it("P-256 verifySignature() — RIP-7212 precompile 미지원으로 skip", async function () {
-      // P-256 requires the RIP-7212 precompile at address(0x100).
-      // Hardhat local network does not enable this precompile.
-      // Full P-256 tests run on EnergyFi L1 local after genesis.json activation.
-      this.skip();
+    it("P-256 verifySignature() — RIP-7212 precompile 통합 테스트", async function () {
+      // RIP-7212 precompile (address 0x100) is only available on EnergyFi L1 local.
+      // Run with: npx hardhat test --network energyfi-l1-local
+      if (hre.network.name !== "energyfi-l1-local") {
+        this.skip();
+      }
+
+      // Generate a P-256 (secp256r1) key pair
+      const privKey = p256.utils.randomPrivateKey();
+      // toRawBytes(false) → 65 bytes: 0x04 prefix || x (32) || y (32)
+      const pubKeyFull = p256.ProjectivePoint.fromPrivateKey(privKey).toRawBytes(false);
+      const pubKey64 = pubKeyFull.slice(1); // 64 bytes: x || y
+
+      // Enroll as P256_SECP256R1
+      await deviceRegistry.enrollChip(CHARGER_1, pubKey64, P256_SECP256R1);
+      expect(await deviceRegistry.isActiveChip(CHARGER_1)).to.equal(true);
+
+      // Build message hash (same format as ChargeTransaction.mint())
+      const msgHash = keccak256(
+        solidityPacked(
+          ["bytes32", "uint256", "uint256", "uint256"],
+          [CHARGER_1, 2000n, 1700000000n, 1700003600n]
+        )
+      );
+
+      // Sign — contract expects 64-byte signature (r || s), no recovery byte
+      const sig = p256.sign(getBytes(msgHash), privKey, { lowS: true });
+      const sigBytes = sig.toCompactRawBytes(); // 64 bytes: r || s
+
+      // Correct signature → true
+      expect(await deviceRegistry.verifySignature(CHARGER_1, msgHash, sigBytes)).to.equal(true);
+
+      // Zeroed signature → false
+      expect(
+        await deviceRegistry.verifySignature(CHARGER_1, msgHash, new Uint8Array(64))
+      ).to.equal(false);
     });
   });
 

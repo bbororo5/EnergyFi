@@ -2,33 +2,33 @@
  * EnergyFi 통합 테스트 CLI 러너
  *
  * 기존 TestSuite 모듈을 그대로 재사용하며 Express/SSE 없이 터미널에서 실행.
- * 사용: npx tsx scripts/dashboard/cli-runner.ts [network]
- *       npm run test:integration
+ * 사용: npx tsx scripts/live-test.ts [network]
+ *       npm run test:live
  */
 
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 import { ethers } from "ethers";
-import { LiveTestSigner } from "./lib/live-test-signer.js";
-import type { ContractCtx } from "./server.js";
-import type { TestSuite } from "./lib/test-suite.js";
-import type { VerifyEvent, EmitFn, SuiteResult } from "./lib/test-helpers.js";
-import { ensureBulkData, ensureP256Setup } from "./lib/bulk-setup.js";
+import { LiveTestSigner } from "../tools/dashboard/lib/live-test-signer.js";
+import type { ContractCtx } from "../tools/dashboard/server.js";
+import type { TestSuite } from "../tools/dashboard/lib/test-suite.js";
+import type { VerifyEvent, EmitFn, SuiteResult } from "../tools/dashboard/lib/test-helpers.js";
+import { ensureBulkData, ensureP256Setup } from "../tools/dashboard/lib/bulk-setup.js";
 import {
   IDeviceRegistry__factory, IStationRegistry__factory,
   IChargeRouter__factory, IChargeTransaction__factory, IRevenueTracker__factory,
   DeviceRegistry__factory, StationRegistry__factory, ChargeRouter__factory,
-} from "../../typechain-types/index.js";
+} from "../typechain-types/index.js";
 
-import { phase1InfraSuite } from "./suites/phase1-infra.js";
-import { phase2HappySuite } from "./suites/phase2-happy.js";
-import { phase2FailuresSuite } from "./suites/phase2-failures.js";
-import { revenueLifecycleSuite } from "./suites/revenue-lifecycle.js";
-import { crossContractSuite } from "./suites/cross-contract.js";
-import { edgeCasesSuite } from "./suites/edge-cases.js";
-import { dataIntegritySuite } from "./suites/data-integrity.js";
-import { settlementBoundarySuite } from "./suites/settlement-boundary.js";
+import { phase1InfraSuite } from "../tools/dashboard/suites/phase1-infra.js";
+import { phase2HappySuite } from "../tools/dashboard/suites/phase2-happy.js";
+import { phase2FailuresSuite } from "../tools/dashboard/suites/phase2-failures.js";
+import { revenueLifecycleSuite } from "../tools/dashboard/suites/revenue-lifecycle.js";
+import { crossContractSuite } from "../tools/dashboard/suites/cross-contract.js";
+import { edgeCasesSuite } from "../tools/dashboard/suites/edge-cases.js";
+import { dataIntegritySuite } from "../tools/dashboard/suites/data-integrity.js";
+import { settlementBoundarySuite } from "../tools/dashboard/suites/settlement-boundary.js";
 
 dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
 
@@ -46,7 +46,7 @@ const ALL_SUITES: TestSuite[] = [
   settlementBoundarySuite,
 ];
 
-// ── Deployments (server.ts 로직 재사용) ───────────────────────────────────────
+// ── Deployments ───────────────────────────────────────────────────────────────
 
 interface DeploymentAddresses {
   DeviceRegistry: string;
@@ -58,7 +58,7 @@ interface DeploymentAddresses {
 
 function loadDeployments(network: string): DeploymentAddresses {
   const p = path.resolve(process.cwd(), "deployments.json");
-  if (!fs.existsSync(p)) throw new Error("deployments.json not found. deploy_subnet.ts를 먼저 실행하세요.");
+  if (!fs.existsSync(p)) throw new Error("deployments.json not found. npm run deploy:local을 먼저 실행하세요.");
   const all = JSON.parse(fs.readFileSync(p, "utf8"));
   const net = all[network];
   if (!net?.DeviceRegistry || !net?.StationRegistry)
@@ -114,7 +114,7 @@ function createConsoleEmit(): EmitFn {
   };
 }
 
-// ── Run suites (verify.ts 로직 재사용) ────────────────────────────────────────
+// ── Run suites ────────────────────────────────────────────────────────────────
 
 async function runSuites(
   suites: TestSuite[],

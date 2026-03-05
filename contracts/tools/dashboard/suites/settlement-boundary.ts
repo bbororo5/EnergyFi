@@ -41,11 +41,13 @@ export const settlementBoundarySuite: TestSuite = {
     const periodA = calculatePeriod(tsA);
     const periodB = calculatePeriod(tsB);
 
-    // 세션을 각 기간에 기록
+    // 세션을 기간 A에 먼저 기록하고, claim(A) 후 기간 B 세션을 기록한다.
+    // claim()은 period와 무관하게 전체 pending(accumulated - settled)을 정산하므로
+    // A와 B를 모두 기록한 뒤 claim(A)하면 B까지 정산되어 SB-2가 NothingToClaim이 된다.
     let stationId: string | null = null;
 
     try {
-      // 기간 A 세션
+      // 기간 A 세션만 먼저 기록
       const sA = await buildRandomSession(ctx, "STATION-001", "CPO");
       stationId = sA.stationId;
       sA.endTimestamp = BigInt(tsA);
@@ -55,49 +57,46 @@ export const settlementBoundarySuite: TestSuite = {
       ));
       const txA = await cr.processCharge(sA, periodA);
       await txA.wait();
-
-      // 기간 B 세션
-      const sB = await buildRandomSession(ctx, "STATION-001", "CPO");
-      sB.endTimestamp = BigInt(tsB);
-      sB.startTimestamp = BigInt(tsB - 3600);
-      sB.seSignature = hexlify(generateMockSignature(
-        sB.chargerId, sB.energyKwh, sB.startTimestamp, sB.endTimestamp,
-      ));
-      const txB = await cr.processCharge(sB, periodB);
-      await txB.wait();
     } catch (err: unknown) {
       emit({ type: "case-start", label: "SB 전제조건 실패", kind: "happy" });
-      emit({ type: "fail", label: "SB 전제조건: 두 기간 세션 기록", reason: String(err).slice(0, 200), kind: "happy" });
+      emit({ type: "fail", label: "SB 전제조건: 기간 A 세션 기록", reason: String(err).slice(0, 200), kind: "happy" });
       counts.failed += 4;
       return counts;
     }
 
-    // SB-1. claim(A) 후 기간 B pending 무변동
-    await expectValue("SB-1 claim(A) 후 기간 B pending 무변동",
+    // SB-1. claim(A) → 기간 A 정산 성공
+    await expectValue("SB-1 claim(A) 성공",
       async () => {
-        // B의 기간별 수익 before
-        const revBBefore = await rt.getStationRevenuePeriod(stationId!, periodB);
-        const pendingBBefore = BigInt(revBBefore);
-
         // claim 기간 A
         const tx = await rt.claim(cpo1Id, periodA);
         await tx.wait();
 
-        // B의 기간별 수익 after
-        const revBAfter = await rt.getStationRevenuePeriod(stationId!, periodB);
-        const pendingBAfter = BigInt(revBAfter);
-
-        return { pendingBBefore, pendingBAfter };
+        // 정산 후 pending=0 확인
+        const cpoRev = await rt.getCPORevenue(cpo1Id);
+        const pendingAfter = BigInt(cpoRev[2] ?? 0);
+        return { pendingAfter };
       },
       (r: any) => {
-        if (r.pendingBBefore === r.pendingBAfter) return true;
-        return `기간B: ${r.pendingBBefore} → ${r.pendingBAfter} (변동됨)`;
+        if (r.pendingAfter === 0n) return true;
+        return `pending=${r.pendingAfter} (expected 0)`;
       },
       emit, counts);
 
-    // SB-2. claim(B) → 기간 B도 정산 완료
+    // SB-2. claim(A) 후 기간 B 세션 기록 → claim(B) 성공
+    // claim()은 전체 pending을 정산하므로, B 세션은 A 정산 이후에 기록해야
+    // SB-2에서 새로운 pending이 존재한다.
     await expectValue("SB-2 순차 claim(B) 성공",
       async () => {
+        // 기간 B 세션 기록 (claim(A) 이후)
+        const sB = await buildRandomSession(ctx, "STATION-001", "CPO");
+        sB.endTimestamp = BigInt(tsB);
+        sB.startTimestamp = BigInt(tsB - 3600);
+        sB.seSignature = hexlify(generateMockSignature(
+          sB.chargerId, sB.energyKwh, sB.startTimestamp, sB.endTimestamp,
+        ));
+        const txB = await cr.processCharge(sB, periodB);
+        await txB.wait();
+
         const cpoPendingBefore = await rt.getCPORevenue(cpo1Id);
         const pendingBefore = BigInt(cpoPendingBefore[2] ?? 0);
 

@@ -8,7 +8,7 @@ import { encodeBytes32String } from "ethers";
 import type { TestSuite } from "../lib/test-suite.js";
 import type { ContractCtx } from "../server.js";
 import {
-  newCounts, extractErrorName,
+  newCounts, extractErrorName, allErrorInterfaces, chargeRouterConcreteInterface,
   type EmitFn, type Counts,
 } from "../lib/test-helpers.js";
 import { buildRandomSession, generateAndProcessSession } from "../lib/p256-keys.js";
@@ -35,10 +35,12 @@ export const crossContractSuite: TestSuite = {
       const receipt = await tx.wait();
 
       // CT: 세션 데이터가 실제 조회 가능한지 검증
+      // IChargeRouter에는 ChargeProcessed 이벤트가 없으므로 concrete interface 사용
+      const crConcreteIface = chargeRouterConcreteInterface();
       const processedEvent = receipt.logs.find((log: any) => {
-        try { return cr.interface.parseLog(log)?.name === "ChargeProcessed"; } catch { return false; }
+        try { return crConcreteIface.parseLog(log)?.name === "ChargeProcessed"; } catch { return false; }
       });
-      const tokenId = processedEvent ? cr.interface.parseLog(processedEvent)?.args[0] : null;
+      const tokenId = processedEvent ? crConcreteIface.parseLog(processedEvent)?.args[0] : null;
       const stored = tokenId ? await ct.getSession(tokenId) : null;
       const sessionMatch = stored && stored.sessionId === session.sessionId;
 
@@ -63,7 +65,7 @@ export const crossContractSuite: TestSuite = {
     // EVM이 revert 시 상태 롤백을 보장하므로, 올바른 사유로 거부되는지만 검증
     emit({ type: "case-start", label: "A-2 미등록 station → 거부", kind: "verify" });
     try {
-      const ifaces = [cr.interface, ct.interface, rt.interface];
+      const ifaces = allErrorInterfaces();
       const session = await buildRandomSession(ctx);
       session.stationId = encodeBytes32String("NONEXIST-STN");
       const period = calculatePeriod(Number(session.endTimestamp));
@@ -125,7 +127,7 @@ export const crossContractSuite: TestSuite = {
     // 비즈니스 의미: 장애 발생 후에도 다음 정상 충전이 정확히 기록되는가
     emit({ type: "case-start", label: "A-5 실패 후 성공 → 데이터 무결성", kind: "verify" });
     try {
-      const ifaces = [cr.interface, ct.interface, rt.interface];
+      const ifaces = allErrorInterfaces();
 
       // 실패 TX (금액 0) — ZeroAmount로 revert되는지 확인
       const badSession = await buildRandomSession(ctx);

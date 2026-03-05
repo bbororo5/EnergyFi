@@ -38,5 +38,13 @@ export default defineConfig({
         chainId: 270626,
       },
     }),
+    ...(process.env.ENERGYFI_L1_TESTNET_RPC && {
+      "energyfi-l1-testnet": {
+        type: "http" as const,
+        url: process.env.ENERGYFI_L1_TESTNET_RPC,
+        accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
+        chainId: 270626,
+      },
+    }),
   },
 });

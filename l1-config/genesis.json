@@ -11,6 +11,12 @@
     "istanbulBlock": 0,
     "muirGlacierBlock": 0,
     "subnetEVMTimestamp": 0,
+    "durangoTimestamp": 0,
+    "etnaTimestamp": 0,
+    "fortunaTimestamp": 0,
+    "graniteTimestamp": 0,
+    "shanghaiTime": 0,
+    "cancunTime": 0,
     "feeConfig": {
       "gasLimit": 8000000,
       "targetBlockRate": 2,
@@ -21,7 +27,10 @@
       "maxBlockGasCost": 0,
       "blockGasCostStep": 0
     },
-    "allowFeeRecipients": false
+    "allowFeeRecipients": false,
+    "secp256r1SignVerifyConfig": {
+      "blockTimestamp": 0
+    }
   },
   "alloc": {
     "0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD": {

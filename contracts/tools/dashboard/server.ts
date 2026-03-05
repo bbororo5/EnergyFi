@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import dotenv from "dotenv";
 import { ethers } from "ethers";
+import { LiveTestSigner } from "./lib/live-test-signer.js";
 import {
   IDeviceRegistry__factory, IStationRegistry__factory,
   IChargeRouter__factory, IChargeTransaction__factory, IRevenueTracker__factory,
@@ -74,7 +75,7 @@ interface DeploymentAddresses {
 
 function loadDeployments(network: string): DeploymentAddresses {
   const p = path.resolve(__dirname, "../../deployments.json");
-  if (!fs.existsSync(p)) throw new Error("deployments.json not found. deploy_subnet.ts를 먼저 실행하세요.");
+  if (!fs.existsSync(p)) throw new Error("deployments.json not found. npm run deploy:local을 먼저 실행하세요.");
   const all = JSON.parse(fs.readFileSync(p, "utf8"));
   const net = all[network];
   if (!net?.DeviceRegistry || !net?.StationRegistry)
@@ -110,7 +111,7 @@ async function main() {
   // Provider + Signer
   const rpcUrl = getRpcUrl(networkArg);
   const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const wallet = new ethers.Wallet(privateKey, provider);
+  const wallet = new LiveTestSigner(privateKey, provider);
   const signer = wallet;
   console.log(`Signer  : ${wallet.address}`);
 

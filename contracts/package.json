@@ -1,5 +1,5 @@
 {
-  "name": "subnet",
+  "name": "energyfi-contracts",
   "version": "1.0.0",
   "type": "module",
   "description": "Smart contracts deployed to the EnergyFi L1 (Avalanche L1 private chain).",
@@ -9,10 +9,10 @@
     "test": "npx hardhat test",
     "test:integration": "npx hardhat test test/integration/ChargeRouter.test.ts",
     "test:all": "npm test && npm run test:integration",
-    "test:live": "tsx tools/dashboard/cli-runner.ts energyfi-l1-local",
+    "test:live": "tsx scripts/live-test.ts energyfi-l1-local",
     "clean": "npx hardhat clean",
     "node": "npx hardhat node",
-    "deploy:local": "npx hardhat run scripts/deploy_subnet.ts --network energyfi-l1-local",
+    "deploy:local": "npx hardhat run scripts/deploy.ts --network energyfi-l1-local",
     "dashboard:local": "tsx tools/dashboard/server.ts localhost",
     "dashboard:l1-local": "tsx tools/dashboard/server.ts energyfi-l1-local"
   },

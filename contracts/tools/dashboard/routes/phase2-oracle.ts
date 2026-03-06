@@ -19,7 +19,7 @@ import {
   generateAndProcessSession,
   extractRevertReason,
 } from "../lib/p256-keys.js";
-import { calculatePeriod, currentPeriod } from "../lib/utils.js";
+import { calculatePeriod } from "../lib/utils.js";
 
 export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
   const router = Router();
@@ -42,9 +42,9 @@ export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
   router.post("/setup", async (req, res) => {
     try {
       // 1. Phase 1 데이터 존재 확인
-      const cpoFilter = ctx.stationRegistry.filters["CPORegistered"]();
-      const cpoEvents = await ctx.stationRegistry.queryFilter(cpoFilter, 0, "latest");
-      if (cpoEvents.length === 0) {
+      const stationFilter = ctx.stationRegistry.filters["StationRegistered"]();
+      const stationEvents = await ctx.stationRegistry.queryFilter(stationFilter, 0, "latest");
+      if (stationEvents.length === 0) {
         res.json({ ok: false, message: "Phase 1 데이터가 없습니다. Oracle Phase 1에서 '전체 테스트 데이터 등록'을 먼저 실행하세요." });
         return;
       }
@@ -56,7 +56,7 @@ export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
       }
 
       const logs = await setupP256Chips(ctx);
-      logs.unshift(`Phase 1 데이터 확인: CPO ${cpoEvents.length}개`);
+      logs.unshift(`Phase 1 데이터 확인: 충전소 ${stationEvents.length}개`);
       logs.unshift("Phase 2 컨트랙트 연결 확인");
       logs.push("Phase 2 Setup 완료. 세션 생성 가능.");
       res.json({ ok: true, logs: logs.map(l => `✅ ${l}`) });
@@ -68,10 +68,10 @@ export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
   // ── POST /oracle/phase2/session ─────────────────────────────────────────
   router.post("/session", async (req, res) => {
     try {
-      const { stationId, ownerTypeFilter, regionId } = req.body as {
-        stationId?: string; ownerTypeFilter?: "CPO" | "ENERGYFI"; regionId?: string;
+      const { stationId, regionId } = req.body as {
+        stationId?: string; regionId?: string;
       };
-      const result = await generateAndProcessSession(ctx, stationId, ownerTypeFilter, regionId);
+      const result = await generateAndProcessSession(ctx, stationId, regionId);
       res.json(result);
     } catch (err) {
       res.status(500).json({ error: String(err) });
@@ -81,13 +81,13 @@ export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
   // ── POST /oracle/phase2/session/bulk ────────────────────────────────────
   router.post("/session/bulk", async (req, res) => {
     try {
-      const { count = 5, stationId, ownerTypeFilter, regionId } = req.body as {
-        count?: number; stationId?: string; ownerTypeFilter?: "CPO" | "ENERGYFI"; regionId?: string;
+      const { count = 5, stationId, regionId } = req.body as {
+        count?: number; stationId?: string; regionId?: string;
       };
       const logs: string[] = [];
       for (let i = 0; i < Math.min(count, 50); i++) {
         try {
-          const result = await generateAndProcessSession(ctx, stationId, ownerTypeFilter, regionId);
+          const result = await generateAndProcessSession(ctx, stationId, regionId);
           logs.push(result.message);
         } catch (err) {
           logs.push(`❌ Session #${i + 1}: ${String(err)}`);
@@ -102,12 +102,12 @@ export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
   // ── POST /oracle/phase2/session/regional ────────────────────────────────
   router.post("/session/regional", async (req, res) => {
     try {
-      const { count = 10 } = req.body as { count?: number };
+      const { count = 10, regionId } = req.body as { count?: number; regionId?: string };
       const logs: string[] = [];
       const total = Math.min(count, 50);
       for (let i = 0; i < total; i++) {
         try {
-          const result = await generateAndProcessSession(ctx, undefined, "ENERGYFI");
+          const result = await generateAndProcessSession(ctx, undefined, regionId);
           logs.push(result.message);
         } catch (err) {
           logs.push(`❌ Session #${i + 1}: ${String(err)}`);
@@ -116,46 +116,6 @@ export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
       res.json({ ok: true, logs, count: logs.length });
     } catch (err) {
       res.status(500).json({ error: String(err) });
-    }
-  });
-
-  // ── POST /oracle/phase2/claim ───────────────────────────────────────────
-  router.post("/claim", async (req, res) => {
-    try {
-      const { cpoId, period } = req.body as { cpoId: string; period?: number };
-      if (!cpoId) {
-        res.status(400).json({ error: "cpoId 필수" });
-        return;
-      }
-      const cid = encodeBytes32String(cpoId);
-      const p = period ?? currentPeriod();
-      const rt = ctx.revenueTracker!;
-
-      const tx = await rt.claim(cid, p);
-      const receipt = await tx.wait();
-
-      const claimEvent = receipt.logs.find((log: any) => {
-        try {
-          return rt.interface.parseLog(log)?.name === "CPOClaimed";
-        } catch { return false; }
-      });
-      const totalAmount = claimEvent
-        ? rt.interface.parseLog(claimEvent)?.args[1]?.toString() ?? "?"
-        : "?";
-
-      res.json({
-        ok: true,
-        message: `✅ 정산 완료: ${cpoId} | 기간: ${p} | 총 금액: ${totalAmount}원`,
-      });
-    } catch (err) {
-      const msg = String(err);
-      if (msg.includes("NothingToClaim")) {
-        res.json({ ok: false, message: `⏭ 정산할 금액 없음 (pending = 0)` });
-      } else if (msg.includes("CPOHasNoStations")) {
-        res.json({ ok: false, message: `⏭ CPO에 소속된 충전소가 없습니다` });
-      } else {
-        res.status(500).json({ error: msg });
-      }
     }
   });
 

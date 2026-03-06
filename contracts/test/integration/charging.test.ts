@@ -1,5 +1,5 @@
 /**
- * ChargeRouter 통합 테스트
+ * Charging Pipeline (Phase 1 → 2) 통합 테스트
  *
  * 5개 컨트랙트 전체 배포 (모두 UUPS proxy):
  *   DeviceRegistry + StationRegistry + ChargeTransaction + RevenueTracker + ChargeRouter
@@ -58,7 +58,7 @@ function nextSessionId(): string {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe("ChargeRouter", function () {
+describe("Charging Pipeline (Phase 1 → 2)", function () {
   let ethers: Awaited<ReturnType<typeof hre.network.connect>>["ethers"];
   let admin: Awaited<ReturnType<typeof ethers.getSigner>>;
   let nonAdmin: Awaited<ReturnType<typeof ethers.getSigner>>;

@@ -6,16 +6,48 @@ pragma solidity ^0.8.20;
  * @notice Interface for the RevenueTracker contract.
  *
  * Accumulates per-station revenue after each invoice.paid event and provides
- * CPO / EnergyFi region aggregation views.
+ * per-station revenue tracking with region aggregation views.
  *
- * Phase 3 additions:
- *  - claimRegion(): 지역별 EnergyFi 소유 충전소 수익 확정 (전통증권 모델 배당의 온체인 근거)
- *  - RegionAttestation: 확정된 수익의 불변 기록 (KSD 총량관리 노드 검증용)
- *  - getCPORegionRevenue(): CPO의 특정 지역 내 충전소 수익 합계
+ * Phase 3 additions (in IRevenueTrackerV2):
+ *  - claimRegion(): Finalize station revenue per region
+ *    (on-chain basis for traditional securities model dividend).
+ *  - RegionAttestation: Immutable finalized revenue record (KSD node verifiable).
  *
  * @dev Essential contract — data source for Phase 3 RegionSTO.
  */
 interface IRevenueTracker {
+    // ─────────────────────────────────────────────────────────────────────────
+    // Events
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// @notice Emitted when revenue is recorded for a station via recordRevenue().
+    event RevenueRecorded(
+        bytes32 indexed stationId,
+        uint256         distributableKrw,
+        uint256         accumulated,
+        uint256         period_yyyyMM
+    );
+
+    /// @notice Emitted for each station settled during claimRegion/claimRegionPaginated.
+    event SettlementRecorded(
+        bytes32 indexed stationId,
+        uint256         amount,
+        uint256         period_yyyyMM,
+        uint256         settledAt
+    );
+
+    /// @notice Emitted when a single station is settled via claimStation().
+    event StationClaimed(
+        bytes32 indexed stationId,
+        uint256         amount,
+        uint256         period_yyyyMM,
+        uint256         claimedAt
+    );
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Structs
+    // ─────────────────────────────────────────────────────────────────────────
+
     /// @notice Monthly revenue record for a station.
     struct MonthlyRevenue {
         uint256 period_yyyyMM;  // e.g. 202606
@@ -29,13 +61,13 @@ interface IRevenueTracker {
         uint256 settledAt;      // block.timestamp
     }
 
-    /// @notice 지역별 수익 확정 기록 (오프체인 정산의 법적 근거).
-    ///         claimRegion() 호출 시 생성. KSD 총량관리 노드가 조회 가능.
+    /// @notice Per-region revenue finalization record (legal basis for off-chain settlement).
+    ///         Created by claimRegion(). Queryable by KSD total-supply management node.
     struct RegionAttestation {
-        bytes4  regionId;          // ISO 3166-2:KR bytes4 지역 코드
-        uint256 period_yyyyMM;     // 정산 기간 (e.g. 202603)
-        uint256 distributableKrw;  // 확정된 지역 수익 (원)
-        uint256 stationCount;      // 정산에 포함된 EnergyFi 소유 충전소 수
+        bytes4  regionId;          // ISO 3166-2:KR bytes4 region code
+        uint256 period_yyyyMM;     // Settlement period (e.g. 202603)
+        uint256 distributableKrw;  // Finalized regional revenue (KRW)
+        uint256 stationCount;      // Number of stations included
         uint256 finalizedAt;       // block.timestamp
     }
 
@@ -51,35 +83,6 @@ interface IRevenueTracker {
         uint256 distributableKrw,
         uint256 period_yyyyMM
     ) external;
-
-    /**
-     * @notice Settle all pending revenue for a CPO's stations.
-     * @dev Only callable by DEFAULT_ADMIN_ROLE.
-     *      WARNING: May hit block gas limit for CPOs with 100+ stations.
-     *      Use claimPaginated() for large CPOs.
-     * @param cpoId bytes32 CPO identifier.
-     * @param period_yyyyMM Settlement period.
-     * @return totalClaimed Total settled amount across all CPO stations.
-     */
-    function claim(bytes32 cpoId, uint256 period_yyyyMM) external returns (uint256 totalClaimed);
-
-    /**
-     * @notice Settle pending revenue for a CPO's stations with pagination.
-     * @dev Only callable by DEFAULT_ADMIN_ROLE. Safe for large CPOs.
-     * @param cpoId bytes32 CPO identifier.
-     * @param period_yyyyMM Settlement period.
-     * @param offset Starting index in the CPO's station list.
-     * @param limit Maximum number of stations to process.
-     * @return totalClaimed Total settled amount in this batch.
-     * @return processed Number of stations processed.
-     * @return hasMore True if more stations remain after this batch.
-     */
-    function claimPaginated(
-        bytes32 cpoId,
-        uint256 period_yyyyMM,
-        uint256 offset,
-        uint256 limit
-    ) external returns (uint256 totalClaimed, uint256 processed, bool hasMore);
 
     /**
      * @notice Settle pending revenue for a single station.
@@ -106,48 +109,16 @@ interface IRevenueTracker {
         external view returns (uint256);
 
     /**
-     * @notice Returns aggregated revenue for all stations belonging to a CPO.
-     * @dev WARNING: May be expensive for CPOs with 100+ stations.
-     *      Use getCPORevenuePaginated() for large CPOs.
-     * @param cpoId bytes32 CPO identifier.
-     */
-    function getCPORevenue(bytes32 cpoId)
-        external view returns (uint256 accumulated, uint256 settled, uint256 pending);
-
-    /**
-     * @notice Returns aggregated revenue for a CPO's stations with pagination.
-     * @param cpoId bytes32 CPO identifier.
-     * @param offset Starting index in the CPO's station list.
-     * @param limit Maximum number of stations to aggregate.
-     * @return accumulated Total accumulated revenue in this batch.
-     * @return settled Total settled revenue in this batch.
-     * @return pending Total pending revenue in this batch.
-     * @return processed Number of stations processed.
-     * @return hasMore True if more stations remain.
-     */
-    function getCPORevenuePaginated(
-        bytes32 cpoId,
-        uint256 offset,
-        uint256 limit
-    ) external view returns (
-        uint256 accumulated,
-        uint256 settled,
-        uint256 pending,
-        uint256 processed,
-        bool hasMore
-    );
-
-    /**
-     * @notice Returns total pending revenue for EnergyFi-owned stations in a region.
+     * @notice Returns total pending revenue for all stations in a region.
      * @dev WARNING: May be expensive for regions with 100+ stations.
-     *      Use getEnergyFiRegionRevenuePaginated() for large regions.
+     *      Use getRegionRevenuePaginated() for large regions.
      * @param regionId ISO 3166-2:KR bytes4 region code.
      */
-    function getEnergyFiRegionRevenue(bytes4 regionId)
+    function getRegionRevenue(bytes4 regionId)
         external view returns (uint256 pending);
 
     /**
-     * @notice Returns paginated pending revenue for EnergyFi-owned stations in a region.
+     * @notice Returns paginated pending revenue for stations in a region.
      * @param regionId ISO 3166-2:KR bytes4 region code.
      * @param offset Starting index in the region's station list.
      * @param limit Maximum number of stations to aggregate.
@@ -155,7 +126,7 @@ interface IRevenueTracker {
      * @return processed Number of stations processed.
      * @return hasMore True if more stations remain.
      */
-    function getEnergyFiRegionRevenuePaginated(
+    function getRegionRevenuePaginated(
         bytes4 regionId,
         uint256 offset,
         uint256 limit

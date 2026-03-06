@@ -33,13 +33,11 @@ const CHARGER_1 = b32("CHARGER-001");
 const CHARGER_2 = b32("CHARGER-002");
 const STATION_1 = b32("STATION-001");
 const STATION_99 = b32("STATION-999");
-const CPO_1 = b32("CPO-001");
 const SESSION_1 = b32("SESSION-001");
 const SESSION_2 = b32("SESSION-002");
 const SESSION_3 = b32("SESSION-003");
 const REGION_SEOUL = regionBytes4("KR11");
 const SECP256K1 = 0;
-const OwnerType = { CPO: 0n, ENERGYFI: 1n };
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -47,7 +45,6 @@ describe("ChargeTransaction", function () {
   let ethers: Awaited<ReturnType<typeof hre.network.connect>>["ethers"];
   let admin: Awaited<ReturnType<typeof ethers.getSigner>>;
   let nonAdmin: Awaited<ReturnType<typeof ethers.getSigner>>;
-  let cpoWallet: Awaited<ReturnType<typeof ethers.getSigner>>;
   let newBridge: Awaited<ReturnType<typeof ethers.getSigner>>;
 
   let deviceRegistry: DeviceRegistry;
@@ -76,7 +73,6 @@ describe("ChargeTransaction", function () {
       endTimestamp: endTs,
       vehicleCategory: (overrides.vehicleCategory as number) ?? 0,
       gridRegionCode: (overrides.gridRegionCode as string) ?? REGION_SEOUL,
-      cpoId: (overrides.cpoId as string) ?? CPO_1,
       stationId: (overrides.stationId as string) ?? STATION_1,
       distributableKrw: (overrides.distributableKrw as bigint) ?? 5000n,
       seSignature: sig,
@@ -90,8 +86,7 @@ describe("ChargeTransaction", function () {
     const signers = await ethers.getSigners();
     admin = signers[0];
     nonAdmin = signers[1];
-    cpoWallet = signers[2];
-    newBridge = signers[3];
+    newBridge = signers[2];
 
     seWallet = Wallet.createRandom();
 
@@ -116,9 +111,8 @@ describe("ChargeTransaction", function () {
       admin.address  // admin
     );
 
-    // Setup infrastructure: CPO, Station, SE chip, Charger (chip must be enrolled before registerCharger)
-    await stationRegistry.registerCPO(CPO_1, cpoWallet.address, "삼성EV");
-    await stationRegistry.registerStation(STATION_1, CPO_1, OwnerType.CPO, REGION_SEOUL, "서울 강남");
+    // Setup infrastructure: Station, SE chip, Charger (chip must be enrolled before registerCharger)
+    await stationRegistry.registerStation(STATION_1, REGION_SEOUL, "서울 강남");
     await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(seWallet), SECP256K1);
     await stationRegistry.registerCharger(CHARGER_1, STATION_1, 1);
   });
@@ -191,7 +185,6 @@ describe("ChargeTransaction", function () {
       expect(stored.startTimestamp).to.equal(session.startTimestamp);
       expect(stored.endTimestamp).to.equal(session.endTimestamp);
       expect(stored.gridRegionCode).to.equal(session.gridRegionCode);
-      expect(stored.cpoId).to.equal(session.cpoId);
       // seSignature is NOT stored — verified at mint time, preserved in event only
       expect(stored.seSignature).to.equal("0x");
     });

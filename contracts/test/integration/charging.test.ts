@@ -39,11 +39,9 @@ import {
 
 const CHARGER_1 = b32("CHARGER-001");
 const STATION_1 = b32("STATION-001");
-const CPO_1 = b32("CPO-001");
 const REGION_SEOUL = regionBytes4("KR11");
 const SECP256K1 = 0;
 const PERIOD = 202606n;
-const OwnerType = { CPO: 0n, ENERGYFI: 1n };
 
 const DEFAULT_START_TS = 1700000000n;
 const DEFAULT_END_TS   = 1700003600n;  // +3600s = 1시간
@@ -62,7 +60,6 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
   let ethers: Awaited<ReturnType<typeof hre.network.connect>>["ethers"];
   let admin: Awaited<ReturnType<typeof ethers.getSigner>>;
   let nonAdmin: Awaited<ReturnType<typeof ethers.getSigner>>;
-  let cpoWallet: Awaited<ReturnType<typeof ethers.getSigner>>;
   let newBridge: Awaited<ReturnType<typeof ethers.getSigner>>;
 
   // Admin instances (concrete) — deployment, admin ops, event parsing
@@ -97,7 +94,6 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       endTimestamp: endTs,
       vehicleCategory: (overrides.vehicleCategory as number) ?? 0,
       gridRegionCode: (overrides.gridRegionCode as string) ?? REGION_SEOUL,
-      cpoId: (overrides.cpoId as string) ?? CPO_1,
       stationId: (overrides.stationId as string) ?? STATION_1,
       distributableKrw: (overrides.distributableKrw as bigint) ?? DEFAULT_KRW,
       seSignature: sig,
@@ -112,8 +108,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     const signers = await ethers.getSigners();
     admin = signers[0];
     nonAdmin = signers[1];
-    cpoWallet = signers[2];
-    newBridge = signers[3];
+    newBridge = signers[2];
 
     seWallet = Wallet.createRandom();
 
@@ -162,8 +157,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     rt = IRevenueTracker__factory.connect(await rtContract.getAddress(), admin);
 
     // 8. Setup infrastructure (chip must be enrolled before registerCharger)
-    await stationRegistry.registerCPO(CPO_1, cpoWallet.address, "삼성EV");
-    await stationRegistry.registerStation(STATION_1, CPO_1, OwnerType.CPO, REGION_SEOUL, "서울 강남");
+    await stationRegistry.registerStation(STATION_1, REGION_SEOUL, "서울 강남");
     await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(seWallet), SECP256K1);
     await stationRegistry.registerCharger(CHARGER_1, STATION_1, 1);
   });

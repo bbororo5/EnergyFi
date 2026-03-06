@@ -5,15 +5,16 @@ import "./IRevenueTracker.sol";
 
 /**
  * @title IRevenueTrackerV2
- * @notice Phase 3 확장 인터페이스 — 지역별 수익 확정 + CPO 지역 뷰.
+ * @notice Phase 3 extension — per-region revenue finalization.
  *
- * IRevenueTracker를 상속하며, 기존 함수 시그니처를 일절 변경하지 않음.
- * RevenueTracker V2 (UUPS 업그레이드)에서 구현.
+ * Inherits IRevenueTracker without modifying any existing function signatures.
+ * Implemented by RevenueTrackerV2 (UUPS upgrade from V1).
  *
- * 추가 기능:
- *  - claimRegion(): EnergyFi 소유 충전소 수익을 지역 단위로 확정 (정산)
- *  - RegionAttestation: 확정된 수익의 불변 온체인 기록 (전통증권 모델 배당의 법적 근거)
- *  - getCPORegionRevenue(): CPO의 특정 지역 내 충전소 수익 합계
+ * Additional capabilities:
+ *  - claimRegion(): Finalize station revenue per region (settlement).
+ *  - claimRegionPaginated(): Gas-safe paginated version for large regions.
+ *  - RegionAttestation: Immutable on-chain record of finalized revenue
+ *    (legal basis for off-chain dividend distribution in traditional securities model).
  *
  * @dev Essential contract — data source for Phase 3 RegionSTO.
  */
@@ -22,8 +23,8 @@ interface IRevenueTrackerV2 is IRevenueTracker {
     // Events
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// @notice 지역별 수익 확정 시 emit.
-    ///         KSD 총량관리 노드가 이 이벤트를 모니터링하여 정산 상태를 추적.
+    /// @notice Emitted when a region's revenue is finalized.
+    ///         KSD total-supply management node monitors this event for settlement tracking.
     event RegionSettlementFinalized(
         bytes4  indexed regionId,
         uint256 period_yyyyMM,
@@ -37,55 +38,64 @@ interface IRevenueTrackerV2 is IRevenueTracker {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice 지역별 EnergyFi 소유 충전소 수익을 확정(finalize)한다.
+     * @notice Finalize station revenue for a region.
      *
-     * @dev Admin-only. 해당 지역의 모든 EnergyFi 소유 충전소의 pending을 0으로 리셋하고
-     *      RegionAttestation을 온체인에 기록한다.
-     *      기존 CPO claim()과 동일한 settled += pending 패턴.
+     * @dev Admin-only. Resets pending to 0 for all stations in the region
+     *      and records a RegionAttestation on-chain.
      *
-     *      전통증권 모델: 이 attestation을 근거로 오프체인에서 원화 배당을 집행.
-     *      투자자별 배당 = (balance / totalSupply) × distributableKrw.
+     *      Traditional securities model: this attestation serves as the legal basis
+     *      for off-chain KRW dividend execution.
+     *      Per-investor dividend = (balance / totalSupply) × distributableKrw.
      *
-     * @param regionId ISO 3166-2:KR bytes4 지역 코드.
-     * @param period_yyyyMM 정산 기간 (e.g. 202603).
-     * @return totalClaimed 확정된 총 수익 (원).
-     * @return stationCount 정산에 포함된 충전소 수.
+     * @param regionId ISO 3166-2:KR bytes4 region code.
+     * @param period_yyyyMM Settlement period label (e.g. 202603).
+     * @return totalClaimed Total finalized revenue (KRW).
+     * @return stationCount Number of stations included in settlement.
      */
     function claimRegion(bytes4 regionId, uint256 period_yyyyMM)
         external returns (uint256 totalClaimed, uint256 stationCount);
+
+    /**
+     * @notice Finalize region revenue — paginated version.
+     *
+     * @dev Admin-only. Prevents block gas limit issues for large regions
+     *      (hundreds of stations). Same logic as claimRegion() but processes
+     *      only the [offset, offset+limit) slice.
+     *      Does NOT record a RegionAttestation — page-level settlement only.
+     *      Use claimRegion() when a full attestation is needed.
+     *
+     * @param regionId ISO 3166-2:KR bytes4 region code.
+     * @param period_yyyyMM Settlement period label.
+     * @param offset Start index in the region's station list.
+     * @param limit Maximum number of stations to process.
+     * @return totalClaimed Revenue finalized in this page.
+     * @return stationCount Stations settled in this page.
+     * @return processed Actual number of items processed.
+     * @return hasMore Whether more pages remain.
+     */
+    function claimRegionPaginated(
+        bytes4 regionId,
+        uint256 period_yyyyMM,
+        uint256 offset,
+        uint256 limit
+    ) external returns (uint256 totalClaimed, uint256 stationCount, uint256 processed, bool hasMore);
 
     // ─────────────────────────────────────────────────────────────────────────
     // View Functions
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * @notice 지역별 수익 확정 기록 조회.
-     * @param regionId ISO 3166-2:KR bytes4 지역 코드.
-     * @param period_yyyyMM 조회할 정산 기간.
+     * @notice Query the finalization record for a region and period.
+     * @param regionId ISO 3166-2:KR bytes4 region code.
+     * @param period_yyyyMM Settlement period to query.
      */
     function getRegionAttestation(bytes4 regionId, uint256 period_yyyyMM)
         external view returns (RegionAttestation memory);
 
     /**
-     * @notice 지역의 모든 확정 기간 목록.
-     * @param regionId ISO 3166-2:KR bytes4 지역 코드.
+     * @notice List all finalized periods for a region.
+     * @param regionId ISO 3166-2:KR bytes4 region code.
      */
     function getRegionAttestationPeriods(bytes4 regionId)
         external view returns (uint256[] memory);
-
-    /**
-     * @notice CPO의 특정 지역 내 충전소 수익 합계.
-     *
-     * @dev StationRegistry.getStationsByCPO()로 CPO 전체 충전소를 가져온 후
-     *      getStation().regionId로 해당 지역만 필터링하여 합산.
-     *      WARNING: CPO의 충전소 수가 많으면 가스 비용이 높을 수 있음.
-     *
-     * @param cpoId bytes32 CPO 식별자.
-     * @param regionId ISO 3166-2:KR bytes4 지역 코드.
-     * @return accumulated 누적 수익 (원).
-     * @return settled 정산 완료 수익 (원).
-     * @return pending 미정산 수익 (원).
-     */
-    function getCPORegionRevenue(bytes32 cpoId, bytes4 regionId)
-        external view returns (uint256 accumulated, uint256 settled, uint256 pending);
 }

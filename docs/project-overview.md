@@ -21,7 +21,7 @@ EnergyFi scope
 |:---|:---|:---|
 | **Data** | Real-time charging session records | SE-signed data → ChargeTransaction (ERC-721) on-chain |
 | **Carbon** | VM0038 carbon reduction calculation | CarbonReduction (immutable contract) + ParameterRegistry |
-| **Registry** | CPO → Station → Charger hierarchy | StationRegistry on Avalanche L1 |
+| **Registry** | Station → Charger hierarchy (all EnergyFi-owned) | StationRegistry on Avalanche L1 |
 | **Tokenization** | Per-region fractional ownership (17 regions) | RegionSTO (표준 미확정 — 발행 경로 결정 후) via RegionSTOFactory |
 | **Portfolio** | Investor dashboard data | STOPortfolio + ReputationRegistry |
 | **Verification** | Carbon credit pipeline | CarbonBatch → VVB → VCUReference |

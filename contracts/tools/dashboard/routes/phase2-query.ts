@@ -4,8 +4,8 @@
 
 import { Router } from "express";
 import type { ContractCtx } from "../server.js";
-import { ZeroHash, encodeBytes32String } from "ethers";
-import { safeDecodeB32, regionBytes4, formatKwh, formatKrw } from "../lib/utils.js";
+import { encodeBytes32String } from "ethers";
+import { safeDecodeB32, regionBytes4 } from "../lib/utils.js";
 
 export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
   const router = Router();
@@ -19,12 +19,10 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
     next();
   });
 
-  // ── GET /query/phase2/sessions/recent?limit=20&cpoId=X&ownerType=Y&regionId=Z
+  // ── GET /query/phase2/sessions/recent?limit=20&regionId=Z
   router.get("/sessions/recent", async (req, res) => {
     try {
       const limit = Math.min(Number(req.query["limit"] ?? 20), 100);
-      const filterCpoId = req.query["cpoId"] as string | undefined;
-      const filterOwnerType = req.query["ownerType"] as string | undefined;
       const filterRegionId = req.query["regionId"] as string | undefined;
       const ct = ctx.chargeTransaction!;
 
@@ -34,27 +32,21 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
       const events = await ct.queryFilter(filter, fromBlock, "latest");
 
       // Station metadata cache (avoid duplicate lookups)
-      const stationCache = new Map<string, { cpoId: string; ownerType: string; regionId: string }>();
+      const stationCache = new Map<string, { regionId: string }>();
       async function getStationMeta(sid: string) {
         if (stationCache.has(sid)) return stationCache.get(sid)!;
         try {
           const station = await ctx.stationRegistry.getStation(sid);
-          const efStations = await ctx.stationRegistry.getEnergyFiStationsByRegion(station.regionId);
-          const meta = {
-            cpoId: safeDecodeB32(station.cpoId),
-            ownerType: efStations.includes(sid) ? "ENERGYFI" : "CPO",
-            regionId: station.regionId,
-          };
+          const meta = { regionId: station.regionId };
           stationCache.set(sid, meta);
           return meta;
         } catch {
-          const fallback = { cpoId: "", ownerType: "CPO", regionId: "" };
+          const fallback = { regionId: "" };
           stationCache.set(sid, fallback);
           return fallback;
         }
       }
 
-      const needsFilter = filterCpoId || filterOwnerType || filterRegionId;
       const allSessions = events.reverse();
       const sessions: any[] = [];
 
@@ -75,13 +67,9 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
           blockNumber: ev.blockNumber,
         };
 
-        if (needsFilter) {
+        if (filterRegionId) {
           const meta = await getStationMeta(sid);
-          if (filterCpoId && meta.cpoId !== filterCpoId) continue;
-          if (filterOwnerType && meta.ownerType !== filterOwnerType) continue;
-          if (filterRegionId && meta.regionId !== filterRegionId) continue;
-          session.cpoId = meta.cpoId;
-          session.ownerType = meta.ownerType;
+          if (meta.regionId !== filterRegionId) continue;
           session.regionId = meta.regionId;
         }
 
@@ -114,7 +102,6 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
         endTimestamp: session.endTimestamp.toString(),
         vehicleCategory: Number(session.vehicleCategory),
         gridRegionCode: session.gridRegionCode,
-        cpoId: session.cpoId,
         stationId: session.stationId,
         distributableKrw: session.distributableKrw.toString(),
         seSignature: session.seSignature,
@@ -140,14 +127,9 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
           const sid = ev.args[0] as string;
           try {
             const [accumulated, settled, pending] = await rt.getStationRevenue(sid);
-            const station = await ctx.stationRegistry.getStation(sid);
-            const efStations = await ctx.stationRegistry.getEnergyFiStationsByRegion(station.regionId);
-            const isEnergyFi = efStations.includes(sid);
-
             return {
               stationId: safeDecodeB32(sid),
               stationIdRaw: sid,
-              ownerType: isEnergyFi ? "ENERGYFI" : "CPO",
               accumulated: accumulated.toString(),
               settled: settled.toString(),
               pending: pending.toString(),
@@ -159,81 +141,6 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
       );
 
       res.json({ revenues: revenues.filter(Boolean) });
-    } catch (err) {
-      res.status(500).json({ error: String(err) });
-    }
-  });
-
-  // ── GET /query/phase2/cpo-revenue ───────────────────────────────────────
-  router.get("/cpo-revenue", async (req, res) => {
-    try {
-      const rt = ctx.revenueTracker!;
-      const cpoFilter = ctx.stationRegistry.filters["CPORegistered"]();
-      const cpoEvents = await ctx.stationRegistry.queryFilter(cpoFilter, 0, "latest");
-
-      const revenues = await Promise.all(
-        cpoEvents.map(async (ev: any) => {
-          const cpoId = ev.args[0] as string;
-          try {
-            const cpo = await ctx.stationRegistry.getCPO(cpoId);
-            const [accumulated, settled, pending] = await rt.getCPORevenue(cpoId);
-            return {
-              cpoId: safeDecodeB32(cpoId),
-              cpoIdRaw: cpoId,
-              name: cpo.name,
-              accumulated: accumulated.toString(),
-              settled: settled.toString(),
-              pending: pending.toString(),
-            };
-          } catch {
-            return null;
-          }
-        })
-      );
-
-      res.json({ revenues: revenues.filter(Boolean) });
-    } catch (err) {
-      res.status(500).json({ error: String(err) });
-    }
-  });
-
-  // ── GET /query/phase2/cpo/:cpoId/revenue ────────────────────────────────
-  // 특정 CPO의 소속 충전소 수익 통합
-  router.get("/cpo/:cpoId/revenue", async (req, res) => {
-    try {
-      const cpoIdStr = req.params["cpoId"];
-      const cpoId = encodeBytes32String(cpoIdStr);
-      const rt = ctx.revenueTracker!;
-      const stationIds: string[] = await ctx.stationRegistry.getStationsByCPO(cpoId);
-
-      let totalAccumulated = 0n;
-      let totalSettled = 0n;
-      let totalPending = 0n;
-      const stations: any[] = [];
-
-      for (const sid of stationIds) {
-        try {
-          const [accumulated, settled, pending] = await rt.getStationRevenue(sid);
-          totalAccumulated += accumulated;
-          totalSettled += settled;
-          totalPending += pending;
-          stations.push({
-            stationId: safeDecodeB32(sid),
-            accumulated: accumulated.toString(),
-            settled: settled.toString(),
-            pending: pending.toString(),
-          });
-        } catch { /* skip */ }
-      }
-
-      res.json({
-        cpo: {
-          accumulated: totalAccumulated.toString(),
-          settled: totalSettled.toString(),
-          pending: totalPending.toString(),
-        },
-        stations,
-      });
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
@@ -249,8 +156,8 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
         regions.map(async (code) => {
           const rid = regionBytes4(code);
           try {
-            const pending = await rt.getEnergyFiRegionRevenue(rid);
-            const stations = await ctx.stationRegistry.getEnergyFiStationsByRegion(rid);
+            const pending = await rt.getRegionRevenue(rid);
+            const stations = await ctx.stationRegistry.getStationsByRegion(rid);
             if (stations.length === 0 && pending === 0n) return null;
             return {
               regionId: code,
@@ -283,8 +190,6 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
       const stationEvents = await ctx.stationRegistry.queryFilter(stationFilter, 0, "latest");
 
       let totalKrw = 0n;
-      let efiKrw = 0n;
-      let cpoKrw = 0n;
       const stationBreakdown: any[] = [];
 
       for (const ev of stationEvents as any[]) {
@@ -292,17 +197,11 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
         try {
           const amount = await rt.getStationRevenuePeriod(sid, period);
           if (amount === 0n) continue;
-          const station = await ctx.stationRegistry.getStation(sid);
-          const efStations = await ctx.stationRegistry.getEnergyFiStationsByRegion(station.regionId);
-          const isEnergyFi = efStations.includes(sid);
 
           totalKrw += amount;
-          if (isEnergyFi) efiKrw += amount;
-          else cpoKrw += amount;
 
           stationBreakdown.push({
             stationId: safeDecodeB32(sid),
-            ownerType: isEnergyFi ? "ENERGYFI" : "CPO",
             amount: amount.toString(),
           });
         } catch {
@@ -316,9 +215,6 @@ export function buildPhase2QueryRouter(ctx: ContractCtx): Router {
       res.json({
         period,
         totalKrw: totalKrw.toString(),
-        efiKrw: efiKrw.toString(),
-        cpoKrw: cpoKrw.toString(),
-        efiPercent: totalKrw > 0n ? Number((efiKrw * 1000n) / totalKrw) / 10 : 0,
         totalSessions: totalSessions.toString(),
         stations: stationBreakdown,
       });

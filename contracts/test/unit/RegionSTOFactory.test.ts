@@ -1,10 +1,11 @@
 /**
- * RegionSTOFactory 단위 테스트 — 21개
+ * RegionSTOFactory Unit Tests
  *
- * 17개 지역 RegionSTO 프록시 배포 및 관리.
- * UUPS proxy. StationRegistry + RegionSTO impl 참조.
+ * Deploys and manages 17 regional RegionSTO proxies.
+ * UUPS proxy. References StationRegistry + RegionSTO impl.
  *
- * 초기화 / deployRegion 성공·실패 / deployAllRegions / 통합 / UUPS.
+ * Initialization / deployRegion success & failure / deployAllRegions /
+ * config setters / integration / UUPS.
  */
 
 import hre from "hardhat";
@@ -28,9 +29,8 @@ import type {
 
 const REGION_SEOUL = regionBytes4("KR11");
 const STN_1 = b32("STATION-001");
-const OwnerType = { CPO: 0n, ENERGYFI: 1n };
 
-// 17개 지역 코드
+// All 17 Korean region codes
 const ALL_REGIONS = [
   "KR11", "KR26", "KR27", "KR28", "KR29", "KR30", "KR31", "KR36",
   "KR41", "KR42", "KR43", "KR44", "KR45", "KR46", "KR47", "KR48", "KR49",
@@ -80,21 +80,20 @@ describe("RegionSTOFactory", function () {
     factory = f;
   });
 
-  // ── 초기화 ──────────────────────────────────────────────────────────────────
+  // ── Initialization ────────────────────────────────────────────────────────
 
-  describe("초기화", function () {
-    it("stationRegistry, regionSTOImpl 주소가 올바르게 설정되어야 한다", async function () {
-      // IRegionSTOFactory에 정의된 view 함수
+  describe("Initialization", function () {
+    it("should store stationRegistry and regionSTOImpl addresses correctly", async function () {
       expect(await factory.stationRegistry()).to.equal(await stationRegistry.getAddress());
       expect(await factory.regionSTOImpl()).to.equal(regionSTOImplAddr);
     });
 
-    it("deployer에게 DEFAULT_ADMIN_ROLE이 부여되어야 한다", async function () {
+    it("should grant DEFAULT_ADMIN_ROLE to deployer", async function () {
       const DEFAULT_ADMIN_ROLE = ZeroHash;
       expect(await factory.hasRole(DEFAULT_ADMIN_ROLE, admin.address)).to.equal(true);
     });
 
-    it("double initialize 시 revert 되어야 한다", async function () {
+    it("should revert on double initialize", async function () {
       await expectRevertCustomError(
         factory.initialize(
           admin.address,
@@ -104,18 +103,34 @@ describe("RegionSTOFactory", function () {
         "InvalidInitialization",
       );
     });
+
+    it("should revert initialize with zero address", async function () {
+      const { contract: f2 } = await deployUUPSProxy<RegionSTOFactory>(ethers, "RegionSTOFactory");
+      await expectRevertCustomError(
+        f2.initialize(ZeroAddress, regionSTOImplAddr, await stationRegistry.getAddress()),
+        "ZeroAddress",
+      );
+      await expectRevertCustomError(
+        f2.initialize(admin.address, ZeroAddress, await stationRegistry.getAddress()),
+        "ZeroAddress",
+      );
+      await expectRevertCustomError(
+        f2.initialize(admin.address, regionSTOImplAddr, ZeroAddress),
+        "ZeroAddress",
+      );
+    });
   });
 
-  // ── deployRegion 성공 ───────────────────────────────────────────────────────
+  // ── deployRegion success ──────────────────────────────────────────────────
 
-  describe("deployRegion 성공", function () {
-    it("RegionSTO 프록시를 배포하고 주소를 반환해야 한다", async function () {
+  describe("deployRegion success", function () {
+    it("should deploy a RegionSTO proxy and return its address", async function () {
       await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       const tokenAddr = await factory.getRegionToken(REGION_SEOUL);
       expect(tokenAddr).to.not.equal(ZeroAddress);
     });
 
-    it("RegionDeployed 이벤트가 emit 되어야 한다", async function () {
+    it("should emit RegionDeployed event", async function () {
       const tx = await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       const receipt = await tx.wait();
       const event = findEvent(receipt!, factory, "RegionDeployed");
@@ -126,19 +141,19 @@ describe("RegionSTOFactory", function () {
       expect(event.args.tokenAddress).to.not.equal(ZeroAddress);
     });
 
-    it("getRegionToken 매핑에 등록되어야 한다", async function () {
+    it("should register in getRegionToken mapping", async function () {
       await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       const addr = await factory.getRegionToken(REGION_SEOUL);
       expect(addr).to.not.equal(ZeroAddress);
     });
 
-    it("getRegionCount가 증가해야 한다", async function () {
+    it("should increment getRegionCount", async function () {
       expect(await factory.getRegionCount()).to.equal(0n);
       await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       expect(await factory.getRegionCount()).to.equal(1n);
     });
 
-    it("배포된 토큰의 regionId, name, symbol이 올바라야 한다", async function () {
+    it("should set regionId, name, symbol on the deployed token", async function () {
       await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       const tokenAddr = await factory.getRegionToken(REGION_SEOUL);
       const sto = (await ethers.getContractAt("RegionSTO", tokenAddr)) as unknown as RegionSTO;
@@ -147,7 +162,7 @@ describe("RegionSTOFactory", function () {
       expect(await sto.symbol()).to.equal("EFI-KR11");
     });
 
-    it("배포된 토큰의 admin이 factory 호출자(admin)와 동일해야 한다", async function () {
+    it("should set factory caller (admin) as the deployed token's admin", async function () {
       await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       const tokenAddr = await factory.getRegionToken(REGION_SEOUL);
       const sto = (await ethers.getContractAt("RegionSTO", tokenAddr)) as unknown as RegionSTO;
@@ -156,10 +171,10 @@ describe("RegionSTOFactory", function () {
     });
   });
 
-  // ── deployRegion 실패 ───────────────────────────────────────────────────────
+  // ── deployRegion failure ──────────────────────────────────────────────────
 
-  describe("deployRegion 실패", function () {
-    it("이미 배포된 지역을 다시 배포하면 revert", async function () {
+  describe("deployRegion failure", function () {
+    it("should revert when deploying already deployed region", async function () {
       await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
       await expectRevertCustomError(
         factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11"),
@@ -167,7 +182,7 @@ describe("RegionSTOFactory", function () {
       );
     });
 
-    it("admin이 아닌 계정이 호출하면 revert", async function () {
+    it("should revert when called by non-admin", async function () {
       await expectRevertCustomError(
         factory.connect(nonAdmin).deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11"),
         "AccessControlUnauthorizedAccount",
@@ -175,10 +190,10 @@ describe("RegionSTOFactory", function () {
     });
   });
 
-  // ── deployAllRegions ────────────────────────────────────────────────────────
+  // ── deployAllRegions ──────────────────────────────────────────────────────
 
   describe("deployAllRegions", function () {
-    it("17개 지역 전부 배포해야 한다", async function () {
+    it("should deploy all 17 regions", async function () {
       await factory.deployAllRegions();
       for (const code of ALL_REGIONS) {
         const rid = regionBytes4(code);
@@ -187,18 +202,18 @@ describe("RegionSTOFactory", function () {
       }
     });
 
-    it("getRegionCount가 17을 반환해야 한다", async function () {
+    it("should return 17 from getRegionCount", async function () {
       await factory.deployAllRegions();
       expect(await factory.getRegionCount()).to.equal(17n);
     });
 
-    it("getAllRegionIds가 17개 지역 코드를 반환해야 한다", async function () {
+    it("should return 17 region codes from getAllRegionIds", async function () {
       await factory.deployAllRegions();
       const ids = await factory.getAllRegionIds();
       expect(ids.length).to.equal(17);
     });
 
-    it("각 지역 토큰의 심볼이 EFI-KRxx 형태여야 한다", async function () {
+    it("should set EFI-KRxx symbol format on each token", async function () {
       await factory.deployAllRegions();
       for (const code of ALL_REGIONS) {
         const rid = regionBytes4(code);
@@ -209,7 +224,7 @@ describe("RegionSTOFactory", function () {
       }
     });
 
-    it("이미 배포된 상태에서 다시 호출하면 revert", async function () {
+    it("should revert when called again after deployment", async function () {
       await factory.deployAllRegions();
       await expectRevertCustomError(
         factory.deployAllRegions(),
@@ -217,7 +232,7 @@ describe("RegionSTOFactory", function () {
       );
     });
 
-    it("admin이 아닌 계정이 deployAllRegions 호출하면 revert", async function () {
+    it("should revert when called by non-admin", async function () {
       await expectRevertCustomError(
         factory.connect(nonAdmin).deployAllRegions(),
         "AccessControlUnauthorizedAccount",
@@ -225,26 +240,87 @@ describe("RegionSTOFactory", function () {
     });
   });
 
-  // ── 통합: Factory → RegionSTO ──────────────────────────────────────────────
+  // ── Config setters ────────────────────────────────────────────────────────
 
-  describe("통합: Factory → RegionSTO", function () {
-    beforeEach(async function () {
-      await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
-      await stationRegistry.registerStation(STN_1, ZeroHash, OwnerType.ENERGYFI, REGION_SEOUL, "서울 강남");
+  describe("Config setters", function () {
+    it("should update regionSTOImpl and emit event", async function () {
+      const NewImpl = await ethers.getContractFactory("RegionSTO");
+      const newImpl = await NewImpl.deploy();
+      await newImpl.waitForDeployment();
+      const newAddr = await newImpl.getAddress();
+
+      const tx = await factory.updateRegionSTOImpl(newAddr);
+      const receipt = await tx.wait();
+      const event = findEvent(receipt!, factory, "RegionSTOImplUpdated");
+      expect(event).to.not.be.null;
+      expect(event.args.oldImpl).to.equal(regionSTOImplAddr);
+      expect(event.args.newImpl).to.equal(newAddr);
+      expect(await factory.regionSTOImpl()).to.equal(newAddr);
     });
 
-    it("배포된 토큰에서 issueTranche를 호출할 수 있어야 한다", async function () {
+    it("should update stationRegistry and emit event", async function () {
+      // Deploy a second StationRegistry as the new address
+      const { contract: dr2 } = await deployUUPSProxy<DeviceRegistry>(ethers, "DeviceRegistry");
+      await dr2.initialize(admin.address);
+      const { contract: sr2 } = await deployUUPSProxy<StationRegistry>(ethers, "StationRegistry");
+      await sr2.initialize(admin.address, await dr2.getAddress());
+      const newAddr = await sr2.getAddress();
+
+      const oldAddr = await factory.stationRegistry();
+      const tx = await factory.updateStationRegistry(newAddr);
+      const receipt = await tx.wait();
+      const event = findEvent(receipt!, factory, "StationRegistryUpdated");
+      expect(event).to.not.be.null;
+      expect(event.args.oldRegistry).to.equal(oldAddr);
+      expect(event.args.newRegistry).to.equal(newAddr);
+      expect(await factory.stationRegistry()).to.equal(newAddr);
+    });
+
+    it("should revert updateRegionSTOImpl with zero address", async function () {
+      await expectRevertCustomError(
+        factory.updateRegionSTOImpl(ZeroAddress),
+        "ZeroAddress",
+      );
+    });
+
+    it("should revert updateStationRegistry with zero address", async function () {
+      await expectRevertCustomError(
+        factory.updateStationRegistry(ZeroAddress),
+        "ZeroAddress",
+      );
+    });
+
+    it("should revert config setters when called by non-admin", async function () {
+      await expectRevertCustomError(
+        factory.connect(nonAdmin).updateRegionSTOImpl(admin.address),
+        "AccessControlUnauthorizedAccount",
+      );
+      await expectRevertCustomError(
+        factory.connect(nonAdmin).updateStationRegistry(admin.address),
+        "AccessControlUnauthorizedAccount",
+      );
+    });
+  });
+
+  // ── Integration: Factory → RegionSTO ──────────────────────────────────────
+
+  describe("Integration: Factory → RegionSTO", function () {
+    beforeEach(async function () {
+      await factory.deployRegion(REGION_SEOUL, "EnergyFi Seoul STO", "EFI-KR11");
+      await stationRegistry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
+    });
+
+    it("should allow issueTranche on deployed token", async function () {
       const tokenAddr = await factory.getRegionToken(REGION_SEOUL);
       const sto = (await ethers.getContractAt("RegionSTO", tokenAddr)) as unknown as RegionSTO;
       await sto.issueTranche(admin.address, 1000n, [STN_1]);
       expect(await sto.totalSupply()).to.equal(1000n);
     });
 
-    it("배포된 토큰에서 admin-only transfer 정책이 적용되어야 한다", async function () {
+    it("should enforce admin-only transfer policy on deployed token", async function () {
       const tokenAddr = await factory.getRegionToken(REGION_SEOUL);
       const sto = (await ethers.getContractAt("RegionSTO", tokenAddr)) as unknown as RegionSTO;
       await sto.issueTranche(admin.address, 1000n, [STN_1]);
-      // non-admin transfer → revert
       await expectRevertCustomError(
         sto.connect(nonAdmin).transfer(admin.address, 100n),
         "TransferNotAllowed",
@@ -252,17 +328,17 @@ describe("RegionSTOFactory", function () {
     });
   });
 
-  // ── UUPS 업그레이드 ────────────────────────────────────────────────────────
+  // ── UUPS Upgrade ──────────────────────────────────────────────────────────
 
-  describe("UUPS 업그레이드", function () {
-    it("admin이 업그레이드를 승인할 수 있어야 한다", async function () {
+  describe("UUPS Upgrade", function () {
+    it("should allow admin to authorize upgrade", async function () {
       const Factory = await ethers.getContractFactory("RegionSTOFactory");
       const newImpl = await Factory.deploy();
       await newImpl.waitForDeployment();
       await factory.upgradeToAndCall(await newImpl.getAddress(), "0x");
     });
 
-    it("admin이 아닌 계정이 업그레이드하면 revert", async function () {
+    it("should revert when non-admin tries to upgrade", async function () {
       const Factory = await ethers.getContractFactory("RegionSTOFactory");
       const newImpl = await Factory.deploy();
       await newImpl.waitForDeployment();

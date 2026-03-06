@@ -5,7 +5,7 @@
  * STO issuance → revenue finalization.
  *
  * Deploys 7 contracts (all UUPS proxy):
- *   DeviceRegistry + StationRegistry + ChargeTransaction + RevenueTracker(V2) +
+ *   DeviceRegistry + StationRegistry + ChargeTransaction + RevenueTracker +
  *   ChargeRouter + RegionSTOFactory + RegionSTO(s)
  */
 
@@ -25,7 +25,6 @@ import type {
   ChargeTransaction,
   DeviceRegistry,
   RevenueTracker,
-  RevenueTrackerV2,
   StationRegistry,
   RegionSTO,
   RegionSTOFactory,
@@ -65,7 +64,7 @@ describe("STO Pipeline (Phase 1 → 2 → 3)", function () {
 
   let deviceRegistry: DeviceRegistry;
   let stationRegistry: StationRegistry;
-  let revenueTracker: RevenueTrackerV2;
+  let revenueTracker: RevenueTracker;
   let chargeRouter: ChargeRouter;
   let factory: RegionSTOFactory;
 
@@ -96,7 +95,7 @@ describe("STO Pipeline (Phase 1 → 2 → 3)", function () {
 
     const { contract: ct } = await deployUUPSProxy<ChargeTransaction>(ethers, "ChargeTransaction");
 
-    const { contract: rt, proxy: rtProxy } = await deployUUPSProxy<RevenueTracker>(ethers, "RevenueTracker");
+    const { contract: rt } = await deployUUPSProxy<RevenueTracker>(ethers, "RevenueTracker");
 
     const { contract: cr } = await deployUUPSProxy<ChargeRouter>(ethers, "ChargeRouter");
     chargeRouter = cr;
@@ -120,12 +119,7 @@ describe("STO Pipeline (Phase 1 → 2 → 3)", function () {
       admin.address,
     );
 
-    // Upgrade RevenueTracker V1 → V2
-    const V2Factory = await ethers.getContractFactory("RevenueTrackerV2");
-    const v2Impl = await V2Factory.deploy();
-    await v2Impl.waitForDeployment();
-    await rt.upgradeToAndCall(await v2Impl.getAddress(), "0x");
-    revenueTracker = (await ethers.getContractAt("RevenueTrackerV2", await rtProxy.getAddress())) as unknown as RevenueTrackerV2;
+    revenueTracker = rt;
 
     // ── Phase 3: RegionSTOFactory ──────────────────────────────────
 

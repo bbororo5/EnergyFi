@@ -33,6 +33,7 @@ const STN_4 = b32("STATION-004");
 const STN_99 = b32("STATION-999");
 const REGION_SEOUL = regionBytes4("KR11");
 const REGION_BUSAN = regionBytes4("KR26");
+const REGION_DAEGU = regionBytes4("KR27");
 const PERIOD = 202606n;
 const PERIOD_2 = 202607n;
 const PERIOD_3 = 202605n;
@@ -652,6 +653,217 @@ describe("RevenueTracker", function () {
       expect(history[0].period_yyyyMM).to.equal(PERIOD);
       expect(history[1].amount).to.equal(3000n);
       expect(history[1].period_yyyyMM).to.equal(PERIOD_2);
+    });
+  });
+
+  // ── claimRegion 성공 ─────────────────────────────────────────────────────
+
+  describe("claimRegion 성공", function () {
+    beforeEach(async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_2, 3000n, PERIOD);
+      await rt.recordRevenue(STN_3, 8000n, PERIOD);
+      await rt.recordRevenue(STN_4, 4000n, PERIOD);
+    });
+
+    it("리전 내 모든 충전소 일괄 정산", async function () {
+      // Seoul: STN_1(5000) + STN_2(3000) + STN_3(8000) = 16000
+      const [totalClaimed, stationCount] = await rt.claimRegion.staticCall(REGION_SEOUL, PERIOD);
+      expect(totalClaimed).to.equal(16000n);
+      expect(stationCount).to.equal(3n);
+    });
+
+    it("정산 후 각 충전소 pending = 0", async function () {
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+      const [, , pend1] = await rt.getStationRevenue(STN_1);
+      const [, , pend2] = await rt.getStationRevenue(STN_2);
+      const [, , pend3] = await rt.getStationRevenue(STN_3);
+      expect(pend1).to.equal(0n);
+      expect(pend2).to.equal(0n);
+      expect(pend3).to.equal(0n);
+    });
+
+    it("RegionAttestation 온체인 기록", async function () {
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+      const att = await rt.getRegionAttestation(REGION_SEOUL, PERIOD);
+      expect(att.regionId).to.equal(REGION_SEOUL);
+      expect(att.period_yyyyMM).to.equal(PERIOD);
+      expect(att.distributableKrw).to.equal(16000n);
+      expect(att.stationCount).to.equal(3n);
+      expect(att.finalizedAt).to.be.greaterThan(0n);
+    });
+
+    it("RegionSettlementFinalized 이벤트 emit", async function () {
+      const tx = await rt.claimRegion(REGION_SEOUL, PERIOD);
+      const receipt = await tx.wait();
+      const event = findEvent(receipt!, rt, "RegionSettlementFinalized");
+      expect(event).to.not.be.null;
+      expect(event.args.regionId).to.equal(REGION_SEOUL);
+      expect(event.args.totalAmount).to.equal(16000n);
+      expect(event.args.stationCount).to.equal(3n);
+    });
+
+    it("각 충전소별 SettlementRecorded 이벤트 emit", async function () {
+      const tx = await rt.claimRegion(REGION_SEOUL, PERIOD);
+      const receipt = await tx.wait();
+      const events = findAllEvents(receipt!, rt, "SettlementRecorded");
+      expect(events.length).to.equal(3);
+    });
+
+    it("이미 정산된 충전소는 스킵", async function () {
+      // Settle STN_1 individually first
+      await rt.claimStation(STN_1, PERIOD);
+      // Then claimRegion — STN_1 pending=0 should be skipped
+      const [totalClaimed, stationCount] = await rt.claimRegion.staticCall(REGION_SEOUL, PERIOD);
+      expect(totalClaimed).to.equal(11000n); // STN_2(3000) + STN_3(8000)
+      expect(stationCount).to.equal(2n);
+    });
+  });
+
+  // ── claimRegion 실패 ─────────────────────────────────────────────────────
+
+  describe("claimRegion 실패", function () {
+    it("비인가 호출자 → revert", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await expectRevertCustomError(
+        rt.connect(nonAdmin).claimRegion(REGION_SEOUL, PERIOD),
+        "AccessControlUnauthorizedAccount"
+      );
+    });
+
+    it("NothingToClaim — 충전소 없거나 pending 전부 0", async function () {
+      await expectRevertCustomError(
+        rt.claimRegion(REGION_DAEGU, PERIOD),
+        "NothingToClaim"
+      );
+    });
+
+    it("PeriodAlreadyFinalized — 동일 기간 중복 정산", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+      await expectRevertCustomError(
+        rt.claimRegion(REGION_SEOUL, PERIOD),
+        "PeriodAlreadyFinalized"
+      );
+    });
+
+    it("paused 상태에서 → revert EnforcedPause", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.pause();
+      await expectRevertCustomError(
+        rt.claimRegion(REGION_SEOUL, PERIOD),
+        "EnforcedPause"
+      );
+    });
+  });
+
+  // ── claimRegion: period는 라벨 (필터 아님) ──────────────────────────────
+
+  describe("claimRegion: period는 라벨", function () {
+    it("기록 period와 무관하게 모든 pending 정산", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_1, 1000n, PERIOD_2);
+      // claimRegion(PERIOD) — PERIOD is just a label, settles ALL pending
+      const [totalClaimed] = await rt.claimRegion.staticCall(REGION_SEOUL, PERIOD);
+      expect(totalClaimed).to.equal(6000n); // 5000 + 1000
+    });
+  });
+
+  // ── getRegionAttestation ──────────────────────────────────────────────────
+
+  describe("getRegionAttestation", function () {
+    it("정산 후 정확한 attestation 반환", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_2, 3000n, PERIOD);
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+      const att = await rt.getRegionAttestation(REGION_SEOUL, PERIOD);
+      expect(att.distributableKrw).to.equal(8000n);
+      expect(att.stationCount).to.equal(2n);
+    });
+
+    it("미정산 기간 → 빈 attestation", async function () {
+      const att = await rt.getRegionAttestation(REGION_SEOUL, PERIOD);
+      expect(att.distributableKrw).to.equal(0n);
+      expect(att.stationCount).to.equal(0n);
+      expect(att.finalizedAt).to.equal(0n);
+    });
+  });
+
+  // ── getRegionAttestationPeriods ───────────────────────────────────────────
+
+  describe("getRegionAttestationPeriods", function () {
+    it("확정 기간 목록 반환", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+      // Add more revenue and finalize another period
+      await rt.recordRevenue(STN_2, 2000n, PERIOD_2);
+      await rt.claimRegion(REGION_SEOUL, PERIOD_2);
+
+      const periods = await rt.getRegionAttestationPeriods(REGION_SEOUL);
+      expect(periods.length).to.equal(2);
+      expect(periods[0]).to.equal(PERIOD);
+      expect(periods[1]).to.equal(PERIOD_2);
+    });
+
+    it("attestation 미존재 → 빈 배열", async function () {
+      const periods = await rt.getRegionAttestationPeriods(REGION_SEOUL);
+      expect(periods.length).to.equal(0);
+    });
+  });
+
+  // ── claimRegionPaginated ──────────────────────────────────────────────────
+
+  describe("claimRegionPaginated", function () {
+    beforeEach(async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD);
+      await rt.recordRevenue(STN_2, 3000n, PERIOD);
+      await rt.recordRevenue(STN_3, 8000n, PERIOD);
+    });
+
+    it("offset + limit으로 페이지 단위 정산", async function () {
+      const [, , processed1, hasMore1] = await rt.claimRegionPaginated.staticCall(
+        REGION_SEOUL, PERIOD, 0n, 1n
+      );
+      expect(processed1).to.equal(1n);
+      expect(hasMore1).to.equal(true);
+      // Execute first page
+      await rt.claimRegionPaginated(REGION_SEOUL, PERIOD, 0n, 1n);
+
+      // Second page
+      const [, , processed2, hasMore2] = await rt.claimRegionPaginated.staticCall(
+        REGION_SEOUL, PERIOD, 1n, 1n
+      );
+      expect(processed2).to.equal(1n);
+      expect(hasMore2).to.equal(true);
+    });
+
+    it("LimitZero → revert", async function () {
+      await expectRevertCustomError(
+        rt.claimRegionPaginated(REGION_SEOUL, PERIOD, 0n, 0n),
+        "LimitZero"
+      );
+    });
+
+    it("OffsetOutOfBounds → revert", async function () {
+      await expectRevertCustomError(
+        rt.claimRegionPaginated(REGION_SEOUL, PERIOD, 100n, 10n),
+        "OffsetOutOfBounds"
+      );
+    });
+
+    it("비인가 호출자 → revert", async function () {
+      await expectRevertCustomError(
+        rt.connect(nonAdmin).claimRegionPaginated(REGION_SEOUL, PERIOD, 0n, 10n),
+        "AccessControlUnauthorizedAccount"
+      );
+    });
+
+    it("전체 한번에 처리 시 claimRegion과 동일 결과", async function () {
+      const [totalPag] = await rt.claimRegionPaginated.staticCall(
+        REGION_SEOUL, PERIOD, 0n, 100n
+      );
+      const [totalFull] = await rt.claimRegion.staticCall(REGION_SEOUL, PERIOD);
+      expect(totalPag).to.equal(totalFull);
     });
   });
 

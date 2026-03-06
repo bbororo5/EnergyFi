@@ -37,7 +37,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 - [ ] No on-chain KYC/AML logic (securities firm domain per CLAUDE.md §2.6)
 - [ ] Issuance scope only — no distribution mechanics (CLAUDE.md §2.6)
 
-**Relevant Contracts**: RegionSTO, RegionSTOFactory, RevenueTrackerV2
+**Relevant Contracts**: RegionSTO, RegionSTOFactory, RevenueTracker
 
 ---
 
@@ -50,9 +50,9 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 - [ ] No arithmetic overflow/underflow (Solidity ^0.8.20 built-in checks)
 - [ ] Settlement records are append-only and immutable once written
 - [ ] RegionAttestation records are idempotent (PeriodAlreadyFinalized guard)
-- [ ] Storage layout is upgrade-safe (gap pattern, V2 inherits V1)
+- [ ] Storage layout is upgrade-safe (gap pattern, append-only storage)
 
-**Relevant Contracts**: RegionSTO, RevenueTracker, RevenueTrackerV2
+**Relevant Contracts**: RegionSTO, RevenueTracker, RevenueTracker
 
 ---
 
@@ -97,7 +97,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 - [ ] `issueTranche()` validates all stations before minting any tokens
 - [ ] Single-pass validation pattern (validate + write in one loop, no two-phase)
 
-**Relevant Contracts**: ChargeRouter, RevenueTrackerV2, RegionSTO
+**Relevant Contracts**: ChargeRouter, RevenueTracker, RegionSTO
 
 ---
 
@@ -107,7 +107,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 
 **Evaluation Criteria**:
 - [ ] All upgradeable contracts include `uint256[50] private __gap` (or appropriate size)
-- [ ] V2 contracts inherit V1 (including V1's gap) — new storage appended after gap
+- [ ] New storage is appended after existing storage — gap size adjusted accordingly
 - [ ] `_authorizeUpgrade()` is restricted to `DEFAULT_ADMIN_ROLE`
 - [ ] Regression tests verify V1 data survives V2 upgrade
 - [ ] `_disableInitializers()` is called in constructors
@@ -168,7 +168,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 **Evaluation Criteria**:
 - [ ] Unit test count ≥ function count × 3 (happy path + failure + edge case)
 - [ ] Integration tests cover cross-contract flows (Phase 1→2→3 pipeline)
-- [ ] V1→V2 upgrade tests verify all V1 storage is preserved
+- [ ] Upgrade tests verify existing storage is preserved after UUPS upgrade
 - [ ] Custom errors are tested (not just revert, but correct error name)
 
 **Current Status**: 329 passing, 1 pending (P-256 precompile skip)
@@ -207,11 +207,10 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 | DeviceRegistry | 3, 4 | 6, 7, 8 | 10, 11, 12 |
 | StationRegistry | — | 6, 7, 8 | 10, 11, 12 |
 | ChargeTransaction | 3, 4 | 5, 6, 7, 8 | 10, 11, 12 |
-| RevenueTracker | 2, 4 | 5, 6, 7, 8 | 10, 11, 12 |
+| RevenueTracker | 1, 2, 4 | 5, 6, 7, 8 | 10, 11, 12 |
 | ChargeRouter | 3 | 5, 6, 7, 8 | 10, 11, 12 |
 | RegionSTO | 1, 2 | 5, 6, 7, 8 | 10, 11, 12 |
 | RegionSTOFactory | 1 | 6, 7, 8 | 9, 10, 11, 12 |
-| RevenueTrackerV2 | 1, 2 | 5, 6, 7, 8 | 10, 11, 12 |
 
 ---
 

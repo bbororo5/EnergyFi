@@ -1,7 +1,7 @@
 /**
  * Suite 4: 수익 라이프사이클
- * CPO 수익 기록 → 정산 → 정산 후 상태 검증
- * 9 cases
+ * 충전소 수익 기록 → 지역 수익 반영 → 다중 세션 합산 검증
+ * 7 cases
  */
 
 import { encodeBytes32String, hexlify } from "ethers";
@@ -21,332 +21,203 @@ import { calculatePeriod, currentPeriod, safeDecodeB32 } from "../lib/utils.js";
 export const revenueLifecycleSuite: TestSuite = {
   id: "revenue-lifecycle",
   label: "수익 라이프사이클",
-  caseCount: 11,
+  caseCount: 7,
   requires: "phase2",
 
   async run(ctx: ContractCtx, emit: EmitFn): Promise<Counts> {
     const counts = newCounts();
     const rt = ctx.revenueTracker!;
     const sr = ctx.stationRegistry;
-    const srAdmin = ctx.stationRegistryAdmin; // registerStation/Charger/deactivate* — 비인터페이스 write ops
-    // concrete 컨트랙트 ABI 사용 — Interface ABI에는 custom error 선언 없음 (R-5 NothingToClaim 디코딩)
+    const srAdmin = ctx.stationRegistryAdmin;
     const ifaces = allErrorInterfaces();
 
-    // CPO 충전소에 다수 세션 기록
-    let cpoStationId: string | null = null;
-    let cpoStationLabel: string | null = null;
-    let cpoId: string | null = null;
-    let cpoRevAccBefore = 0n;
+    let stationId: string | null = null;
+    let stationLabel: string | null = null;
     let stationAccBefore = 0n;
-    let historyLenBefore = 0;
     const period = currentPeriod();
 
-    // R-1. 다수 세션 기록 후 CPO 수익 합산 정확성
-    // M1 fix: buildRandomSession → receipt에서 직접 stationId 추출 (queryFilter 제거)
-    // 동일 충전소에 3건 고정하여 합산 검증 가능하도록 함
+    // R-1. 다수 세션 기록 후 충전소 수익 합산 정확성
     emit({ type: "case-start", label: "R-1 다수 세션 기록 (3건)", kind: "verify" });
     try {
-      // 먼저 CPO 충전소 하나를 고정
-      const firstSession = await buildRandomSession(ctx, undefined, "CPO");
-      cpoStationId = firstSession.stationId;
-      const station = await sr.getStation(cpoStationId);
-      cpoId = station.cpoId;
+      const firstSession = await buildRandomSession(ctx, "STATION-001");
+      stationId = firstSession.stationId;
+      stationLabel = "STATION-001";
 
-      // CPO 수익 before 캡처 (R-2 증분 검증용)
-      const cpoRevBeforeR1 = await rt.getCPORevenue(cpoId);
-      cpoRevAccBefore = BigInt(cpoRevBeforeR1[0] ?? 0);
-
-      // 고정된 충전소의 stationIdStr 추출 (buildRandomSession에 전달용)
-      const stationLabel = safeDecodeB32(cpoStationId!);
-      cpoStationLabel = stationLabel;
-
-      // 3건 동일 충전소에 기록
-      const revBefore = await rt.getStationRevenue(cpoStationId);
+      const revBefore = await rt.getStationRevenue(stationId);
       const accBefore = BigInt(revBefore[0] ?? 0);
-      stationAccBefore = accBefore; // R-2 증분 검증용
+      stationAccBefore = accBefore;
 
       for (let i = 0; i < 3; i++) {
-        await generateAndProcessSession(ctx, stationLabel, "CPO");
+        await generateAndProcessSession(ctx, stationLabel);
       }
 
-      const revAfter = await rt.getStationRevenue(cpoStationId);
+      const revAfter = await rt.getStationRevenue(stationId);
       const accAfter = BigInt(revAfter[0] ?? 0);
 
-      if (accAfter > accBefore && cpoStationId) {
+      if (accAfter > accBefore && stationId) {
         counts.passed++;
         emit({ type: "pass", label: "R-1 다수 세션 기록 (3건)", kind: "verify" });
       } else {
         counts.failed++;
         emit({ type: "fail", label: "R-1 다수 세션 기록 (3건)",
-          reason: `acc: ${accBefore}→${accAfter}`, kind: "verify" });
+          reason: `acc: ${accBefore}->${accAfter}`, kind: "verify" });
       }
     } catch (err: unknown) {
       counts.failed++;
       emit({ type: "fail", label: "R-1 다수 세션 기록 (3건)", reason: String(err).slice(0, 200), kind: "verify" });
     }
 
-    // R-2. getCPORevenue accumulated 정밀 대조
-    if (cpoId) {
-      await expectValue("R-2 getCPORevenue accumulated 정밀 대조",
+    // R-2. 충전소 수익 증분 정밀 검증
+    if (stationId) {
+      await expectValue("R-2 충전소 수익 증분 정밀 검증",
         async () => {
-          const rev = await rt.getCPORevenue(cpoId!);
-          const accAfter = BigInt(rev[0] ?? rev.accumulated ?? 0);
-          const increase = accAfter - cpoRevAccBefore;
-          // R-1에서 3건 기록했으므로 increase > 0이고 정확한 증분 검증
-          // 충전소 수익 증분과 CPO 수익 증분을 대조
-          const stationRev = await rt.getStationRevenue(cpoStationId!);
-          const stationAccNow = BigInt(stationRev[0] ?? 0);
-          const stationIncrease = stationAccNow - stationAccBefore;
-          return { cpoIncrease: increase, stationIncrease };
+          const revAfter = await rt.getStationRevenue(stationId!);
+          const accAfter = BigInt(revAfter[0] ?? 0);
+          const increase = accAfter - stationAccBefore;
+          return { accAfter, increase };
         },
         (r: any) => {
-          // CPO 증분 ≥ 충전소 증분 (CPO에 충전소 여러 개일 수 있으므로 ≥)
-          if (r.cpoIncrease > 0n && r.cpoIncrease >= r.stationIncrease) return true;
-          return `CPO 증분=${r.cpoIncrease}, 충전소 증분=${r.stationIncrease}`;
+          if (r.increase > 0n) return true;
+          return `증분=${r.increase} (expected > 0)`;
         },
         emit, counts);
     } else {
       counts.failed++;
       emit({ type: "case-start", label: "R-2", kind: "verify" });
-      emit({ type: "fail", label: "R-2", reason: "cpoId 없음", kind: "verify" });
+      emit({ type: "fail", label: "R-2", reason: "stationId 없음", kind: "verify" });
     }
 
-    // 정산 전 이력 길이 캡처 (R-7 증분 검증용)
-    if (cpoStationId) {
-      try {
-        const h = await rt.getSettlementHistory(cpoStationId);
-        historyLenBefore = h?.length ?? 0;
-      } catch { /* ignore */ }
-    }
-
-    // R-3. claim 성공 → settled 증가, pending=0
-    let claimReceipt: any = null;
-    if (cpoId) {
-      emit({ type: "case-start", label: "R-3 claim 성공", kind: "happy" });
-      try {
-        const tx = await rt.claim(cpoId!, period);
-        claimReceipt = await tx.wait();
-        counts.passed++;
-        emit({ type: "pass", label: "R-3 claim 성공", kind: "happy" });
-      } catch (err: unknown) {
-        counts.failed++;
-        emit({ type: "fail", label: "R-3 claim 성공", reason: String(err).slice(0, 200), kind: "happy" });
-      }
-    } else {
-      counts.failed++;
-      emit({ type: "case-start", label: "R-3", kind: "happy" });
-      emit({ type: "fail", label: "R-3", reason: "cpoId 없음", kind: "happy" });
-    }
-
-    // R-4. 정산 후 pending=0 불변량
-    if (cpoId) {
-      await expectValue("R-4 정산 후 pending=0 불변량",
+    // R-3. 지역 수익에 충전소 수익 반영 확인
+    if (stationId) {
+      await expectValue("R-3 지역 수익에 충전소 수익 반영",
         async () => {
-          const rev = await rt.getCPORevenue(cpoId!);
-          const pending = BigInt(rev[2] ?? rev.pending ?? 0);
-          return { pending };
+          const station = await sr.getStation(stationId!);
+          const regionRev = BigInt(await rt.getRegionRevenue(station.regionId));
+          return { regionRev };
         },
         (r: any) => {
-          if (r.pending === 0n) return true;
-          return `pending=${r.pending} (expected 0)`;
+          if (r.regionRev > 0n) return true;
+          return `지역 수익 = ${r.regionRev}`;
         },
         emit, counts);
     } else {
       counts.failed++;
-      emit({ type: "case-start", label: "R-4", kind: "verify" });
-      emit({ type: "fail", label: "R-4", reason: "cpoId 없음", kind: "verify" });
+      emit({ type: "case-start", label: "R-3", kind: "verify" });
+      emit({ type: "fail", label: "R-3", reason: "stationId 없음", kind: "verify" });
     }
 
-    // R-5. claim 재호출 → NothingToClaim revert
-    if (cpoId) {
-      await expectRevert("R-5 claim 재호출 → NothingToClaim",
-        () => rt.claim(cpoId!, period),
-        "NothingToClaim",
-        ifaces, emit, counts);
-    } else {
-      counts.failed++;
-      emit({ type: "case-start", label: "R-5", kind: "reject" });
-      emit({ type: "fail", label: "R-5", reason: "cpoId 없음", kind: "reject" });
-    }
-
-    // R-6. 정산 후 추가 수익 기록 → 새 pending 누적
-    if (cpoId && cpoStationLabel) {
-      emit({ type: "case-start", label: "R-6 정산 후 추가 세션", kind: "verify" });
+    // R-4. 금액 정밀 대조: processCharge 입력 = RT 누적
+    if (stationLabel) {
+      emit({ type: "case-start", label: "R-4 금액 정밀 대조: processCharge 입력 = RT 누적", kind: "verify" });
       try {
-        await generateAndProcessSession(ctx, cpoStationLabel, "CPO");
-        const rev = await rt.getCPORevenue(cpoId!);
-        const pending = BigInt(rev[2] ?? rev.pending ?? 0);
-        if (pending > 0n) {
-          counts.passed++;
-          emit({ type: "pass", label: "R-6 정산 후 추가 세션 → 새 pending", kind: "verify" });
-        } else {
-          counts.failed++;
-          emit({ type: "fail", label: "R-6 정산 후 추가 세션", reason: `pending = ${pending}`, kind: "verify" });
-        }
-      } catch (err: unknown) {
-        counts.failed++;
-        emit({ type: "fail", label: "R-6 정산 후 추가 세션", reason: String(err).slice(0, 200), kind: "verify" });
-      }
-    } else {
-      counts.failed++;
-      emit({ type: "case-start", label: "R-6", kind: "verify" });
-      emit({ type: "fail", label: "R-6", reason: "cpoId 없음", kind: "verify" });
-    }
-
-    // R-7. getSettlementHistory 기록 확인
-    if (cpoStationId) {
-      await expectValue("R-7 getSettlementHistory 증분 확인",
-        () => rt.getSettlementHistory(cpoStationId!),
-        (history: any[]) => {
-          if (history && history.length > historyLenBefore) return true;
-          return `이력 ${history?.length ?? 0}건 (이전: ${historyLenBefore}건)`;
-        },
-        emit, counts);
-    } else {
-      counts.failed++;
-      emit({ type: "case-start", label: "R-7", kind: "verify" });
-      emit({ type: "fail", label: "R-7", reason: "stationId 없음", kind: "verify" });
-    }
-
-    // R-8. EnergyFi 지역 수익은 CPO claim에 영향 없음
-    // C2 fix: CPO pending을 before/after 비교하여 EFI 세션이 CPO 수익에 영향 없음을 검증
-    if (cpoId) {
-      emit({ type: "case-start", label: "R-8 EFI 수익은 CPO claim 무관", kind: "verify" });
-      try {
-        const revBefore = await rt.getCPORevenue(cpoId!);
-        const cpoPendingBefore = BigInt(revBefore[2] ?? revBefore.pending ?? 0);
-        const cpoAccBefore = BigInt(revBefore[0] ?? revBefore.accumulated ?? 0);
-
-        // EFI 세션 생성 (CPO 수익과 무관해야 함)
-        await generateAndProcessSession(ctx, undefined, "ENERGYFI");
-
-        const revAfter = await rt.getCPORevenue(cpoId!);
-        const cpoPendingAfter = BigInt(revAfter[2] ?? revAfter.pending ?? 0);
-        const cpoAccAfter = BigInt(revAfter[0] ?? revAfter.accumulated ?? 0);
-
-        // CPO pending/accumulated가 EFI 세션 전후로 동일해야 함
-        if (cpoPendingAfter === cpoPendingBefore && cpoAccAfter === cpoAccBefore) {
-          counts.passed++;
-          emit({ type: "pass", label: "R-8 EFI 수익은 CPO claim 무관", kind: "verify" });
-        } else {
-          counts.failed++;
-          emit({ type: "fail", label: "R-8 EFI 수익은 CPO claim 무관",
-            reason: `CPO acc: ${cpoAccBefore}→${cpoAccAfter}, pending: ${cpoPendingBefore}→${cpoPendingAfter}`,
-            kind: "verify" });
-        }
-      } catch (err: unknown) {
-        counts.failed++;
-        emit({ type: "fail", label: "R-8 EFI 수익은 CPO claim 무관", reason: String(err).slice(0, 200), kind: "verify" });
-      }
-    } else {
-      counts.failed++;
-      emit({ type: "case-start", label: "R-8", kind: "verify" });
-      emit({ type: "fail", label: "R-8", reason: "cpoId 없음", kind: "verify" });
-    }
-
-    // R-9. 금액 정밀 대조: processCharge 입력 = RT 누적
-    if (cpoStationLabel) {
-      emit({ type: "case-start", label: "R-9 금액 정밀 대조: processCharge 입력 = RT 누적", kind: "verify" });
-      try {
-        // 충전소 수익 before 캡처
-        const revBefore = await rt.getStationRevenue(cpoStationId!);
+        const revBefore = await rt.getStationRevenue(stationId!);
         const pendingBefore = BigInt(revBefore[2] ?? 0);
 
-        // 단일 세션 생성 — distributableKrw 캡처
-        const session = await buildRandomSession(ctx, cpoStationLabel!, "CPO");
+        const session = await buildRandomSession(ctx, stationLabel!);
         const sessionAmount = BigInt(session.distributableKrw);
         const sessionPeriod = calculatePeriod(Number(session.endTimestamp));
         const tx = await ctx.chargeRouter!.processCharge(session, sessionPeriod);
         await tx.wait();
 
-        // 충전소 수익 after 캡처
-        const revAfter = await rt.getStationRevenue(cpoStationId!);
+        const revAfter = await rt.getStationRevenue(stationId!);
         const pendingAfter = BigInt(revAfter[2] ?? 0);
 
         const diff = pendingAfter - pendingBefore;
         if (diff === sessionAmount) {
           counts.passed++;
-          emit({ type: "pass", label: "R-9 금액 정밀 대조: processCharge 입력 = RT 누적", kind: "verify" });
+          emit({ type: "pass", label: "R-4 금액 정밀 대조: processCharge 입력 = RT 누적", kind: "verify" });
         } else {
           counts.failed++;
-          emit({ type: "fail", label: "R-9 금액 정밀 대조: processCharge 입력 = RT 누적",
+          emit({ type: "fail", label: "R-4 금액 정밀 대조: processCharge 입력 = RT 누적",
             reason: `입력=${sessionAmount}, 증분=${diff}`, kind: "verify" });
         }
       } catch (err: unknown) {
         counts.failed++;
-        emit({ type: "fail", label: "R-9 금액 정밀 대조: processCharge 입력 = RT 누적",
+        emit({ type: "fail", label: "R-4 금액 정밀 대조: processCharge 입력 = RT 누적",
           reason: String(err).slice(0, 200), kind: "verify" });
       }
     } else {
       counts.failed++;
-      emit({ type: "case-start", label: "R-9", kind: "verify" });
-      emit({ type: "fail", label: "R-9", reason: "stationLabel 없음", kind: "verify" });
+      emit({ type: "case-start", label: "R-4", kind: "verify" });
+      emit({ type: "fail", label: "R-4", reason: "stationLabel 없음", kind: "verify" });
     }
 
-    // R-10. ownerType 수익 분기: CPO↔EFI 정확 귀속
-    emit({ type: "case-start", label: "R-10 ownerType 수익 분기: CPO↔EFI 정확 귀속", kind: "verify" });
+    // R-5. 다른 충전소 세션이 현재 충전소에 영향 없음
+    if (stationId) {
+      emit({ type: "case-start", label: "R-5 다른 충전소 세션 무영향", kind: "verify" });
+      try {
+        const revBefore = await rt.getStationRevenue(stationId!);
+        const pendingBefore = BigInt(revBefore[2] ?? revBefore.pending ?? 0);
+        const accBefore = BigInt(revBefore[0] ?? revBefore.accumulated ?? 0);
+
+        // 다른 충전소에 세션 생성
+        await generateAndProcessSession(ctx, "STATION-003");
+
+        const revAfter = await rt.getStationRevenue(stationId!);
+        const pendingAfter = BigInt(revAfter[2] ?? revAfter.pending ?? 0);
+        const accAfter = BigInt(revAfter[0] ?? revAfter.accumulated ?? 0);
+
+        if (pendingAfter === pendingBefore && accAfter === accBefore) {
+          counts.passed++;
+          emit({ type: "pass", label: "R-5 다른 충전소 세션 무영향", kind: "verify" });
+        } else {
+          counts.failed++;
+          emit({ type: "fail", label: "R-5 다른 충전소 세션 무영향",
+            reason: `acc: ${accBefore}->${accAfter}, pending: ${pendingBefore}->${pendingAfter}`,
+            kind: "verify" });
+        }
+      } catch (err: unknown) {
+        counts.failed++;
+        emit({ type: "fail", label: "R-5 다른 충전소 세션 무영향", reason: String(err).slice(0, 200), kind: "verify" });
+      }
+    } else {
+      counts.failed++;
+      emit({ type: "case-start", label: "R-5", kind: "verify" });
+      emit({ type: "fail", label: "R-5", reason: "stationId 없음", kind: "verify" });
+    }
+
+    // R-6. 지역별 수익 독립성: KR11 세션이 KR26에 영향 없음
+    emit({ type: "case-start", label: "R-6 지역별 수익 독립성", kind: "verify" });
     try {
-      // CPO 충전소 pending before
-      const cpoRevBefore = await rt.getCPORevenue(cpoId!);
-      const cpoPendingBefore = BigInt(cpoRevBefore[2] ?? 0);
+      const regionKR26 = "0x4b523236"; // "KR26"
+      const regionKR11 = "0x4b523131"; // "KR11"
 
-      // EFI 세션용: 첫 번째 EFI 충전소 찾기
-      const session = await buildRandomSession(ctx, undefined, "ENERGYFI");
-      const efiRegion = session.gridRegionCode;
-      const efiRegionRevBefore = BigInt(await rt.getEnergyFiRegionRevenue(efiRegion));
+      const kr26Before = BigInt(await rt.getRegionRevenue(regionKR26));
+      const kr11Before = BigInt(await rt.getRegionRevenue(regionKR11));
 
-      // CPO 세션 기록
-      const cpoSession = await buildRandomSession(ctx, cpoStationLabel!, "CPO");
-      const cpoAmount = BigInt(cpoSession.distributableKrw);
-      const cpoPeriod = calculatePeriod(Number(cpoSession.endTimestamp));
-      const cpoTx = await ctx.chargeRouter!.processCharge(cpoSession, cpoPeriod);
-      await cpoTx.wait();
+      // KR11 충전소에 세션 생성
+      await generateAndProcessSession(ctx, "STATION-001");
 
-      // EFI 세션 기록
-      const efiAmount = BigInt(session.distributableKrw);
-      const efiPeriod = calculatePeriod(Number(session.endTimestamp));
-      const efiTx = await ctx.chargeRouter!.processCharge(session, efiPeriod);
-      await efiTx.wait();
-
-      // CPO pending after
-      const cpoRevAfter = await rt.getCPORevenue(cpoId!);
-      const cpoPendingAfter = BigInt(cpoRevAfter[2] ?? 0);
-      const cpoIncrease = cpoPendingAfter - cpoPendingBefore;
-
-      // EFI region after
-      const efiRegionRevAfter = BigInt(await rt.getEnergyFiRegionRevenue(efiRegion));
-      const efiIncrease = efiRegionRevAfter - efiRegionRevBefore;
+      const kr26After = BigInt(await rt.getRegionRevenue(regionKR26));
+      const kr11After = BigInt(await rt.getRegionRevenue(regionKR11));
 
       const checks: string[] = [];
-      if (cpoIncrease !== cpoAmount) checks.push(`CPO: 입력=${cpoAmount}, 증분=${cpoIncrease}`);
-      if (efiIncrease !== efiAmount) checks.push(`EFI: 입력=${efiAmount}, 증분=${efiIncrease}`);
+      if (kr11After <= kr11Before) checks.push(`KR11 수익 미증가: ${kr11Before}->${kr11After}`);
+      if (kr26After !== kr26Before) checks.push(`KR26 수익 변동: ${kr26Before}->${kr26After}`);
 
       if (checks.length === 0) {
         counts.passed++;
-        emit({ type: "pass", label: "R-10 ownerType 수익 분기: CPO↔EFI 정확 귀속", kind: "verify" });
+        emit({ type: "pass", label: "R-6 지역별 수익 독립성", kind: "verify" });
       } else {
         counts.failed++;
-        emit({ type: "fail", label: "R-10 ownerType 수익 분기: CPO↔EFI 정확 귀속",
+        emit({ type: "fail", label: "R-6 지역별 수익 독립성",
           reason: checks.join(", "), kind: "verify" });
       }
     } catch (err: unknown) {
       counts.failed++;
-      emit({ type: "fail", label: "R-10 ownerType 수익 분기: CPO↔EFI 정확 귀속",
-        reason: String(err).slice(0, 200), kind: "verify" });
+      emit({ type: "fail", label: "R-6 지역별 수익 독립성", reason: String(err).slice(0, 200), kind: "verify" });
     }
 
-    // R-11. 비활성 충전소 미정산 수익 보존
-    emit({ type: "case-start", label: "R-11 비활성 충전소 미정산 수익 보존", kind: "verify" });
+    // R-7. 비활성 충전소 수익 데이터 보존
+    emit({ type: "case-start", label: "R-7 비활성 충전소 수익 데이터 보존", kind: "verify" });
     try {
-      // 새 충전소 + 충전기 등록 → 세션 기록 → pending 확보 → 충전기 비활성화 → 충전소 비활성화 → claim 가능
       const ts = Date.now();
-      const testCpoId = cpoId!;
-      const testStationId = b32(`R11-STN-${ts}`);
-      const testChargerId = b32(`R11-CHG-${ts}`);
+      const testStationId = b32(`R7-STN-${ts}`);
+      const testChargerId = b32(`R7-CHG-${ts}`);
       const regionKR11 = "0x4b523131";
 
       // 충전소 등록
-      const stnTx = await srAdmin.registerStation(testStationId, testCpoId, 0, regionKR11, `R11 테스트 충전소`);
+      const stnTx = await srAdmin.registerStation(testStationId, regionKR11, `R7 테스트 충전소`);
       await stnTx.wait();
 
       // SE칩 + 충전기 등록
@@ -358,8 +229,7 @@ export const revenueLifecycleSuite: TestSuite = {
       const chgTx = await srAdmin.registerCharger(testChargerId, testStationId, 0);
       await chgTx.wait();
 
-      // 세션 기록 — 동적 생성 충전소이므로 STATION_CHARGER_MAP에 없음.
-      // buildRandomSession 대신 직접 세션을 구성하여 processCharge 호출.
+      // 세션 기록
       {
         const energyKwh = BigInt(randInt(500, 8000));
         const rate = BigInt(randInt(200, 400));
@@ -377,7 +247,6 @@ export const revenueLifecycleSuite: TestSuite = {
           endTimestamp,
           vehicleCategory: 0,
           gridRegionCode: regionKR11,
-          cpoId: testCpoId,
           stationId: testStationId,
           distributableKrw,
           seSignature: hexlify(seSignature),
@@ -391,30 +260,28 @@ export const revenueLifecycleSuite: TestSuite = {
       const revMid = await rt.getStationRevenue(testStationId);
       const pendingMid = BigInt(revMid[2] ?? 0);
 
-      // 충전기 비활성화 → 충전소 비활성화
+      // 충전기 비활성화 -> 충전소 비활성화
       const deChgTx = await srAdmin.deactivateCharger(testChargerId);
       await deChgTx.wait();
       const deStTx = await srAdmin.deactivateStation(testStationId);
       await deStTx.wait();
 
       // 비활성화 후에도 수익 데이터가 보존되는지 확인
-      // claim()은 getStationsByCPO 기반이므로 비활성 충전소는 정산 대상에서 제외됨.
-      // 여기서는 비활성화가 기존 수익 데이터를 삭제하지 않음을 검증한다.
       const revEnd = await rt.getStationRevenue(testStationId);
       const accEnd = BigInt(revEnd[0] ?? 0);
       const pendingEnd = BigInt(revEnd[2] ?? 0);
 
       if (pendingMid > 0n && pendingEnd === pendingMid && accEnd > 0n) {
         counts.passed++;
-        emit({ type: "pass", label: "R-11 비활성 충전소 미정산 수익 보존", kind: "verify" });
+        emit({ type: "pass", label: "R-7 비활성 충전소 수익 데이터 보존", kind: "verify" });
       } else {
         counts.failed++;
-        emit({ type: "fail", label: "R-11 비활성 충전소 미정산 수익 보존",
+        emit({ type: "fail", label: "R-7 비활성 충전소 수익 데이터 보존",
           reason: `비활성화 전 pending=${pendingMid}, 비활성화 후 pending=${pendingEnd}, acc=${accEnd}`, kind: "verify" });
       }
     } catch (err: unknown) {
       counts.failed++;
-      emit({ type: "fail", label: "R-11 비활성 충전소 미정산 수익 보존",
+      emit({ type: "fail", label: "R-7 비활성 충전소 수익 데이터 보존",
         reason: String(err).slice(0, 200), kind: "verify" });
     }
 

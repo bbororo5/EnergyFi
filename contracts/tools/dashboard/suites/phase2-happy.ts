@@ -1,6 +1,6 @@
 /**
  * Suite 2: Phase 2 해피패스 — P-256 Setup + 정상 세션 생성 + 데이터 검증
- * ~11 cases
+ * ~7 cases
  */
 
 import { ethers, encodeBytes32String } from "ethers";
@@ -22,7 +22,7 @@ import { calculatePeriod } from "../lib/utils.js";
 export const phase2HappySuite: TestSuite = {
   id: "phase2-happy",
   label: "Phase 2 해피패스",
-  caseCount: 7, // S-6(ownerOf), S-6b(transferFrom) 제거 — 비인터페이스 함수
+  caseCount: 7,
   requires: "phase2",
 
   async run(ctx: ContractCtx, emit: EmitFn): Promise<Counts> {
@@ -46,53 +46,50 @@ export const phase2HappySuite: TestSuite = {
       return counts;
     }
 
-    // S-2. processCharge 성공 (CPO 충전소)
-    let cpoReceipt: any = null;
-    let cpoSession: any = null;
-    emit({ type: "case-start", label: "S-2 processCharge 성공 (CPO)", kind: "happy" });
+    // S-2. processCharge 성공 (STATION-001)
+    let session1Receipt: any = null;
+    let session1: any = null;
+    emit({ type: "case-start", label: "S-2 processCharge 성공 (STATION-001)", kind: "happy" });
     try {
-      cpoSession = await buildRandomSession(ctx, undefined, "CPO");
-      const period = calculatePeriod(Number(cpoSession.endTimestamp));
-      const tx = await cr.processCharge(cpoSession, period);
-      cpoReceipt = await tx.wait();
+      session1 = await buildRandomSession(ctx, "STATION-001");
+      const period = calculatePeriod(Number(session1.endTimestamp));
+      const tx = await cr.processCharge(session1, period);
+      session1Receipt = await tx.wait();
       counts.passed++;
-      emit({ type: "pass", label: "S-2 processCharge 성공 (CPO)", kind: "happy" });
+      emit({ type: "pass", label: "S-2 processCharge 성공 (STATION-001)", kind: "happy" });
     } catch (err: unknown) {
       counts.failed++;
-      emit({ type: "fail", label: "S-2 processCharge 성공 (CPO)", reason: String(err).slice(0, 200), kind: "happy" });
+      emit({ type: "fail", label: "S-2 processCharge 성공 (STATION-001)", reason: String(err).slice(0, 200), kind: "happy" });
     }
 
     // S-4. getSession() 저장 데이터 정확성 — 다중 필드 검증
-    let cpoTokenId: bigint | null = null;
-    if (cpoReceipt && cpoSession) {
-      // IChargeRouter에는 ChargeProcessed 이벤트가 없으므로 concrete interface 사용
+    let session1TokenId: bigint | null = null;
+    if (session1Receipt && session1) {
       const crConcreteIface = chargeRouterConcreteInterface();
       await expectValue("S-4 getSession 저장 데이터 정확성 (다중 필드)",
         async () => {
-          const processedEvent = cpoReceipt.logs.find((log: any) => {
+          const processedEvent = session1Receipt.logs.find((log: any) => {
             try { return crConcreteIface.parseLog(log)?.name === "ChargeProcessed"; } catch { return false; }
           });
           const tokenId = processedEvent ? crConcreteIface.parseLog(processedEvent)?.args[0] : null;
           if (!tokenId) return null;
-          cpoTokenId = BigInt(tokenId);
+          session1TokenId = BigInt(tokenId);
           const session = await ct.getSession(tokenId);
           return session;
         },
         (s: any) => {
           if (!s) return "tokenId 추출 실패";
           const checks: string[] = [];
-          if (s.chargerId !== cpoSession.chargerId) checks.push(`chargerId 불일치`);
-          if (s.sessionId !== cpoSession.sessionId) checks.push(`sessionId 불일치`);
-          if (BigInt(s.energyKwh) !== BigInt(cpoSession.energyKwh)) checks.push(`energyKwh 불일치`);
-          if (BigInt(s.distributableKrw) !== BigInt(cpoSession.distributableKrw)) checks.push(`distributableKrw 불일치`);
-          if (BigInt(s.startTimestamp) !== BigInt(cpoSession.startTimestamp)) checks.push(`startTimestamp 불일치`);
-          if (BigInt(s.endTimestamp) !== BigInt(cpoSession.endTimestamp)) checks.push(`endTimestamp 불일치`);
-          if (s.stationId !== cpoSession.stationId) checks.push(`stationId 불일치`);
+          if (s.chargerId !== session1.chargerId) checks.push(`chargerId 불일치`);
+          if (s.sessionId !== session1.sessionId) checks.push(`sessionId 불일치`);
+          if (BigInt(s.energyKwh) !== BigInt(session1.energyKwh)) checks.push(`energyKwh 불일치`);
+          if (BigInt(s.distributableKrw) !== BigInt(session1.distributableKrw)) checks.push(`distributableKrw 불일치`);
+          if (BigInt(s.startTimestamp) !== BigInt(session1.startTimestamp)) checks.push(`startTimestamp 불일치`);
+          if (BigInt(s.endTimestamp) !== BigInt(session1.endTimestamp)) checks.push(`endTimestamp 불일치`);
+          if (s.stationId !== session1.stationId) checks.push(`stationId 불일치`);
           return checks.length === 0 ? true : checks.join(", ");
         },
         emit, counts);
-
-      // S-6 / S-6b (ownerOf, transferFrom): IChargeTransaction 비인터페이스 → 제거
     } else {
       for (const label of ["S-4 getSession"]) {
         counts.failed++;
@@ -101,46 +98,44 @@ export const phase2HappySuite: TestSuite = {
       }
     }
 
-    // S-7. processCharge 성공 (EnergyFi 충전소)
-    let efiSession: any = null;
-    emit({ type: "case-start", label: "S-7 processCharge 성공 (EnergyFi)", kind: "happy" });
+    // S-7. processCharge 성공 (STATION-003, 다른 지역 KR11)
+    let session2: any = null;
+    emit({ type: "case-start", label: "S-7 processCharge 성공 (STATION-003)", kind: "happy" });
     try {
-      efiSession = await buildRandomSession(ctx, undefined, "ENERGYFI");
-      const period = calculatePeriod(Number(efiSession.endTimestamp));
-      const tx = await cr.processCharge(efiSession, period);
+      session2 = await buildRandomSession(ctx, "STATION-003");
+      const period = calculatePeriod(Number(session2.endTimestamp));
+      const tx = await cr.processCharge(session2, period);
       await tx.wait();
       counts.passed++;
-      emit({ type: "pass", label: "S-7 processCharge 성공 (EnergyFi)", kind: "happy" });
+      emit({ type: "pass", label: "S-7 processCharge 성공 (STATION-003)", kind: "happy" });
     } catch (err: unknown) {
       counts.failed++;
-      emit({ type: "fail", label: "S-7 processCharge 성공 (EnergyFi)", reason: String(err).slice(0, 200), kind: "happy" });
+      emit({ type: "fail", label: "S-7 processCharge 성공 (STATION-003)", reason: String(err).slice(0, 200), kind: "happy" });
     }
 
-    // S-8. CPO 충전소 수익 — distributableKrw 만큼 정확히 증가했는지 검증
-    if (cpoSession) {
-      await expectValue("S-8 CPO 충전소 수익 정확성",
+    // S-8. 충전소 수익 — distributableKrw 만큼 정확히 증가했는지 검증
+    if (session1) {
+      await expectValue("S-8 충전소 수익 정확성",
         async () => {
-          const rev = await rt.getStationRevenue(cpoSession.stationId);
+          const rev = await rt.getStationRevenue(session1.stationId);
           const acc = BigInt(rev[0] ?? rev.accumulated ?? 0);
-          return { acc, expected: BigInt(cpoSession.distributableKrw) };
+          return { acc, expected: BigInt(session1.distributableKrw) };
         },
         (r: any) => {
-          // accumulated는 이전 실행분 포함 가능 → distributableKrw 이상인지 검증
-          // 정확한 증분은 before 스냅샷 없이는 불가능하므로 최소 기댓값 검증
           if (r.acc >= r.expected) return true;
           return `accumulated=${r.acc}, 최소 기대=${r.expected}`;
         },
         emit, counts);
     } else {
       counts.failed++;
-      emit({ type: "case-start", label: "S-8 CPO 수익", kind: "verify" });
-      emit({ type: "fail", label: "S-8 CPO 수익", reason: "세션 없음", kind: "verify" });
+      emit({ type: "case-start", label: "S-8 충전소 수익", kind: "verify" });
+      emit({ type: "fail", label: "S-8 충전소 수익", reason: "세션 없음", kind: "verify" });
     }
 
-    // S-9. EnergyFi 지역 수익 반영
-    if (efiSession) {
-      await expectValue("S-9 EnergyFi 지역 수익 반영",
-        () => rt.getEnergyFiRegionRevenue(efiSession.gridRegionCode),
+    // S-9. 지역 수익 반영
+    if (session2) {
+      await expectValue("S-9 지역 수익 반영",
+        () => rt.getRegionRevenue(session2.gridRegionCode),
         (rev: bigint) => BigInt(rev) > 0n || `지역 수익 = ${rev}`,
         emit, counts);
     } else {
@@ -150,9 +145,9 @@ export const phase2HappySuite: TestSuite = {
     }
 
     // S-10. getStationRevenue (accumulated, settled, pending)
-    if (cpoSession) {
+    if (session1) {
       await expectValue("S-10 getStationRevenue 구조 확인",
-        () => rt.getStationRevenue(cpoSession.stationId),
+        () => rt.getStationRevenue(session1.stationId),
         (rev: any) => {
           const acc = BigInt(rev[0] ?? rev.accumulated ?? 0);
           const settled = BigInt(rev[1] ?? rev.settled ?? 0);
@@ -168,10 +163,10 @@ export const phase2HappySuite: TestSuite = {
     }
 
     // S-11. getStationRevenuePeriod 월별 수익
-    if (cpoSession) {
-      const period = calculatePeriod(Number(cpoSession.endTimestamp));
+    if (session1) {
+      const period = calculatePeriod(Number(session1.endTimestamp));
       await expectValue("S-11 getStationRevenuePeriod 월별 수익",
-        () => rt.getStationRevenuePeriod(cpoSession.stationId, period),
+        () => rt.getStationRevenuePeriod(session1.stationId, period),
         (rev: bigint) => BigInt(rev) > 0n || `월별 수익 = ${rev}`,
         emit, counts);
     } else {

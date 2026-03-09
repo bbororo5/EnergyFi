@@ -21,6 +21,8 @@ import {
   Activity,
   Banknote,
   Coins,
+  Leaf,
+  Wind,
 } from 'lucide-react';
 import { Material3BottomNav } from './Material3BottomNav';
 import { CommonHeader } from './CommonHeader';
@@ -584,56 +586,59 @@ export function Home({
 
         <div className="px-5 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold tracking-wider text-white uppercase">Network Yield Health</h2>
+            <h2 className="text-sm font-bold tracking-wider text-white uppercase">Real-World Impact</h2>
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
-              <span className="text-[9px] font-extrabold text-emerald-400 tracking-wider">OPTIMAL</span>
+              <Leaf className="w-2.5 h-2.5 text-emerald-400" />
+              <span className="text-[9px] font-extrabold text-emerald-400 tracking-wider">ESG VERIFIED</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#161B26] rounded-2xl p-4 flex flex-col justify-between border border-white/5 relative overflow-hidden group">
+            <div className="bg-[#161B26] rounded-2xl p-4 flex flex-col justify-between border border-white/5 relative overflow-hidden group hover:border-white/10 transition-colors">
               <div className="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/10 rounded-full blur-[20px] pointer-events-none group-hover:bg-emerald-500/20 transition-colors" />
               <div className="flex items-center gap-2 mb-3 z-10">
                 <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                  <Wind className="w-3 h-3 text-emerald-400" />
                 </div>
-                <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Avg. Apy</p>
+                <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">CO2 Prevented</p>
               </div>
               <div className="flex items-baseline gap-1 z-10">
-                <p className="text-[28px] font-bold text-white tabular-nums tracking-tight">8.5</p>
-                <span className="text-sm font-bold text-emerald-400">%</span>
+                <p className="text-[28px] font-bold text-white tabular-nums tracking-tight">3,420</p>
+                <span className="text-sm font-bold text-emerald-400">kg</span>
               </div>
             </div>
 
-            <div className="bg-[#161B26] rounded-2xl p-4 flex flex-col justify-between border border-white/5 relative overflow-hidden group">
+            <div className="bg-[#161B26] rounded-2xl p-4 flex flex-col justify-between border border-white/5 relative overflow-hidden group hover:border-white/10 transition-colors">
               <div className="absolute -top-10 -right-10 w-24 h-24 bg-sky-500/10 rounded-full blur-[20px] pointer-events-none group-hover:bg-sky-500/20 transition-colors" />
               <div className="flex items-center gap-2 mb-3 z-10">
                 <div className="w-6 h-6 rounded-full bg-sky-500/10 flex items-center justify-center">
-                  <Activity className="w-3 h-3 text-sky-400" />
+                  <Zap className="w-3 h-3 text-sky-400" />
                 </div>
-                <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Utilization</p>
+                <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Clean Energy</p>
               </div>
               <div className="flex items-baseline gap-1 z-10">
-                <p className="text-[28px] font-bold text-white tabular-nums tracking-tight">92</p>
-                <span className="text-sm font-bold text-sky-400">%</span>
+                <p className="text-[28px] font-bold text-white tabular-nums tracking-tight">12.8</p>
+                <span className="text-sm font-bold text-sky-400">MWh</span>
               </div>
             </div>
 
-            <div className="col-span-2 bg-[#161B26] rounded-2xl p-5 flex items-center justify-between border border-white/5 relative overflow-hidden group mt-1">
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-[30px] pointer-events-none group-hover:bg-indigo-500/20 transition-colors" />
+            <div className="col-span-2 bg-[#161B26] rounded-2xl p-5 flex items-center justify-between border border-white/5 relative overflow-hidden group mt-1 hover:border-white/10 transition-colors">
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-[30px] pointer-events-none group-hover:bg-emerald-500/20 transition-colors" />
               <div className="flex items-center gap-3 z-10">
-                <div className="w-10 h-10 rounded-full bg-[#1E2235] border border-[#2A3143] flex items-center justify-center">
-                  <Banknote className="w-4 h-4 text-indigo-400" />
+                <div className="w-10 h-10 rounded-full bg-[#1A1E2B] border border-[#2A3143] flex items-center justify-center">
+                  <Leaf className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-0.5">24h Yield Generated</p>
-                  <p className="text-xs font-semibold text-slate-500">Across 12 Active Stations</p>
+                  <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-0.5">Environmental Equivalent</p>
+                  <p className="text-xs font-semibold text-slate-500">Your Portfolio's Impact</p>
                 </div>
               </div>
-              <div className="flex items-baseline gap-1 z-10 text-right">
-                <span className="text-sm font-bold text-indigo-400">₩</span>
-                <p className="text-[22px] font-bold text-white tabular-nums tracking-tight">4.2M</p>
+              <div className="flex flex-col items-end z-10">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-sm font-bold text-emerald-400">+</span>
+                  <p className="text-[22px] font-bold text-white tabular-nums tracking-tight">142</p>
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Trees Planted</span>
               </div>
             </div>
           </div>

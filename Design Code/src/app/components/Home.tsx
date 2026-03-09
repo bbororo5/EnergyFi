@@ -104,11 +104,11 @@ const portfolioData = [
     id: 'kr-11-seoul-central',
     name: 'Seoul',
     stations: 24,
-    totalValue: '₩2.4B',
-    revenue: '₩6.2M',
-    apy: '8.2%',
-    risk: 'A',
-    badge: 'UNDERVALUED',
+    activeStations: 21,
+    tokensMinted: '6.2M',
+    stoStatus: 'Live',
+    tranches: 3,
+    badge: 'FEATURED',
     chartData: [
       { date: '03/01', value: 2200 },
       { date: '03/02', value: 2280 },
@@ -124,11 +124,11 @@ const portfolioData = [
     id: 'kr-26-busan-port',
     name: 'Busan',
     stations: 18,
-    totalValue: '₩1.8B',
-    revenue: '₩4.8M',
-    apy: '7.5%',
-    risk: 'A+',
-    badge: 'HOT',
+    activeStations: 18,
+    tokensMinted: '4.8M',
+    stoStatus: 'Live',
+    tranches: 2,
+    badge: 'NEW',
     chartData: [
       { date: '03/01', value: 1650 },
       { date: '03/02', value: 1720 },
@@ -144,11 +144,11 @@ const portfolioData = [
     id: 'kr-49-jeju-coastal',
     name: 'Jeju',
     stations: 32,
-    totalValue: '₩3.2B',
-    revenue: '₩7.8M',
-    apy: '9.1%',
-    risk: 'B+',
-    badge: 'TRENDING',
+    activeStations: 28,
+    tokensMinted: '0',
+    stoStatus: 'Pre-IPO',
+    tranches: 0,
+    badge: 'UPCOMING',
     chartData: [
       { date: '03/01', value: 2950 },
       { date: '03/02', value: 3020 },
@@ -199,17 +199,17 @@ function PortfolioCard({
               </span>
             </div>
             <div
-              className={`px-3 py-1 rounded-full ${portfolio.badge === 'HOT'
+              className={`px-3 py-1 rounded-full ${portfolio.badge === 'FEATURED'
                 ? 'bg-amber-500/10 border border-amber-500/20'
-                : portfolio.badge === 'TRENDING'
+                : portfolio.badge === 'NEW'
                   ? 'bg-sky-500/10 border border-sky-500/20'
                   : 'bg-indigo-500/10 border border-indigo-500/20'
                 }`}
             >
               <span
-                className={`text-[10px] font-extrabold tracking-wider ${portfolio.badge === 'HOT'
+                className={`text-[10px] font-extrabold tracking-wider ${portfolio.badge === 'FEATURED'
                   ? 'text-amber-500'
-                  : portfolio.badge === 'TRENDING'
+                  : portfolio.badge === 'NEW'
                     ? 'text-sky-500'
                     : 'text-indigo-400'
                   }`}
@@ -221,23 +221,26 @@ function PortfolioCard({
 
           <div className="text-center mb-6 relative z-10">
             <h2 className="text-xl font-bold text-white mb-1">{portfolio.name}</h2>
-            <p className="text-[10px] text-slate-400">South Korea · {portfolio.totalValue} Total Value</p>
+            <p className="text-[10px] text-slate-400">South Korea · Featured Grid Region</p>
           </div>
 
           <div className="flex justify-between items-center px-4 mb-6 relative z-10">
             <div className="text-center">
-              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Revenue</p>
-              <p className="text-lg font-bold text-white">{portfolio.revenue}</p>
+              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Tokens Minted</p>
+              <p className="text-lg font-bold text-white">{portfolio.tokensMinted}</p>
             </div>
             <div className="w-[1px] h-8 bg-[#1E293B]" />
             <div className="text-center">
-              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Apy</p>
-              <p className="text-lg font-bold text-emerald-400">{portfolio.apy}</p>
+              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Active Stations</p>
+              <div className="flex items-baseline gap-1 justify-center">
+                <p className="text-lg font-bold text-emerald-400">{portfolio.activeStations}</p>
+                <p className="text-xs font-semibold text-slate-500">/{portfolio.stations}</p>
+              </div>
             </div>
             <div className="w-[1px] h-8 bg-[#1E293B]" />
             <div className="text-center">
-              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Risk</p>
-              <p className="text-lg font-bold text-emerald-400">{portfolio.risk}</p>
+              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">STO Status</p>
+              <p className={`text-lg font-bold ${portfolio.stoStatus === 'Live' ? 'text-emerald-400' : 'text-amber-400'}`}>{portfolio.stoStatus}</p>
             </div>
           </div>
 
@@ -304,17 +307,17 @@ function PortfolioCard({
 
           <div className="grid grid-cols-2 gap-3 w-full flex-1 mt-2">
             {[
-              { label: 'Demand', val: '85%', color: 'text-sky-400' },
-              { label: 'Stability', val: '92%', color: 'text-emerald-400' },
-              { label: 'Volatility', val: 'Low', color: 'text-white' },
-              { label: 'Risk', val: 'Medium', color: 'text-amber-400' },
+              { label: 'Total Stations', val: portfolio.stations, color: 'text-white' },
+              { label: 'Active Stations', val: portfolio.activeStations, color: 'text-emerald-400' },
+              { label: 'Total Tranches', val: portfolio.tranches, color: 'text-sky-400' },
+              { label: 'STO Status', val: portfolio.stoStatus, color: portfolio.stoStatus === 'Live' ? 'text-emerald-400' : 'text-amber-400' },
             ].map((metric, i) => (
               <div
                 key={i}
                 className="bg-[#12151D] p-3 rounded-2xl border border-white/5 flex flex-col justify-center items-center text-center shadow-inner relative overflow-hidden"
               >
                 {i === 1 && <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />}
-                {i === 0 && <div className="absolute inset-0 bg-sky-500/5 pointer-events-none" />}
+                {i === 2 && <div className="absolute inset-0 bg-sky-500/5 pointer-events-none" />}
                 <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase mb-1 relative z-10">
                   {metric.label}
                 </span>
@@ -589,7 +592,7 @@ export function Home({
             <h2 className="text-sm font-bold tracking-wider text-white uppercase">Real-World Impact</h2>
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
               <Leaf className="w-2.5 h-2.5 text-emerald-400" />
-              <span className="text-[9px] font-extrabold text-emerald-400 tracking-wider">ESG VERIFIED</span>
+              <span className="text-[9px] font-extrabold text-emerald-400 tracking-wider">ECO</span>
             </div>
           </div>
 

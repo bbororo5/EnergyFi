@@ -97,29 +97,9 @@ function SmoothDigit({ digit, h, color = '#ffffff' }: { digit: string; h: number
   );
 }
 
-const STANDARD_REGIONS = [
-  { id: 'KR-11', nameEn: 'Seoul', nameKo: '서울특별시' },
-  { id: 'KR-26', nameEn: 'Busan', nameKo: '부산광역시' },
-  { id: 'KR-27', nameEn: 'Daegu', nameKo: '대구광역시' },
-  { id: 'KR-28', nameEn: 'Incheon', nameKo: '인천광역시' },
-  { id: 'KR-29', nameEn: 'Gwangju', nameKo: '광주광역시' },
-  { id: 'KR-30', nameEn: 'Daejeon', nameKo: '대전광역시' },
-  { id: 'KR-31', nameEn: 'Ulsan', nameKo: '울산광역시' },
-  { id: 'KR-36', nameEn: 'Sejong', nameKo: '세종특별자치시' },
-  { id: 'KR-41', nameEn: 'Gyeonggi', nameKo: '경기도' },
-  { id: 'KR-42', nameEn: 'Gangwon', nameKo: '강원특별자치도' },
-  { id: 'KR-43', nameEn: 'Chungbuk', nameKo: '충청북도' },
-  { id: 'KR-44', nameEn: 'Chungnam', nameKo: '충청남도' },
-  { id: 'KR-45', nameEn: 'Jeonbuk', nameKo: '전북특별자치도' },
-  { id: 'KR-46', nameEn: 'Jeonnam', nameKo: '전라남도' },
-  { id: 'KR-47', nameEn: 'Gyeongbuk', nameKo: '경상북도' },
-  { id: 'KR-48', nameEn: 'Gyeongnam', nameKo: '경상남도' },
-  { id: 'KR-49', nameEn: 'Jeju', nameKo: '제주특별자치도' },
-];
-
 const portfolioData = [
   {
-    id: 'KR-11',
+    id: 'kr-11-seoul-central',
     name: 'Seoul',
     stations: 24,
     totalValue: '₩2.4B',
@@ -139,7 +119,7 @@ const portfolioData = [
     ],
   },
   {
-    id: 'KR-26',
+    id: 'kr-26-busan-port',
     name: 'Busan',
     stations: 18,
     totalValue: '₩1.8B',
@@ -159,7 +139,7 @@ const portfolioData = [
     ],
   },
   {
-    id: 'KR-49',
+    id: 'kr-49-jeju-coastal',
     name: 'Jeju',
     stations: 32,
     totalValue: '₩3.2B',
@@ -382,7 +362,6 @@ export function Home({
     {
       id: 'tx1',
       station: 'Seoul',
-      location: 'KR-11',
       kwh: '45.2',
       revenue: 14200,
       time: '2m ago',
@@ -391,7 +370,6 @@ export function Home({
     {
       id: 'tx2',
       station: 'Busan',
-      location: 'KR-26',
       kwh: '62.4',
       revenue: 18500,
       time: '6m ago',
@@ -400,7 +378,6 @@ export function Home({
     {
       id: 'tx3',
       station: 'Jeju',
-      location: 'KR-49',
       kwh: '15.8',
       revenue: 4100,
       time: '12m ago',
@@ -414,7 +391,7 @@ export function Home({
     let timeout: ReturnType<typeof setTimeout>;
 
     const doTransaction = () => {
-      const gain = Math.floor(4000 + Math.random() * 18000);
+      const gain = Math.floor(50 + Math.random() * 2950);
       const newTotal = actualRef.current + gain;
       actualRef.current = newTotal;
       monthlyRef.current = monthlyRef.current + gain;
@@ -422,12 +399,12 @@ export function Home({
       setMonthlyGain(monthlyRef.current);
       setLastTx(gain);
 
-      const randomRegion = STANDARD_REGIONS[Math.floor(Math.random() * STANDARD_REGIONS.length)];
+      const regions = ['Seoul', 'Busan', 'Jeju', 'Gyeonggi', 'Incheon'];
+      const randomRegion = regions[Math.floor(Math.random() * regions.length)];
 
       const newSession = {
         id: `tx-${Date.now()}`,
-        station: randomRegion.nameEn,
-        location: randomRegion.id,
+        station: randomRegion,
         kwh: (Math.random() * 40 + 10).toFixed(1),
         revenue: gain,
         time: 'Just now',
@@ -437,7 +414,7 @@ export function Home({
       setLiveSessions(prev => [newSession, ...prev].slice(0, 4));
 
       setTimeout(() => setLastTx(null), 2000);
-      timeout = setTimeout(doTransaction, 3000 + Math.random() * 4000);
+      timeout = setTimeout(doTransaction, 2000 + Math.random() * 5000);
     };
 
     timeout = setTimeout(doTransaction, 1500);
@@ -477,7 +454,7 @@ export function Home({
                 <h3 className="text-base font-semibold text-white tracking-tight">Monthly Earnings</h3>
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
                 <span className="text-[10px] font-medium text-slate-300 tracking-tight">Live Network</span>
               </div>
             </div>

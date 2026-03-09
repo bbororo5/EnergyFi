@@ -120,7 +120,7 @@ const STANDARD_REGIONS = [
 const portfolioData = [
   {
     id: 'KR-11',
-    name: 'Seoul Central Hub',
+    name: 'Seoul',
     stations: 24,
     totalValue: '₩2.4B',
     revenue: '₩6.2M',
@@ -140,7 +140,7 @@ const portfolioData = [
   },
   {
     id: 'KR-26',
-    name: 'Busan Port Fast',
+    name: 'Busan',
     stations: 18,
     totalValue: '₩1.8B',
     revenue: '₩4.8M',
@@ -160,7 +160,7 @@ const portfolioData = [
   },
   {
     id: 'KR-49',
-    name: 'Jeju Coastal EV',
+    name: 'Jeju',
     stations: 32,
     totalValue: '₩3.2B',
     revenue: '₩7.8M',
@@ -696,9 +696,6 @@ export function Home({
                           <h3 className="text-[15px] font-semibold text-white tracking-tight truncate">
                             {session.station}
                           </h3>
-                          <span className="text-[9px] font-bold text-slate-500 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 uppercase shrink-0">
-                            {session.location}
-                          </span>
                         </div>
                         <p className="text-[15px] font-semibold text-[#30D158] tracking-tight shrink-0 tabular-nums">
                           +₩{session.revenue.toLocaleString()}

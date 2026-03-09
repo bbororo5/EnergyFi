@@ -104,10 +104,12 @@ const portfolioData = [
     id: 'kr-11-seoul-central',
     name: 'Seoul',
     stations: 24,
-    activeStations: 21,
     tokensMinted: '6.2M',
+    apy: '8.2%',
+    activeStations: 21,
+    expansionPhase: 'Tranche 3',
+    latestDividend: '₩5.8M',
     stoStatus: 'Live',
-    tranches: 3,
     badge: 'FEATURED',
     chartData: [
       { date: '03/01', value: 2200 },
@@ -124,10 +126,12 @@ const portfolioData = [
     id: 'kr-26-busan-port',
     name: 'Busan',
     stations: 18,
-    activeStations: 18,
     tokensMinted: '4.8M',
+    apy: '7.5%',
+    activeStations: 18,
+    expansionPhase: 'Tranche 2',
+    latestDividend: '₩4.4M',
     stoStatus: 'Live',
-    tranches: 2,
     badge: 'NEW',
     chartData: [
       { date: '03/01', value: 1650 },
@@ -144,10 +148,12 @@ const portfolioData = [
     id: 'kr-49-jeju-coastal',
     name: 'Jeju',
     stations: 32,
+    tokensMinted: '-',
+    apy: '9.1%',
     activeStations: 28,
-    tokensMinted: '0',
+    expansionPhase: 'Pre-IPO',
+    latestDividend: '-',
     stoStatus: 'Pre-IPO',
-    tranches: 0,
     badge: 'UPCOMING',
     chartData: [
       { date: '03/01', value: 2950 },
@@ -231,16 +237,13 @@ function PortfolioCard({
             </div>
             <div className="w-[1px] h-8 bg-[#1E293B]" />
             <div className="text-center">
-              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Active Stations</p>
-              <div className="flex items-baseline gap-1 justify-center">
-                <p className="text-lg font-bold text-emerald-400">{portfolio.activeStations}</p>
-                <p className="text-xs font-semibold text-slate-500">/{portfolio.stations}</p>
-              </div>
+              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Est. Apy</p>
+              <p className="text-lg font-bold text-emerald-400">{portfolio.apy}</p>
             </div>
             <div className="w-[1px] h-8 bg-[#1E293B]" />
             <div className="text-center">
-              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">STO Status</p>
-              <p className={`text-lg font-bold ${portfolio.stoStatus === 'Live' ? 'text-emerald-400' : 'text-amber-400'}`}>{portfolio.stoStatus}</p>
+              <p className="text-[9px] font-bold tracking-widest text-slate-500 mb-1 uppercase">Total Stations</p>
+              <p className="text-lg font-bold text-white">{portfolio.stations}</p>
             </div>
           </div>
 
@@ -307,9 +310,9 @@ function PortfolioCard({
 
           <div className="grid grid-cols-2 gap-3 w-full flex-1 mt-2">
             {[
-              { label: 'Total Stations', val: portfolio.stations, color: 'text-white' },
-              { label: 'Active Stations', val: portfolio.activeStations, color: 'text-emerald-400' },
-              { label: 'Total Tranches', val: portfolio.tranches, color: 'text-sky-400' },
+              { label: 'Active Stations', val: `${portfolio.activeStations} / ${portfolio.stations}`, color: 'text-emerald-400' },
+              { label: 'Expansion Phase', val: portfolio.expansionPhase, color: 'text-sky-400' },
+              { label: 'Latest Dividend', val: portfolio.latestDividend, color: 'text-white' },
               { label: 'STO Status', val: portfolio.stoStatus, color: portfolio.stoStatus === 'Live' ? 'text-emerald-400' : 'text-amber-400' },
             ].map((metric, i) => (
               <div

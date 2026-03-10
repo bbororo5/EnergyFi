@@ -14,7 +14,7 @@
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.28-363636?logo=solidity)](https://soliditylang.org/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-3-yellow?logo=hardhat)](https://hardhat.org/)
 [![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?logo=expo)](https://expo.dev/)
-[![Tests](https://img.shields.io/badge/Tests-287%20passing-brightgreen)](contracts/test/)
+[![Tests](https://img.shields.io/badge/Tests-289%20passing-brightgreen)](contracts/test/)
 
 </div>
 
@@ -22,16 +22,7 @@
 
 ## What is EnergyFi?
 
-EV charging stations in South Korean apartment complexes generate steady, predictable revenue — but retail investors have no way to access this asset class. Revenue stays concentrated in operators.
-
-EnergyFi solves this by building a **vertically integrated system** from the physical charger's TPM 2.0 chip all the way to the blockchain. Every charging session is cryptographically signed at the hardware level, flows through our platform, and is permanently recorded on a dedicated Avalanche L1. This creates a transparent, tamper-proof revenue pipeline that enables **per-region Security Token Offerings (STO)** — allowing apartment residents and small investors to fractionally own charging infrastructure.
-
-| | Legacy RWA | EnergyFi |
-|:---|:---|:---|
-| **Data Source** | Third-party API (modifiable) | **TPM 2.0 Secure Element** (physical chip) |
-| **Verification** | Manual audit / trusting the API provider | **Cryptographic signing** at hardware level |
-| **On-chain Recording** | Periodic batch uploads | **Per-session**, triggered by payment settlement |
-| **Trust Model** | Software trust | **Hardware anchor** — data signed before it leaves the charger |
+A blockchain protocol that records EV charging infrastructure settlement data on-chain via a hardware-anchored trust chain (TPM 2.0 SE → STRIKON platform → Avalanche L1). Every charging session is cryptographically signed at the hardware level and immutably recorded per-session upon payment settlement.
 
 ---
 
@@ -202,31 +193,7 @@ flowchart TD
 - **Soulbound ERC-721**: Charging sessions are immutable evidence, not tradeable assets. Minted to `address(this)`, transfers disabled.
 - **UUPS Proxy**: All contracts are upgradeable via UUPS pattern for post-deployment bug fixes and regulatory adaptation.
 - **`BridgeGuarded` base contract**: The Bridge wallet (AWS KMS HSM) is the sole trusted entry point from STRIKON. `onlyBridge` modifier on all write operations.
-- **Zero-gas private chain**: Chain ID 270626. Designed for IoT-scale data ingestion. Gas optimization is irrelevant — investor protection takes priority.
-- **Issuance-only scope**: EnergyFi handles token minting and burning. Dividend distribution, KYC/AML, and compliance are the securities firm's domain.
-
----
-
-## The Foundation — STRIKON Platform
-
-EnergyFi does not start from zero. It sits on top of **STRIKON**, a production EV charging platform launching June 2026.
-
-<div align="center">
-<table>
-<tr>
-<td align="center"><b>Mobile App</b></td>
-<td align="center"><b>Platform Architecture (30+ microservices)</b></td>
-</tr>
-<tr>
-<td><img src="docs/assets/app_home.png" width="200"/></td>
-<td><img src="docs/assets/strikon_platform.png" width="560"/></td>
-</tr>
-</table>
-</div>
-
-> [View interactive platform architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/strikon_platform_architecture.html)
-
-STRIKON handles the entire physical operation: OCPP 1.6/2.1 charger management, real-time monitoring, billing, payment processing (INICIS, TOSS), and settlement. EnergyFi's on-chain contracts receive only **settlement-completed data** — the `invoice.paid` event is the sole trigger for blockchain recording.
+- **Zero-gas private chain**: Chain ID 270626. Per-session data recording triggered by `invoice.paid`. Gas optimization is irrelevant — investor protection takes priority.
 
 ---
 
@@ -238,8 +205,8 @@ STRIKON handles the entire physical operation: OCPP 1.6/2.1 charger management, 
 |:---|:---|
 | **Stack** | React Native + Expo SDK 54, TypeScript |
 | **Routing** | expo-router v6 (4 tabs) |
-| **Screens** | 23 pages |
-| **Components** | 31 UI components |
+| **Screens** | 18 screens |
+| **Components** | 32 UI components |
 | **Hooks** | 7 custom hooks |
 | **i18n** | Korean + English |
 | **Platforms** | iOS, Android, Web |
@@ -252,7 +219,7 @@ STRIKON handles the entire physical operation: OCPP 1.6/2.1 charger management, 
 
 ## Test Coverage
 
-**287 passing, 1 pending** (P-256 precompile requires custom genesis)
+**289 passing, 1 pending** (P-256 precompile requires custom genesis)
 
 ### Unit Tests (8 suites)
 
@@ -281,12 +248,10 @@ STRIKON handles the entire physical operation: OCPP 1.6/2.1 charger management, 
 
 | Need | Avalanche Solution |
 |:---|:---|
-| **IoT-scale data ingestion** | Dedicated L1 private chain — sovereign, zero gas, sub-second finality |
-| **Securities-grade finality** | Avalanche consensus (BFT) — absolute finality, no probabilistic reorgs |
-| **Cross-chain readiness** | Avalanche Warp Messaging (AWM) — native cross-chain capability when needed |
-| **Managed infrastructure** | AvaCloud — managed validators, monitoring, RPC endpoints |
-
-Avalanche is the only ecosystem where you can spin up a **dedicated private chain** for your use case with native cross-chain messaging built in — ready when regulatory clarity arrives.
+| **Dedicated L1** | Sovereign private chain per use case — isolated from public chain congestion |
+| **Zero gas** | No transaction fees for on-chain data recording — critical for per-session writes |
+| **Absolute finality** | BFT consensus — once confirmed, data is never reorganized or reverted |
+| **Managed infrastructure** | AvaCloud — managed validators, monitoring, RPC endpoints without DevOps overhead |
 
 ---
 
@@ -332,8 +297,8 @@ EnergyFi/
 │   ├── scripts/                #   Deployment & seeding scripts
 │   └── tools/dashboard/        #   Express web dashboard + CLI
 ├── mobile/                     # React Native + Expo SDK 54 (TypeScript)
-│   ├── app/                    #   23 screens (expo-router, 4 tabs)
-│   ├── components/             #   31 UI components
+│   ├── app/                    #   18 screens (expo-router, 4 tabs)
+│   ├── components/             #   32 UI components
 │   └── hooks/                  #   7 custom hooks
 ├── l1-config/                  # L1 chain configuration
 │   ├── genesis.json            #   Chain ID 270626, zero-gas, RIP-7212

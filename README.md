@@ -33,19 +33,19 @@ EnergyFi is not just smart contracts. It is a **4-layer vertical stack** where h
 ```mermaid
 flowchart TB
     subgraph L1["Layer 1 · Hardware"]
-        SE["TPM 2.0 SE Chip\nSigns raw kWh data (P-256)"]
+        SE["TPM 2.0 SE Chip<br/>Signs raw kWh data (P-256)"]
     end
 
     subgraph L2["Layer 2 · Embedded"]
-        EMB["Embedded System\nTransmits SE-signed data"]
+        EMB["Embedded System<br/>Transmits SE-signed data"]
     end
 
     subgraph L3["Layer 3 · Platform"]
-        STR["STRIKON Platform\n30+ Go microservices\nOCPP · Billing · Settlement"]
+        STR["STRIKON Platform<br/>30+ Go microservices<br/>OCPP · Billing · Settlement"]
     end
 
     subgraph L4["Layer 4 · Blockchain"]
-        EF["EnergyFi L1\nAvalanche Private Chain\n8 Smart Contracts"]
+        EF["EnergyFi L1<br/>Avalanche Private Chain<br/>8 Smart Contracts"]
     end
 
     SE --> EMB --> STR -->|invoice.paid| EF
@@ -67,11 +67,11 @@ We don't need to trust every intermediate layer. Instead, we verify at **both en
 
 ```mermaid
 flowchart LR
-    A["SE Chip\n(Layer 1)\nSigns raw data\nP-256"] --->|"Data travels through\nembedded + platform"| B["Bridge Wallet\n(Layer 3→4)\nSigns on-chain TX\nAWS KMS HSM"]
+    A["SE Chip<br/>(Layer 1)<br/>Signs raw data<br/>P-256"] --->|"Data travels through<br/>embedded + platform"| B["Bridge Wallet<br/>(Layer 3→4)<br/>Signs on-chain TX<br/>AWS KMS HSM"]
 
-    B --> C{"DeviceRegistry\ncompares SE signature\nvs on-chain data"}
+    B --> C{"DeviceRegistry<br/>compares SE signature<br/>vs on-chain data"}
 
-    C -->|Match| D["✓ Path Integrity\nProven"]
+    C -->|Match| D["✓ Path Integrity<br/>Proven"]
     C -->|Mismatch| E["✗ TX Reverted"]
 ```
 
@@ -151,13 +151,13 @@ Every contract exists because a specific business requirement demanded it. Here 
 
 ```mermaid
 flowchart TD
-    Bridge["Bridge Wallet\n(AWS KMS)"] --> CR["ChargeRouter"]
-    CR --> CT["ChargeTransaction\n(ERC-721)"]
+    Bridge["Bridge Wallet<br/>(AWS KMS)"] --> CR["ChargeRouter"]
+    CR --> CT["ChargeTransaction<br/>(ERC-721)"]
     CR --> RT["RevenueTracker"]
     CT --> DR["DeviceRegistry"]
     CT --> SR["StationRegistry"]
     RT --> SR
-    RT -.->|revenue source| STO["RegionSTO\n(RegionSTOFactory)"]
+    RT -.->|revenue source| STO["RegionSTO<br/>(RegionSTOFactory)"]
     SR -.->|station data| REP["ReputationRegistry"]
 ```
 

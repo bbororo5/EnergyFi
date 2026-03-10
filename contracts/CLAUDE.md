@@ -22,8 +22,12 @@ Avalanche L1 smart contracts — 12 contracts + ChargeRouter (13개) deployed on
 npm run compile          # solc 0.8.20
 npm run test             # Hardhat tests
 npm run clean            # Clean artifacts
-npm run deploy:testnet   # Deploy to EnergyFi L1 testnet (Fuji)
-npm run deploy:mainnet   # Deploy to EnergyFi L1 mainnet
+npm run deploy             # Essential surface to EnergyFi L1 testnet
+npm run deploy:full:testnet  # Essential + frontend read surface to AvaCloud L1
+npm run deploy:reputation  # Deploy only ReputationRegistry to EnergyFi L1 testnet
+npm run seed:reputation    # Publish demo monthly region snapshots to ReputationRegistry
+npm run test:live        # Run live integration tests on EnergyFi L1 testnet
+npm run dashboard        # Launch web dashboard connected to EnergyFi L1 testnet
 ```
 
 ## Hardhat 3 Specifics
@@ -55,7 +59,8 @@ ChargeTransaction → { DeviceRegistry (verifySignature), StationRegistry (isReg
 RevenueTracker → StationRegistry [regionId]
 ChargeTransaction → CarbonReduction (+ ParameterRegistry) → CarbonBatch → VCUReference
 RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
-                 ReputationRegistry
+ChargeTransaction + RevenueTracker + StationRegistry + STRIKON ops data
+                 → ReputationRegistry (Explore story substrate)
 ```
 
 ### Contract Table
@@ -72,7 +77,7 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 | 6 | **CarbonBatch** | C: VCM | N/A | Lock only | Phase 4 | Upgradeable |
 | 7 | **VCUReference** | C: VCM | N/A | Append only | Phase 4 | Upgradeable |
 | 3.5 | **CCIPRevenueSender** | D: Investment | N/A | No | Phase 3 | Non-upgradeable |
-| 8 | **ReputationRegistry** | D: Investment | N/A | Yes (oracle) | Phase 3 (선택) | Upgradeable |
+| 8 | **ReputationRegistry** | D: Investment | N/A | Yes (bridge/oracle) | Phase 3 (선택) | Upgradeable |
 | 9 | **STOPortfolio** | D: Investment | N/A | Yes | Phase 3 | Upgradeable |
 | 10 | **RegionSTO** | D: Investment | **미확정 (경로 결정 후)** | — | Phase 3 | — |
 | -- | **RegionSTOFactory** | D: Investment | N/A | Yes | Phase 3 | Upgradeable |
@@ -86,6 +91,7 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
   - ChargeTransaction: 전체 시스템의 ROOT 데이터 소스.
   - RevenueTracker: mint() 직후 수익 누적. 지역별 STO 투자자 수익 추적 불가.
 - **Derived** (8): All others — consume data produced by Essential contracts.
+  - ReputationRegistry: Explore용 region reputation snapshot 저장소. 공개 규격은 `contracts/contracts/interfaces/ops/IReputationRegistry.sol`, concrete 구현은 `contracts/contracts/ops/ReputationRegistry.sol`, 상세 스펙은 `docs/phase3-reputation-spec.md`.
 
 ### Implementation Phases
 
@@ -93,7 +99,7 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 |:---|:---|:---|:---|
 | **1** ✅ | 충전 인프라 등록 | DeviceRegistry, StationRegistry | 완료 |
 | **2** ✅ | 충전 트랜잭션 + 수익 추적 | ChargeTransaction, RevenueTracker, ChargeRouter | 완료 |
-| **3** | STO 발행 | RegionSTO, RegionSTOFactory, STOPortfolio, ReputationRegistry(선택) | 2027.01~ |
+| **3** | STO 발행 + Explore reputation | RegionSTO, RegionSTOFactory, STOPortfolio, ReputationRegistry(선택) | 2027.01~ |
 | **4** | 탄소배출권 | ParameterRegistry, CarbonReduction, CarbonBatch, VCUReference | VVB 개시~ |
 
 ### Existing Scaffolds
@@ -105,9 +111,25 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 
 | Phase | Infrastructure | Validators |
 |:---|:---|:---|
-| Development | Avalanche-CLI on Fuji | CLI-managed |
 | Hackathon | AvaCloud Testnet Starter | AvaCloud 2 nodes |
 | Production (June 2026~) | AvaCloud Mainnet | Company (2) + Securities firm (1-2) + Professional operators (1+) |
+
+### AvaCloud Demo Deploy
+
+- `deploy:full:testnet` is the demo-oriented deployment path.
+- Required root `.env` variables:
+  - `DEPLOYER_PRIVATE_KEY`
+  - `ENERGYFI_L1_TESTNET_RPC`
+  - `ENERGYFI_ADMIN_ADDRESS`
+  - `ENERGYFI_BRIDGE_ADDRESS`
+  - `ENERGYFI_REPUTATION_BRIDGE_ADDRESS`
+- Bridge wiring is intentionally split:
+  - `ChargeTransaction` / `RevenueTracker` trust the `ChargeRouter` proxy
+  - `ChargeRouter` trusts `ENERGYFI_BRIDGE_ADDRESS`
+  - `ReputationRegistry` trusts `ENERGYFI_REPUTATION_BRIDGE_ADDRESS`
+- `deployments.json` must contain:
+  - `DeviceRegistry`, `StationRegistry`, `ChargeTransaction`, `RevenueTracker`, `ChargeRouter`
+  - `ReputationRegistry`, `RegionSTOImpl`, `RegionSTOFactory`
 
 ## Reference Docs
 
@@ -117,6 +139,7 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 | **Phase 1 스펙** | `docs/phase1-infra-spec.md` | DeviceRegistry + StationRegistry 구현. SE 칩 등록, 충전소·충전기 계층 설계. |
 | **Phase 2 스펙** | `docs/phase2-transaction-spec.md` | ChargeTransaction + RevenueTracker 구현. invoice.paid 매핑, 수익 귀속 모델. |
 | **Phase 3 스펙** | `docs/phase3-sto-spec.md` | STO 발행 경로(Path A/B) + Revenue Attestation 인프라. 토큰 구현은 경로 확정 후 보류. |
+| **Phase 3 Reputation 스펙** | `docs/phase3-reputation-spec.md` | Explore용 region reputation snapshot 규격. `IReputationRegistry` 인터페이스와 metric 정의. |
 | **Phase 4 스펙** | `docs/phase4-carbon-spec.md` | 탄소배출권 파이프라인. VM0038 수식, CarbonBatch, VCUReference. |
 | **ERC Standards Analysis** | `docs/erc-standards-analysis.md` | ERC 표준 매핑, 감사 준비 참고. |
 | **T-REX Architecture** | `docs/trex-architecture.md` | 참고용 (발행 경로 확정 + 대통령령 세부 요건 확인 후 재검토). |
@@ -128,7 +151,7 @@ RevenueTracker → STOPortfolio → RegionSTO (via RegionSTOFactory)
 |:---|:---|
 | [ERC-3643 (T-REX)](https://eips.ethereum.org/EIPS/eip-3643) | 참고용. EnergyFi L1 구현 방식은 발행 경로(Path A/B) 확정 + 대통령령 세부 요건 확인 후 결정. 현재 보류. |
 | [ERC-721](https://eips.ethereum.org/EIPS/eip-721) | ChargeTransaction and CarbonReduction token standard |
-| [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) | Inspiration for ReputationRegistry pattern |
+| [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) | Inspiration for ReputationRegistry pattern (reference only, not a strict implementation target) |
 | [Verra VCS VM0038](https://verra.org/methodologies/vm0038-methodology-for-electric-vehicle-charging-systems/) | Carbon reduction methodology for EV charging |
 | [Avalanche L1 (Subnet-EVM)](https://docs.avax.network/) | Chain runtime and configuration |
 | [Avalanche Warp Messaging (AWM)](https://docs.avax.network/) | Future cross-chain communication (Phase 4) |

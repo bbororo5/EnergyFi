@@ -1,6 +1,6 @@
-# EnergyFi — CLAUDE.md
+# EnergyFi — AGENTS.md
 
-<!-- Contract-specific details (smart contract map, Hardhat config, ERC standards) are in contracts/CLAUDE.md -->
+<!-- Contract-specific details (smart contract map, Hardhat config, ERC standards) are in contracts/AGENTS.md -->
 
 Agent instructions for the EnergyFi codebase. All technical decisions must align with this document.
 
@@ -67,7 +67,7 @@ EnergyFi/
 │   ├── strikon-interface-spec.md
 │   ├── platform-policies.md
 │   └── assets/         # Cross-cutting diagrams and images
-└── CLAUDE.md           # This file
+└── AGENTS.md           # This file
 ```
 
 | Deployment Unit | Path | Stack | Status |
@@ -98,7 +98,7 @@ These rules are absolute. Never bypass them.
 | TypeScript | TypeScript | ^5.7.0 |
 | Module System | ESM | `"type": "module"` throughout |
 | Blockchain | Avalanche L1 (Subnet-EVM) | Chain ID 270626 |
-| Smart Contracts | Solidity ^0.8.20, Hardhat 3 | See `contracts/CLAUDE.md` |
+| Smart Contracts | Solidity ^0.8.20, Hardhat 3 | See `contracts/AGENTS.md` |
 | Frontend | React Native + Expo (SDK 54), TypeScript, expo-router | TBD (planned) |
 
 ---
@@ -118,6 +118,8 @@ cd contracts && npm install
 | Network | Chain ID | RPC Env Var |
 |:---|:---|:---|
 | EnergyFi L1 Testnet | 270626 | `ENERGYFI_L1_TESTNET_RPC` |
+| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` |
+| Avalanche Fuji C-Chain | 43113 | `AVAX_CCHAIN_RPC` |
 
 ---
 

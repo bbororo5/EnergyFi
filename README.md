@@ -49,15 +49,6 @@ flowchart TB
     end
 
     SE --> EMB --> STR -->|invoice.paid| EF
-
-    style L1 fill:#1a1a2e,stroke:#E84142,color:#fff
-    style L2 fill:#1a1a2e,stroke:#E84142,color:#fff
-    style L3 fill:#1a1a2e,stroke:#E84142,color:#fff
-    style L4 fill:#1a1a2e,stroke:#E84142,color:#fff
-    style SE fill:#E84142,stroke:#fff,color:#fff
-    style EMB fill:#333,stroke:#fff,color:#fff
-    style STR fill:#333,stroke:#fff,color:#fff
-    style EF fill:#E84142,stroke:#fff,color:#fff
 ```
 
 **Layer 1 — Hardware**: A TPM 2.0 Secure Element chip embedded in every charger signs raw metering data (kWh, timestamps) using P-256 (secp256r1) cryptography. This signature is created at the point of physical measurement — before the data ever leaves the device.
@@ -82,11 +73,6 @@ flowchart LR
 
     C -->|Match| D["✓ Path Integrity\nProven"]
     C -->|Mismatch| E["✗ TX Reverted"]
-
-    style A fill:#E84142,stroke:#fff,color:#fff
-    style B fill:#E84142,stroke:#fff,color:#fff
-    style D fill:#2d6a4f,stroke:#fff,color:#fff
-    style E fill:#d00000,stroke:#fff,color:#fff
 ```
 
 The SE chip (origin) and Bridge wallet (destination) form a **bookend**. If the data at both ends matches, the entire intermediate path is proven intact — without requiring signatures at every hop.
@@ -108,7 +94,7 @@ sequenceDiagram
     S->>B: invoice.paid event
     B->>CR: processCharge(session, period)
 
-    rect rgb(40, 40, 60)
+    rect rgb(240, 240, 245)
         Note over CR,RT: Atomic — both succeed or both revert
         CR->>CT: mint(session)
         CT->>DR: verifySignature(chargerId, hash, seSignature)
@@ -157,9 +143,9 @@ Every contract exists because a specific business requirement demanded it. Here 
 | 2 | Transaction | **ChargeRouter** | — | Deployed |
 | 2 | Transaction | **ChargeTransaction** | ERC-721 (Soulbound) | Deployed |
 | 2 | Revenue | **RevenueTracker** | — | Deployed |
-| 3 | Investment | **RegionSTO** | ERC-20 | Implemented |
-| 3 | Investment | **RegionSTOFactory** | — | Implemented |
-| 3 | Operations | **ReputationRegistry** | — | Implemented |
+| 3 | Investment | **RegionSTO** | ERC-20 | Deployed |
+| 3 | Investment | **RegionSTOFactory** | — | Deployed |
+| 3 | Operations | **ReputationRegistry** | — | Deployed |
 
 ### Contract Dependency Graph
 
@@ -173,15 +159,6 @@ flowchart TD
     RT --> SR
     RT -.->|revenue source| STO["RegionSTO\n(RegionSTOFactory)"]
     SR -.->|station data| REP["ReputationRegistry"]
-
-    style Bridge fill:#E84142,stroke:#fff,color:#fff
-    style CR fill:#4a4e69,stroke:#fff,color:#fff
-    style CT fill:#4a4e69,stroke:#fff,color:#fff
-    style RT fill:#4a4e69,stroke:#fff,color:#fff
-    style DR fill:#22577a,stroke:#fff,color:#fff
-    style SR fill:#22577a,stroke:#fff,color:#fff
-    style STO fill:#2d6a4f,stroke:#fff,color:#fff
-    style REP fill:#2d6a4f,stroke:#fff,color:#fff
 ```
 
 **Essential contracts** (solid lines): DeviceRegistry, StationRegistry, ChargeTransaction, RevenueTracker, ChargeRouter — the core data pipeline. Without these, the system cannot operate.
@@ -266,7 +243,7 @@ cd EnergyFi
 cd contracts
 npm install
 npx hardhat compile
-npx hardhat test                              # 287 tests
+npx hardhat test                              # 289 tests
 
 # Investor Mobile App
 cd ../mobile
@@ -292,7 +269,7 @@ EnergyFi/
 │   │   ├── base/               #   BridgeGuarded (shared access control)
 │   │   └── interfaces/         #   All contract interfaces
 │   ├── test/
-│   │   ├── unit/               #   8 test suites (287 tests)
+│   │   ├── unit/               #   8 test suites (289 tests)
 │   │   └── integration/        #   3 test suites (48 tests)
 │   ├── scripts/                #   Deployment & seeding scripts
 │   └── tools/dashboard/        #   Express web dashboard + CLI

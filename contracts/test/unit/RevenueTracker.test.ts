@@ -805,6 +805,34 @@ describe("RevenueTracker", function () {
       expect(periods[1]).to.equal(PERIOD_2);
     });
 
+    it("비순차 claimRegion 호출이어도 오름차순으로 반환", async function () {
+      await rt.recordRevenue(STN_1, 5000n, PERIOD_2);
+      await rt.claimRegion(REGION_SEOUL, PERIOD_2);
+
+      await rt.recordRevenue(STN_2, 2000n, PERIOD);
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+
+      const periods = await rt.getRegionAttestationPeriods(REGION_SEOUL);
+      expect(periods.length).to.equal(2);
+      expect(periods[0]).to.equal(PERIOD);
+      expect(periods[1]).to.equal(PERIOD_2);
+    });
+
+    it("마지막 항목은 항상 가장 큰 YYYYMM", async function () {
+      await rt.recordRevenue(STN_1, 4000n, PERIOD_2);
+      await rt.claimRegion(REGION_SEOUL, PERIOD_2);
+
+      await rt.recordRevenue(STN_2, 1500n, PERIOD_3);
+      await rt.claimRegion(REGION_SEOUL, PERIOD_3);
+
+      await rt.recordRevenue(STN_3, 2500n, PERIOD);
+      await rt.claimRegion(REGION_SEOUL, PERIOD);
+
+      const periods = await rt.getRegionAttestationPeriods(REGION_SEOUL);
+      expect(periods.length).to.equal(3);
+      expect(periods[periods.length - 1]).to.equal(PERIOD_2);
+    });
+
     it("attestation 미존재 → 빈 배열", async function () {
       const periods = await rt.getRegionAttestationPeriods(REGION_SEOUL);
       expect(periods.length).to.equal(0);

@@ -5,6 +5,10 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function nativeSymbol(): string {
+  return "EGF";
+}
+
 async function main() {
   const conn = await hre.network.connect();
   const ethers = conn.ethers;
@@ -15,7 +19,7 @@ async function main() {
   console.log(`\n=== EnergyFi Deployment (Phase 1 + Phase 2) ===`);
   console.log(`Network  : ${network}`);
   console.log(`Deployer : ${deployer.address}`);
-  console.log(`Balance  : ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} EFI\n`);
+  console.log(`Balance  : ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ${nativeSymbol()}\n`);
 
   const EnergyFiProxy = await ethers.getContractFactory("EnergyFiProxy");
 

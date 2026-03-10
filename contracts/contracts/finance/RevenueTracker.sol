@@ -67,7 +67,7 @@ contract RevenueTracker is
     /// @dev regionId => period => RegionAttestation (Phase 3)
     mapping(bytes4 => mapping(uint256 => RegionAttestation)) private _regionAttestations;
 
-    /// @dev regionId => list of finalized periods (Phase 3)
+    /// @dev regionId => finalized period labels, kept in ascending YYYYMM order.
     mapping(bytes4 => uint256[]) private _regionAttestationPeriods;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -281,7 +281,7 @@ contract RevenueTracker is
             finalizedAt: block.timestamp
         });
 
-        _regionAttestationPeriods[regionId].push(period_yyyyMM);
+        _insertRegionAttestationPeriod(regionId, period_yyyyMM);
 
         emit RegionSettlementFinalized(regionId, period_yyyyMM, totalClaimed, stationCount, block.timestamp);
     }
@@ -333,6 +333,21 @@ contract RevenueTracker is
                 emit SettlementRecorded(sid, pending, period_yyyyMM, block.timestamp);
             }
         }
+    }
+
+    function _insertRegionAttestationPeriod(bytes4 regionId, uint256 period_yyyyMM) internal {
+        uint256[] storage periods = _regionAttestationPeriods[regionId];
+        uint256 insertAt = periods.length;
+        periods.push(period_yyyyMM);
+
+        while (insertAt > 0 && periods[insertAt - 1] > period_yyyyMM) {
+            periods[insertAt] = periods[insertAt - 1];
+            unchecked {
+                insertAt--;
+            }
+        }
+
+        periods[insertAt] = period_yyyyMM;
     }
 
     /// @inheritdoc IRevenueTracker

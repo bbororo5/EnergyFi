@@ -25,7 +25,7 @@ cd EnergyFi
 
 # 2. .env 파일 생성 (프로젝트 루트)
 cat > .env << 'EOF'
-ENERGYFI_L1_LOCAL_RPC=http://127.0.0.1:8545
+ENERGYFI_L1_TESTNET_RPC=https://subnets.avax.network/energyfi/testnet/rpc
 DEPLOYER_PRIVATE_KEY=REDACTED_TEST_PRIVATE_KEY
 EOF
 # ↑ 이 private key는 Hardhat 기본 Account #0 (테스트 전용, 실제 자금 없음)

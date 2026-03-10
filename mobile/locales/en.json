@@ -1,0 +1,41 @@
+{
+  "tabs": {
+    "home": "Home",
+    "explore": "Explore",
+    "analytics": "Analytics",
+    "account": "Account"
+  },
+  "home": {
+    "monthlyEarnings": "Monthly Earnings",
+    "portfolios": "Your Investments",
+    "impact": "Real-World Impact",
+    "liveFeed": "Live Network Revenue"
+  },
+  "explore": {
+    "title": "Explore",
+    "portfolios": "{{count}} Portfolios",
+    "allRegions": "All Regions",
+    "highestApy": "Highest APY",
+    "lowVolatility": "Low Volatility"
+  },
+  "portfolio": {
+    "title": "Analytics",
+    "overview": "Performance Snapshot",
+    "allocation": "Portfolio Allocation",
+    "holdings": "Holdings",
+    "alerts": "Operational Updates"
+  },
+  "account": {
+    "title": "Account",
+    "preferences": "Account & Preferences",
+    "investment": "Investment Access",
+    "support": "Support & Help",
+    "legal": "Legal & Disclosures",
+    "signOut": "Sign Out"
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "cancel": "Cancel"
+  }
+}

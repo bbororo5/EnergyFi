@@ -43,7 +43,7 @@ Runtime files:
 - region detail hook: `mobile/hooks/use-region-analytics.ts`
 - overview screen: `mobile/app/(tabs)/portfolio/index.tsx`
 - shared detail screen: `mobile/app/region/[id].tsx`
-- analytics wrapper route: `mobile/app/(tabs)/portfolio/[id].tsx`
+- analytics wrapper route: `mobile/app/(tabs)/analytics/[id].tsx`
 
 Runtime config can be overridden with:
 

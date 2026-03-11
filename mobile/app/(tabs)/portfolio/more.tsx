@@ -43,19 +43,19 @@ export default function MoreScreen() {
           <MenuButton
             icon={<Bell size={20} color={colors.textSecondary} strokeWidth={2} />}
             label="Alert settings"
-            onPress={() => router.push('/(tabs)/account/alerts-settings')}
+            onPress={() => router.push('/portfolio/alerts-settings')}
           />
           <View style={styles.menuDivider} />
           <MenuButton
             icon={<Settings size={20} color={colors.textSecondary} strokeWidth={2} />}
             label="Settings"
-            onPress={() => router.push('/(tabs)/account/settings')}
+            onPress={() => router.push('/portfolio/settings')}
           />
           <View style={styles.menuDivider} />
           <MenuButton
             icon={<BookOpen size={20} color={colors.textSecondary} strokeWidth={2} />}
             label="Learn"
-            onPress={() => router.push('/(tabs)/account/learn')}
+            onPress={() => router.push('/portfolio/learn')}
           />
         </SurfaceCard>
 
@@ -81,7 +81,7 @@ export default function MoreScreen() {
               <MenuButton
                 icon={<item.icon size={20} color={colors.textSecondary} />}
                 label={item.label}
-                onPress={() => router.push({ pathname: '/(tabs)/account/document', params: { type: item.type } })}
+                onPress={() => router.push(`/portfolio/document?type=${item.type}`)}
               />
             </View>
           ))}

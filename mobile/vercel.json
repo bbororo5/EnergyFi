@@ -13,8 +13,12 @@
       "destination": "/region/[id].html"
     },
     {
+      "source": "/analytics/:id",
+      "destination": "/analytics/[id].html"
+    },
+    {
       "source": "/portfolio/:id",
-      "destination": "/portfolio/[id].html"
+      "destination": "/region/[id].html"
     },
     {
       "source": "/admin/oracle",

@@ -5,7 +5,13 @@ export default function PortfolioLayout() {
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="[id]" />
+      <Stack.Screen name="more" />
+      <Stack.Screen name="payout-history" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="alerts-settings" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="learn" />
+      <Stack.Screen name="document" />
     </Stack>
   );
 }

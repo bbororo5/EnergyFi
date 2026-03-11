@@ -7,7 +7,7 @@ import { SurfaceCard } from '@/components/ui/card';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatTile } from '@/components/ui/stat-tile';
 import { colors, radius, typography } from '@/constants/theme';
-import { formatKrwShort } from '@/hooks/use-analytics-overview';
+import { formatKrwShort } from '@/lib/domain/analytics';
 import { type AccountPayoutRecord, useDemoInvestorPortfolio } from '@/hooks/use-demo-investor-portfolio';
 
 function PayoutStatusBadge({ status }: { status: AccountPayoutRecord['payoutStatus'] }) {

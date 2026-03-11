@@ -2,9 +2,9 @@ import { startTransition, useEffect, useState } from 'react';
 import {
   formatKrwShort,
   formatPeriodLabel,
-  useAnalyticsOverview,
   type RegionEvidenceSummary,
-} from '@/hooks/use-analytics-overview';
+} from '@/lib/domain/analytics';
+import { useAnalyticsOverview } from '@/hooks/use-analytics-overview';
 import { regionCatalog } from '@/data/regions';
 
 type RegionNarrativeTone = 'sky' | 'emerald' | 'indigo' | 'neutral';

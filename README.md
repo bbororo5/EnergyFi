@@ -22,13 +22,13 @@
 
 ## Try It Yourself
 
-Mint 3 EV charging sessions on our live Avalanche L1 and verify them on the explorer:
+Mint 3 EV charging sessions on the current judge-facing Avalanche review network and verify them on the explorer:
 
 ```bash
 cd contracts && npm install && npm run judge:testnet
 ```
 
-The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times — each run creates new sessions.
+The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times. Each run creates new sessions on the review network hardcoded in the script.
 
 > Requires Node.js 24.x only. No `.env` configuration needed — testnet credentials are embedded in the script.
 
@@ -38,11 +38,13 @@ The script processes 3 charging sessions through the full pipeline (SE signature
 - Quick review guide: [docs/judge-quick-start.md](./docs/judge-quick-start.md)
 - Contract deployment evidence: [docs/contract-deployment-links.md](./docs/contract-deployment-links.md)
 
-Current public MVP network:
+Current judge-facing review network:
 
 - Chain ID: `64058`
 - RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
 - Explorer: [https://explorer-test.avax.network/efy](https://explorer-test.avax.network/efy)
+
+This review network is defined in [contracts/scripts/verify/public-demo.ts](./contracts/scripts/verify/public-demo.ts). It is separate from the repository's long-term target L1 configuration in `l1-config/`.
 
 ## What is EnergyFi?
 
@@ -81,7 +83,7 @@ flowchart TB
 
 **Layer 3 — Platform**: STRIKON, a production EV charging platform with 30+ Go microservices, handles charger management (OCPP 1.6/2.1), billing, payment processing, and settlement. Only after a payment is fully settled does it emit an `invoice.paid` event.
 
-**Layer 4 — Blockchain**: EnergyFi's dedicated Avalanche L1 (Chain ID 270626, zero-gas) receives the settled data via a Bridge wallet and records it immutably through the contract surface defined in `contracts/docs/`.
+**Layer 4 — Blockchain**: EnergyFi's target Avalanche L1 configuration is defined in [l1-config/genesis.json](./l1-config/genesis.json) with Chain ID `270626` and zero-gas economics. The current public judge flow above runs on a separate review network (`64058`) defined in [contracts/scripts/verify/public-demo.ts](./contracts/scripts/verify/public-demo.ts).
 
 ### Bookend Signature Model
 
@@ -153,7 +155,7 @@ Every contract exists because a specific business requirement demanded it. Here 
 
 ### Current Demo Surface
 
-The current public demo deployment exposes 8 contracts. The full phased contract map, including held/optional surfaces, is maintained in [contracts/docs/implementation-roadmap.md](contracts/docs/implementation-roadmap.md).
+The repository currently implements the contract surface below. For judge review, the live mutation path exercised by `npm run judge:testnet` directly touches `ChargeRouter`, `ChargeTransaction`, and `RevenueTracker`, and transitively depends on `DeviceRegistry` and `StationRegistry`. The full phased map is maintained in [contracts/docs/implementation-roadmap.md](contracts/docs/implementation-roadmap.md).
 
 | Phase | Category | Contract | Token Standard | Status |
 |:---|:---|:---|:---|:---|
@@ -162,9 +164,9 @@ The current public demo deployment exposes 8 contracts. The full phased contract
 | 2 | Transaction | **ChargeRouter** | — | Deployed |
 | 2 | Transaction | **ChargeTransaction** | ERC-721 (Soulbound) | Deployed |
 | 2 | Revenue | **RevenueTracker** | — | Deployed |
-| 3 | Investment | **RegionSTO** | ERC-20 prototype | Deployed (policy hold) |
-| 3 | Investment | **RegionSTOFactory** | — | Deployed |
-| 4 | Operations | **ReputationRegistry** | — | Deployed |
+| 3 | Investment | **RegionSTO** | ERC-20 prototype | Implemented in code (policy hold) |
+| 3 | Investment | **RegionSTOFactory** | — | Deployed in repo-managed testnet artifacts |
+| 4 | Operations | **ReputationRegistry** | — | Deployed in repo-managed testnet artifacts |
 
 ### Contract Dependency Graph
 
@@ -189,7 +191,7 @@ flowchart TD
 - **Soulbound ERC-721**: Charging sessions are immutable evidence, not tradeable assets. Minted to `address(this)`, transfers disabled.
 - **UUPS Proxy**: All contracts are upgradeable via UUPS pattern for post-deployment bug fixes and regulatory adaptation.
 - **`BridgeGuarded` base contract**: The Bridge wallet (AWS KMS HSM) is the sole trusted entry point from STRIKON. `onlyBridge` modifier on all write operations.
-- **Zero-gas private chain**: Chain ID 270626. Per-session data recording triggered by `invoice.paid`. Gas optimization is irrelevant — investor protection takes priority.
+- **Zero-gas target L1**: `l1-config/genesis.json` defines Chain ID `270626`. The current judge-facing review flow uses a separate review chain (`64058`) so reviewers can run `judge:testnet` without reproducing the full deployment environment.
 
 ---
 
@@ -263,7 +265,9 @@ npx expo start                                # iOS / Android / Web
 
 > Full setup guide: [Environment Setup](docs/environment-setup.md)
 >
-> For local compile and test runs, a deployment is not required. `.env` is mainly needed for networked scripts such as live demo, deployment, and seeded testnet flows.
+> For local compile and test runs, a deployment is not required. `.env` is mainly needed for networked scripts such as judge review, deployment, and seeded testnet flows.
+>
+> Starting `mobile/` locally does not reproduce the public review environment by itself. The committed app uses repo-local defaults from [mobile/constants/contracts.ts](./mobile/constants/contracts.ts) unless you provide a `mobile/.env` for a specific network.
 
 ---
 

@@ -1,6 +1,6 @@
 # EnergyFi — Judge Quick Start
 
-This page is the fastest way to validate the public EnergyFi MVP.
+This page is the fastest way to validate the current judge-facing EnergyFi review flow from committed code.
 
 ## 1. Public Materials
 
@@ -10,7 +10,7 @@ This page is the fastest way to validate the public EnergyFi MVP.
 
 ## 2. Network To Inspect
 
-The current public MVP reads from the EnergyFi Avalanche L1 testnet deployment below.
+The current judge flow uses the review network hardcoded in [contracts/scripts/verify/public-demo.ts](../contracts/scripts/verify/public-demo.ts).
 
 - Chain ID: `64058`
 - JSON-RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
@@ -60,7 +60,7 @@ Open the address pages in [contract-deployment-links.md](./contract-deployment-l
 ```bash
 curl -s -X POST https://subnets.avax.network/efy/testnet/rpc \
   -H 'content-type: application/json' \
-  --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0x681dCb012cC66ea2f6BF2dC41876A3bb52b1F153","latest"],"id":1}'
+  --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0x743907BE700c527950D912ec2fe35D3e701D1286","latest"],"id":1}'
 ```
 
 Expected shape:
@@ -69,28 +69,31 @@ Expected shape:
 {"result":"0x60806040...","id":1,"jsonrpc":"2.0"}
 ```
 
-## 5. Current Public MVP Source of Truth
+## 5. Repository Source of Truth
 
-For the public demo that judges can access, the active contract wiring is taken from the live MVP environment configuration in `mobile/.env`.
+For GitHub review, treat committed code as the source of truth:
 
-This matters because the repository also contains older deployment artifacts for previous test deployments. The judge-facing proof package should always follow the addresses used by the live MVP.
+- [contracts/scripts/verify/public-demo.ts](../contracts/scripts/verify/public-demo.ts) is the source of truth for the current judge command, review RPC, explorer, and the contract addresses it actively writes through.
+- [contracts/deployments.json](../contracts/deployments.json) is the source of truth for the repository-managed `energyfi-l1-testnet` deployment artifact set.
+- [mobile/constants/contracts.ts](../mobile/constants/contracts.ts) is the source of truth for committed mobile fallback wiring. It is a repo default, not proof of the live public review environment.
 
-## 6. Read-Back Evidence Snapshot
+Do not treat an uncommitted `mobile/.env` file as repository evidence.
 
-As of March 10, 2026, direct RPC reads from the public MVP contract set returned:
+## 6. What Should Change After A Judge Run
 
-- `ChargeTransaction.totalSessions() = 105`
-- `RevenueTracker.getRegionRevenue(KR11) = 13627`
-- `StationRegistry.getStationsByRegion(KR11).length = 2`
-- `ReputationRegistry.getRegionSnapshotPeriods(KR11, MONTHLY) = [202602, 202603]`
-- `ChargeRouter.bridgeAddress()` returns a configured bridge wallet
-- `ReputationRegistry.bridgeAddress()` returns a configured bridge wallet
+After `npm run judge:testnet` succeeds:
+
+- `ChargeTransaction.totalSessions()` should increase
+- `RevenueTracker.getRegionRevenue(KR11)` should increase
+- the explorer should show 3 new `processCharge` transactions
+- `ChargeRouter.bridgeAddress()` should remain configured
 
 ## 7. Recommended Review Order
 
 For a quick technical review, use the following order:
 
-1. Open the live MVP.
-2. Open the contract address list in [contract-deployment-links.md](./contract-deployment-links.md).
-3. Cross-check one or two addresses in the explorer.
+1. Run `cd contracts && npm install && npm run judge:testnet`.
+2. Open the transaction links printed by the script in the explorer.
+3. Open the contract address list in [contract-deployment-links.md](./contract-deployment-links.md).
 4. If deeper validation is needed, run the JSON-RPC commands above.
+5. Use the live MVP as a read-only UI check, not as the repository source of truth.

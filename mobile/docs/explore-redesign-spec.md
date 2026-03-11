@@ -97,14 +97,9 @@ Search matches:
 
 ## Deployment Notes
 
-Contract-side helper scripts added for this flow:
+Contract-side setup for this flow is now folded into the canonical deployment surface:
 
-- `contracts/scripts/deploy-reputation.ts`
-- `contracts/scripts/seed-reputation.ts`
+- `cd contracts && npm run deploy:surface:testnet`
+- `cd contracts && npm run seed:demo:testnet`
 
-Related npm commands:
-
-- `cd contracts && npm run deploy:reputation:fuji`
-- `cd contracts && npm run seed:reputation:fuji`
-
-The current Fuji deployment is blocked until the configured deployer wallet has test AVAX.
+Reputation deployment and seeding are no longer separate public entry points.

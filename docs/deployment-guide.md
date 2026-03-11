@@ -180,7 +180,7 @@ Seed data and tranche issuance are separate post-deploy steps.
 Treat the following files as the source of truth instead of copying address snapshots into this guide:
 
 - [contracts/deployments.json](../contracts/deployments.json) for the repo-managed deployment artifact
-- [contracts/scripts/verify/public-demo.ts](../contracts/scripts/verify/public-demo.ts) for the current judge-review network
+- [contracts/scripts/verify/judge-demo.ts](../contracts/scripts/verify/judge-demo.ts) for the current judge-review network
 
 ## 5. [Unit C] Mobile App
 

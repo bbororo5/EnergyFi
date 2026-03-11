@@ -105,8 +105,8 @@ function signSession(
   return hexlify(wallet.signingKey.sign(digest).serialized) as `0x${string}`;
 }
 
-function publicDemoSessionId(runTs: number, index: number): `0x${string}` {
-  return keccak256(toUtf8Bytes(`public-demo:${runTs}:${index}`)) as `0x${string}`;
+function judgeDemoSessionId(runTs: number, index: number): `0x${string}` {
+  return keccak256(toUtf8Bytes(`judge-demo:${runTs}:${index}`)) as `0x${string}`;
 }
 
 // ─── Demo session templates ──────────────────────────────────────────────────
@@ -324,7 +324,7 @@ async function main() {
   const txHashes: string[] = [];
 
   for (const [i, template] of DEMO_SESSIONS.entries()) {
-    const sessionId = publicDemoSessionId(runTs, i);
+    const sessionId = judgeDemoSessionId(runTs, i);
     const chargerId = encodeBytes32String(template.chargerLabel);
     const stationId = encodeBytes32String(template.stationLabel);
 

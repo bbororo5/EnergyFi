@@ -15,7 +15,7 @@
     "deploy:essential:testnet": "npx hardhat run scripts/deploy/essential.ts --network energyfi-l1-testnet",
     "deploy:surface:testnet": "npx hardhat run scripts/deploy/surface.ts --network energyfi-l1-testnet",
     "seed:demo:testnet": "npx hardhat run scripts/seed/demo.ts --network energyfi-l1-testnet",
-    "judge:testnet": "tsx scripts/verify/public-demo.ts",
+    "judge:testnet": "tsx scripts/verify/judge-demo.ts",
     "dashboard:testnet": "tsx tools/dashboard/server.ts energyfi-l1-testnet"
   },
   "keywords": [],

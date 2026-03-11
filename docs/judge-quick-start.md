@@ -10,7 +10,7 @@ This page is the fastest way to validate the current judge-facing EnergyFi revie
 
 ## 2. Network To Inspect
 
-The current judge flow uses the review network hardcoded in [contracts/scripts/verify/public-demo.ts](../contracts/scripts/verify/public-demo.ts).
+The current judge flow uses the review network hardcoded in [contracts/scripts/verify/judge-demo.ts](../contracts/scripts/verify/judge-demo.ts).
 
 - Chain ID: `64058`
 - JSON-RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
@@ -73,7 +73,7 @@ Expected shape:
 
 For GitHub review, treat committed code as the source of truth:
 
-- [contracts/scripts/verify/public-demo.ts](../contracts/scripts/verify/public-demo.ts) is the source of truth for the current judge command, review RPC, explorer, and the contract addresses it actively writes through.
+- [contracts/scripts/verify/judge-demo.ts](../contracts/scripts/verify/judge-demo.ts) is the source of truth for the current judge command, review RPC, explorer, and the contract addresses it actively writes through.
 - [contracts/deployments.json](../contracts/deployments.json) is the source of truth for the repository-managed `energyfi-l1-testnet` deployment artifact set.
 - [mobile/constants/contracts.ts](../mobile/constants/contracts.ts) is the source of truth for committed mobile fallback wiring. It is a repo default, not proof of the live public review environment.
 

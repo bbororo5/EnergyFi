@@ -43,7 +43,7 @@ Layer 3 (Blockchain): EnergyFi — Avalanche L1 private chain (this repository)
 
 **Key boundaries**:
 - STRIKON is an external platform. From EnergyFi's perspective, it is a **trusted external caller** via the Bridge wallet (`onlyBridge` modifier).
-- EnergyFi repo scope: smart contracts (`contracts/`) + L1 chain config (`l1-config/`) + investor mobile app (`mobile/`).
+- EnergyFi repo scope: smart contracts (`contracts/`) + investor mobile app (`mobile/`). The target L1 config is being rewritten and is not currently committed in this repository snapshot.
 - Data flow: SE chip signature → Embedded System → STRIKON → Bridge wallet → On-chain `ChargeTransaction.mint()` → `DeviceRegistry.verifySignature()`.
 - Trust model: Bookend Signature — SE chip signs at origin (P-256), Bridge wallet signs on-chain TX. DeviceRegistry verifies the SE signature on every mint(). Both match = path integrity verified.
 - SE chip public keys are pre-enrolled in DeviceRegistry before charger launch. From Phase 1, all charging sessions carry real SE signatures.
@@ -56,7 +56,6 @@ Layer 3 (Blockchain): EnergyFi — Avalanche L1 private chain (this repository)
 EnergyFi/
 ├── contracts/       # Avalanche L1 smart contracts (Hardhat 3, ESM)
 │   └── docs/           # Contract-specific docs (spec, roadmap, ERC analysis)
-├── l1-config/          # L1 chain configuration (genesis.json, config.json)
 ├── mobile/             # Investor mobile app (React Native + Expo)
 │   └── docs/           # Mobile-specific docs
 ├── docs/               # Cross-cutting documentation
@@ -72,7 +71,7 @@ EnergyFi/
 
 | Deployment Unit | Path | Stack | Status |
 |:---|:---|:---|:---|
-| L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | Active |
+| L1 Infrastructure | external/private config workspace | Avalanche-CLI / AvaCloud | Being rewritten |
 | L1 Smart Contracts | `contracts/` | Solidity ^0.8.20, Hardhat 3 | Active |
 | Mobile App | `mobile/` | React Native + Expo, TypeScript | Active (demo) |
 
@@ -85,7 +84,7 @@ These rules are absolute. Never bypass them.
 1. **Never modify private key or signing logic** without explicit human approval.
 2. **Never unilaterally change logic that affects investor balances** (mint, burn, transfer, distribute, claim). Always request human review.
 3. **KYC/AML and transfer restriction logic** — Any refactoring of regulatory compliance logic requires explicit human confirmation before implementation.
-4. **`l1-config/` changes are highest risk** — L1 chain configuration has broader blast radius than any contract change. Always confirm with human before modifying `genesis.json` or `config.json`.
+4. **L1 chain configuration changes are highest risk** — Target-chain genesis/runtime config has broader blast radius than any contract change. Always confirm with human before modifying or reintroducing canonical L1 configuration files.
 
 ---
 
@@ -139,7 +138,7 @@ cd contracts && npm install
 | **Station** | Physical charging station. All on-chain stations are EnergyFi-owned. Belongs to a region (regionId). Revenue flows 100% to the region's STO investor pool. |
 | **SE signature** | TPM 2.0 Secure Element digital signature on raw metering data (P-256/secp256r1). Active from Phase 1 (platform + hardware launch simultaneously). Verified on-chain via DeviceRegistry. |
 | **DeviceRegistry** | 10th contract in the architecture. Stores SE chip public keys (P-256, 64 bytes) bound to chargerId. Called by ChargeTransaction.mint() to verify every seSignature. |
-| **RIP-7212** | EIP-7212 P-256 verification precompile at address(0x100). Required for DeviceRegistry SE signature verification. Must be enabled in l1-config/genesis.json (separate approval). |
+| **RIP-7212** | EIP-7212 P-256 verification precompile at address(0x100). Required for DeviceRegistry SE signature verification. It must be enabled in the target L1 genesis configuration (separate approval). |
 | **dMRV** | Digital Measurement, Reporting, and Verification — blockchain transparency for carbon credit verification (Verra VCS VM0038). |
 | **VVB** | Validation and Verification Body — independent auditor for carbon credits. |
 | **VCU** | Verified Carbon Unit — carbon credit issued by Verra after VVB verification. |

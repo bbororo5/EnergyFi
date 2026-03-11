@@ -67,7 +67,7 @@ Phase 2 reconstructs this exact hash inside `ChargeTransaction`.
 #### External dependency
 
 - **RIP-7212 precompile** at `address(0x100)` is required for P-256 verification.
-- It must be enabled in `l1-config/genesis.json`.
+- It must be enabled in the target L1 genesis configuration.
 
 ---
 

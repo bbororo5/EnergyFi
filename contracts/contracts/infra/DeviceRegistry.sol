@@ -17,8 +17,8 @@ import "../interfaces/infra/IDeviceRegistry.sol";
  *
  * Signature verification:
  *  - P-256 (secp256r1): uses RIP-7212 precompile at address(0x100).
- *    Requires the EnergyFi L1 genesis.json to enable the precompile.
- *    See: l1-config/genesis.json (separate approval required per CLAUDE.md §5).
+ *    Requires the target EnergyFi L1 genesis configuration to enable the precompile.
+ *    This is a separate approval item per CLAUDE.md §5.
  *  - secp256k1: uses ecrecover (fallback, not expected for TPM 2.0 chips).
  *
  * Message format signed by the SE chip:
@@ -88,7 +88,7 @@ contract DeviceRegistry is
     mapping(bytes32 pubkeyHash => bytes32 chargerId) private _chargerByPubkey;
 
     /// @dev RIP-7212 P-256 verification precompile address.
-    ///      Must be enabled in l1-config/genesis.json (approved separately).
+    ///      Must be enabled in the target L1 genesis configuration (approved separately).
     address private constant P256_PRECOMPILE = address(0x100);
 
     // ─────────────────────────────────────────────────────────────────────────

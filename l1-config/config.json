@@ -1,7 +1,0 @@
-{
-  "snowman-api-enabled": false,
-  "local-txs-enabled": true,
-  "pruning-enabled": true,
-  "admin-api-enabled": true,
-  "log-level": "info"
-}

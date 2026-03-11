@@ -4,7 +4,7 @@
 
 ## 1. Scope
 
-EnergyFi = **Layer 3** (smart contracts + L1 chain config) + **Layer 4** (investor mobile app) on a dedicated Avalanche L1 private chain. It receives SE-signed charging data from the STRIKON platform (Layers 1-2) and records it immutably on-chain.
+EnergyFi = **Layer 3** (smart contracts) + **Layer 4** (investor mobile app) on a dedicated Avalanche L1 private chain. The target L1 config is being rewritten and is not currently committed in this repo snapshot. EnergyFi receives SE-signed charging data from the STRIKON platform (Layers 1-2) and records it immutably on-chain.
 
 ```
 EnergyFi scope
@@ -32,7 +32,7 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 
 | Unit | Name | Path | Stack | Status |
 |:---|:---|:---|:---|:---|
-| A | L1 Infrastructure | `l1-config/` | Avalanche-CLI, JSON config | Active |
+| A | L1 Infrastructure | external/private config workspace | Avalanche-CLI, JSON config | Being rewritten |
 | B | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | Active |
 | C | Mobile App | `mobile/` | React Native + Expo (SDK 54), TypeScript | Active (demo) |
 
@@ -48,9 +48,6 @@ EnergyFi/
 │   │   └── dashboard/     # Express UI and HTTP routes
 │   ├── test/              # Hardhat unit tests
 │   └── hardhat.config.ts
-├── l1-config/             # Unit A: L1 genesis & runtime config
-│   ├── genesis.json
-│   └── config.json
 ├── mobile/                # Unit C: React Native + Expo SDK 54 (TypeScript, expo-router v6)
 ├── docs/                  # Project documentation
 └── .env.example           # Environment variable template

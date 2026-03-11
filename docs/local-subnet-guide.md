@@ -153,7 +153,7 @@ Use the standard feeConfig from `--test-defaults` instead. Gas costs are irrelev
 
 ### 6.4 Do NOT use `--genesis` with a custom genesis file
 
-Passing `--genesis l1-config/genesis.json` skips the CLI's auto-generated components:
+Passing `--genesis <custom-genesis.json>` skips the CLI's auto-generated components:
 - Validator Manager contract alloc (required for PoA block production)
 - warpConfig (required for Validator Manager initialization)
 - Correct genesis timestamp

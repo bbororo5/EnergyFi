@@ -95,7 +95,7 @@ Physical measurement layer with hardware-level data integrity.
 - **Data Flow**: SE chip signature → Embedded System → Platform → Avalanche L1 on-chain record.
 - This architecture solves the oracle problem at the hardware level, providing tamper-proof data from physical reality to on-chain state.
 
-### 2.5 L1 Chain Configuration (`l1-config/`)
+### 2.5 L1 Chain Configuration
 Dedicated Avalanche L1 private chain for all EnergyFi smart contracts.
 
 | Property | Value |

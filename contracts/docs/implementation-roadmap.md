@@ -272,7 +272,7 @@ For the policy source of truth, also read [../../AGENTS.md](../../AGENTS.md) and
 | Phase 3 Spec | [phase3-sto-spec.md](phase3-sto-spec.md) |
 | Phase 4 Spec | [phase4-reputation-spec.md](phase4-reputation-spec.md) |
 | Phase 5 Spec | [phase5-carbon-spec.md](phase5-carbon-spec.md) |
-| Quality Attributes | [architecture-quality-attributes.md](architecture-quality-attributes.md) |
+| Contract Quality Gates | [contract-quality-gates.md](contract-quality-gates.md) |
 | Root Architecture | [../../docs/architecture.md](../../docs/architecture.md) |
 
 ---

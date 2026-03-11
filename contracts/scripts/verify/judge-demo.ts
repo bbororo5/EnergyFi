@@ -180,7 +180,7 @@ function printBefore(totalSessions: bigint, regionRevenue: bigint) {
     `  Total sessions on-chain : ${C.bold}${totalSessions.toString()}${C.reset}`,
   );
   console.log(
-    `  Seoul (KR11) revenue    : ${C.bold}${Number(regionRevenue).toLocaleString()} KRW${C.reset}`,
+    `  Seoul (KR11) pending revenue (region total) : ${C.bold}${Number(regionRevenue).toLocaleString()} KRW${C.reset}`,
   );
   console.log();
 }
@@ -219,7 +219,7 @@ function printAfter(totalSessions: bigint, regionRevenue: bigint) {
     `  Total sessions on-chain : ${C.bold}${totalSessions.toString()}${C.reset}`,
   );
   console.log(
-    `  Seoul (KR11) revenue    : ${C.bold}${Number(regionRevenue).toLocaleString()} KRW${C.reset}`,
+    `  Seoul (KR11) pending revenue (region total) : ${C.bold}${Number(regionRevenue).toLocaleString()} KRW${C.reset}`,
   );
   console.log();
 }
@@ -246,6 +246,22 @@ function printSummary(
     `  Revenue  : ${Number(revenueBefore).toLocaleString()} \u2192 ${C.green}${C.bold}${Number(revenueAfter).toLocaleString()} KRW${C.reset} ${C.green}(+${Number(revenueDelta).toLocaleString()})${C.reset}`,
   );
 
+  console.log();
+  console.log(
+    `${C.yellow}\u2500\u2500\u2500 HOW TO READ THIS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
+  );
+  console.log(
+    `  This script increases ${C.bold}KR11 region total pending revenue${C.reset}.`,
+  );
+  console.log(
+    `  Home hero shows the ${C.bold}demo investor's pending share across holdings${C.reset}, so the numbers should differ.`,
+  );
+  console.log(
+    `  Published monthly charts update only after a new attestation is published.`,
+  );
+  console.log(
+    `  Sessions were added to period ${C.bold}${CURRENT_PERIOD.toString()}${C.reset} ${C.dim}(Mar 2026 pending bucket)${C.reset}.`,
+  );
   console.log();
   console.log(
     `${C.yellow}\u2500\u2500\u2500 VERIFY ON-CHAIN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,

@@ -6,7 +6,7 @@
 
 import { encodeBytes32String } from "ethers";
 import type { TestSuite } from "../lib/test-suite.js";
-import type { ContractCtx } from "../server.js";
+import type { ContractCtx } from "../context.js";
 import {
   newCounts, expectValue,
   type EmitFn, type Counts,

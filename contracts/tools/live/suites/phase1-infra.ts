@@ -6,7 +6,7 @@
 
 import { ethers } from "ethers";
 import type { TestSuite } from "../lib/test-suite.js";
-import type { ContractCtx } from "../server.js";
+import type { ContractCtx } from "../context.js";
 import {
   b32, regionBytes4, randomPubKey, newCounts,
   expectRevert, setup, expectSuccess, expectValue,

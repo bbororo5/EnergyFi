@@ -4,9 +4,9 @@
  */
 
 import { Router } from "express";
-import type { ContractCtx } from "../server.js";
+import type { ContractCtx } from "../../live/context.js";
 import { encodeBytes32String } from "ethers";
-import { regionBytes4, safeDecodeB32 } from "../lib/utils.js";
+import { regionBytes4, safeDecodeB32 } from "../../live/lib/utils.js";
 
 export function buildQueryRouter(ctx: ContractCtx): Router {
   const router = Router();

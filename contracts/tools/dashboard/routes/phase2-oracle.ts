@@ -4,7 +4,7 @@
  */
 
 import { Router } from "express";
-import type { ContractCtx } from "../server.js";
+import type { ContractCtx } from "../../live/context.js";
 import {
   encodeBytes32String,
   Wallet,
@@ -18,8 +18,8 @@ import {
   buildRandomSession,
   generateAndProcessSession,
   extractRevertReason,
-} from "../lib/p256-keys.js";
-import { calculatePeriod } from "../lib/utils.js";
+} from "../../live/lib/p256-keys.js";
+import { calculatePeriod } from "../../live/lib/utils.js";
 
 export function buildPhase2OracleRouter(ctx: ContractCtx): Router {
   const router = Router();

@@ -27,6 +27,8 @@ contracts/build/
 
 # Foundry (if used)
 lib/
+!contracts/tools/live/lib/
+!contracts/tools/live/lib/**
 broadcast/
 out/
 forge-cache/

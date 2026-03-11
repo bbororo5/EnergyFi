@@ -4,11 +4,11 @@
  * ⚠️  이 Suite의 모든 테스트(AD-1 pause, AD-2 bridgeAddress CR, AD-3 bridgeAddress CT)는
  *    IChargeRouter / IChargeTransaction 인터페이스에 포함되지 않는 함수를 사용합니다.
  *    인터페이스-전용 원칙에 따라 테스트를 비워두었습니다.
- *    - cli-runner.ts의 ALL_SUITES에서도 제외됨
+ *    - 라이브 검증 스위트 목록에서도 제외됨
  */
 
 import type { TestSuite } from "../lib/test-suite.js";
-import type { ContractCtx } from "../server.js";
+import type { ContractCtx } from "../context.js";
 import {
   newCounts,
   type EmitFn, type Counts,

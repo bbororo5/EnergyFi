@@ -32,23 +32,17 @@ The script processes 3 charging sessions through the full pipeline (SE signature
 
 > Requires Node.js 24.x and a configured `.env` (see [Environment Setup](docs/environment-setup.md))
 
-## Judge Quick Links
+## Public MVP Verification
 
 - Live MVP: [https://energyfi-mobile-demo.vercel.app](https://energyfi-mobile-demo.vercel.app)
-- Judge quick start: [docs/judge-quick-start.md](./docs/judge-quick-start.md)
-- Contract deployment links: [docs/contract-deployment-links.md](./docs/contract-deployment-links.md)
+- Quick review guide: [docs/judge-quick-start.md](./docs/judge-quick-start.md)
+- Contract deployment evidence: [docs/contract-deployment-links.md](./docs/contract-deployment-links.md)
 
-### Current Public MVP Network
+Current public MVP network:
 
 - Chain ID: `64058`
 - RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
 - Explorer: [https://explorer-test.avax.network/efy](https://explorer-test.avax.network/efy)
-
-### Fast Proof
-
-- `eth_chainId` on the public RPC returns `0xfa3a`
-- `eth_getCode` on the public MVP contract addresses returns non-empty bytecode
-- Live read-back examples are documented in [docs/judge-quick-start.md](./docs/judge-quick-start.md)
 
 ## What is EnergyFi?
 

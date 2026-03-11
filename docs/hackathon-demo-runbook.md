@@ -14,7 +14,7 @@ ENERGYFI_L1_TESTNET_CHAIN_ID=59012
 
 For the currently deployed AvaCloud demo chain on March 10, 2026, the live RPC reports `chainId = 59012`. If AvaCloud rotates the test chain later, update this value to whatever `eth_chainId` returns.
 
-For `seed-demo.ts`, the signer behind `DEPLOYER_PRIVATE_KEY` must satisfy all of these on the deployed contracts:
+For `scripts/seed/demo.ts` (`npm run seed:demo:testnet`), the signer behind `DEPLOYER_PRIVATE_KEY` must satisfy all of these on the deployed contracts:
 
 - `DeviceRegistry.ADMIN_ROLE`
 - `StationRegistry.ADMIN_ROLE`

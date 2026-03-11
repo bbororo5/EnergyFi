@@ -65,22 +65,22 @@ describe("DeviceRegistry", function () {
   // ── enrollChip ──────────────────────────────────────────────────────────────
 
   describe("enrollChip", function () {
-    it("ADMIN_ROLE 없는 주소의 enrollChip() → revert", async function () {
+    it("reverts when enrollChip() is called without ADMIN_ROLE", async function () {
       await expectRevert(
         deviceRegistry.connect(nonAdmin).enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1)
       );
     });
 
-    it("SE 칩 등록 후 isActiveChip() true 반환", async function () {
+    it("returns true from isActiveChip() after chip enrollment", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       expect(await deviceRegistry.isActiveChip(CHARGER_1)).to.equal(true);
     });
 
-    it("미등록 chargerId의 isActiveChip() false 반환", async function () {
+    it("returns false from isActiveChip() for an unknown chargerId", async function () {
       expect(await deviceRegistry.isActiveChip(CHARGER_1)).to.equal(false);
     });
 
-    it("동일 chargerId 중복 등록 → revert ChipAlreadyActive", async function () {
+    it("reverts with ChipAlreadyActive for duplicate chargerId enrollment", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await expectRevertCustomError(
         deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet2), SECP256K1),
@@ -88,7 +88,7 @@ describe("DeviceRegistry", function () {
       );
     });
 
-    it("동일 publicKey 다른 chargerId → revert PublicKeyAlreadyRegistered", async function () {
+    it("reverts with PublicKeyAlreadyRegistered when reusing a publicKey", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await expectRevertCustomError(
         deviceRegistry.enrollChip(CHARGER_2, getPublicKey64(wallet1), SECP256K1),
@@ -96,7 +96,7 @@ describe("DeviceRegistry", function () {
       );
     });
 
-    it("64바이트 아닌 publicKey → revert InvalidPublicKeyLength", async function () {
+    it("reverts with InvalidPublicKeyLength for a non-64-byte publicKey", async function () {
       await expectRevertCustomError(
         deviceRegistry.enrollChip(CHARGER_1, new Uint8Array(32), SECP256K1),
         "InvalidPublicKeyLength"
@@ -110,7 +110,7 @@ describe("DeviceRegistry", function () {
       );
     });
 
-    it("enrollChip() → ChipEnrolled 이벤트 발행", async function () {
+    it("emits ChipEnrolled on enrollChip()", async function () {
       const pub64 = getPublicKey64(wallet1);
       const pubkeyHash = keccak256(pub64);
       const tx = await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
@@ -126,22 +126,22 @@ describe("DeviceRegistry", function () {
   // ── revokeChip ──────────────────────────────────────────────────────────────
 
   describe("revokeChip", function () {
-    it("revokeChip() 후 isActiveChip() false 반환", async function () {
+    it("returns false from isActiveChip() after revokeChip()", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await deviceRegistry.revokeChip(CHARGER_1);
       expect(await deviceRegistry.isActiveChip(CHARGER_1)).to.equal(false);
     });
 
-    it("ADMIN_ROLE 없는 주소의 revokeChip() → revert", async function () {
+    it("reverts when revokeChip() is called without ADMIN_ROLE", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await expectRevert(deviceRegistry.connect(nonAdmin).revokeChip(CHARGER_1));
     });
 
-    it("활성 칩 없는 chargerId revokeChip() → revert NoActiveChip", async function () {
+    it("reverts with NoActiveChip when revokeChip() targets an inactive charger", async function () {
       await expectRevertCustomError(deviceRegistry.revokeChip(CHARGER_1), "NoActiveChip");
     });
 
-    it("revokeChip() → ChipRevoked 이벤트 발행", async function () {
+    it("emits ChipRevoked on revokeChip()", async function () {
       const pub64 = getPublicKey64(wallet1);
       const pubkeyHash = keccak256(pub64);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
@@ -153,7 +153,7 @@ describe("DeviceRegistry", function () {
       expect(event.args.pubkeyHash).to.equal(pubkeyHash);
     });
 
-    it("revoke 후 동일 chargerId 재등록 가능 (다른 키)", async function () {
+    it("allows re-enrollment of the same chargerId after revoke with a different key", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await deviceRegistry.revokeChip(CHARGER_1);
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet2), SECP256K1);
@@ -164,7 +164,7 @@ describe("DeviceRegistry", function () {
   // ── verifySignature ─────────────────────────────────────────────────────────
 
   describe("verifySignature (secp256k1)", function () {
-    it("등록된 공개키 서명의 verifySignature() → true", async function () {
+    it("returns true from verifySignature() for a signature made with the enrolled key", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
 
       const msgHash = keccak256(
@@ -178,7 +178,7 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.verifySignature(CHARGER_1, msgHash, sig)).to.equal(true);
     });
 
-    it("다른 키로 서명한 경우 → false", async function () {
+    it("returns false from verifySignature() for a signature made with a different key", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
 
       const msgHash = keccak256(solidityPacked(["bytes32"], [CHARGER_1]));
@@ -187,13 +187,13 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.verifySignature(CHARGER_1, msgHash, wrongSig)).to.equal(false);
     });
 
-    it("미등록 chargerId의 verifySignature() → false", async function () {
+    it("returns false from verifySignature() for an unknown chargerId", async function () {
       const msgHash = keccak256(solidityPacked(["bytes32"], [CHARGER_1]));
       const fakeSig = new Uint8Array(65);
       expect(await deviceRegistry.verifySignature(CHARGER_1, msgHash, fakeSig)).to.equal(false);
     });
 
-    it("revokeChip() 후 verifySignature() → false", async function () {
+    it("returns false from verifySignature() after revokeChip()", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
 
       const msgHash = keccak256(solidityPacked(["bytes32"], [CHARGER_1]));
@@ -204,7 +204,7 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.verifySignature(CHARGER_1, msgHash, sig)).to.equal(false);
     });
 
-    it("P-256 verifySignature() — RIP-7212 precompile 통합 테스트", async function () {
+    it("verifies a P-256 signature through the RIP-7212 precompile", async function () {
       // RIP-7212 precompile (address 0x100) is only available on EnergyFi L1.
       // Run with: npx hardhat test --network energyfi-l1-testnet
       if (hre.network.name !== "energyfi-l1-testnet") {
@@ -246,7 +246,7 @@ describe("DeviceRegistry", function () {
   // ── getChargerByPubkey ──────────────────────────────────────────────────────
 
   describe("getChargerByPubkey", function () {
-    it("reverse lookup 정확성 확인", async function () {
+    it("returns the correct reverse lookup result", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
 
@@ -254,13 +254,13 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.getChargerByPubkey(pubkeyHash)).to.equal(CHARGER_1);
     });
 
-    it("미등록 pubkeyHash → bytes32(0)", async function () {
+    it("returns bytes32(0) for an unknown pubkeyHash", async function () {
       const fakeHash = keccak256(getPublicKey64(wallet2));
       expect(await deviceRegistry.getChargerByPubkey(fakeHash)).to.equal(ZeroHash);
     });
 
     // T05: revokeChip 후 reverse lookup → bytes32(0)
-    it("revokeChip() 후 reverse lookup → bytes32(0)", async function () {
+    it("returns bytes32(0) from reverse lookup after revokeChip()", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
       await deviceRegistry.revokeChip(CHARGER_1);
@@ -274,7 +274,7 @@ describe("DeviceRegistry", function () {
 
   describe("getChipRecord", function () {
     // T05: 모든 필드 검증 (publicKey, publicKeyHash, algorithm, enrolledAt, active)
-    it("등록 후 getChipRecord() 모든 필드 정확성 확인 (enrolledAt 포함)", async function () {
+    it("returns all expected fields from getChipRecord() after enrollment", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
 
@@ -289,7 +289,7 @@ describe("DeviceRegistry", function () {
     });
 
     // T05: revoke 후 active = false
-    it("revokeChip 후 getChipRecord().active === false", async function () {
+    it("sets getChipRecord().active to false after revokeChip()", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
       await deviceRegistry.revokeChip(CHARGER_1);
@@ -302,7 +302,7 @@ describe("DeviceRegistry", function () {
   // ── R04: Pausable ──────────────────────────────────────────────────────────
 
   describe("Pausable (R04)", function () {
-    it("admin pause() → 성공, Paused 이벤트", async function () {
+    it("allows admin pause() and emits Paused", async function () {
       const tx = await deviceRegistry.pause();
       const receipt = await tx.wait();
       const event = findEvent(receipt, deviceRegistry, "Paused");
@@ -319,7 +319,7 @@ describe("DeviceRegistry", function () {
       await expectRevert(deviceRegistry.connect(nonAdmin).unpause());
     });
 
-    it("paused 상태에서 enrollChip() → revert EnforcedPause", async function () {
+    it("reverts enrollChip() with EnforcedPause while paused", async function () {
       await deviceRegistry.pause();
       await expectRevertCustomError(
         deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1),
@@ -327,7 +327,7 @@ describe("DeviceRegistry", function () {
       );
     });
 
-    it("paused 상태에서 revokeChip() → revert EnforcedPause", async function () {
+    it("reverts revokeChip() with EnforcedPause while paused", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await deviceRegistry.pause();
       await expectRevertCustomError(
@@ -336,14 +336,14 @@ describe("DeviceRegistry", function () {
       );
     });
 
-    it("unpause() 후 enrollChip() 정상 동작", async function () {
+    it("allows enrollChip() again after unpause()", async function () {
       await deviceRegistry.pause();
       await deviceRegistry.unpause();
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       expect(await deviceRegistry.isActiveChip(CHARGER_1)).to.equal(true);
     });
 
-    it("paused 상태에서 view 함수 정상 동작", async function () {
+    it("keeps view functions working while paused", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
       await deviceRegistry.pause();
 
@@ -370,8 +370,8 @@ describe("DeviceRegistry", function () {
 
   // ── T04: UUPS 업그레이드 데이터 보존 ──────────────────────────────────────
 
-  describe("UUPS 업그레이드 (T04)", function () {
-    it("admin 업그레이드 성공", async function () {
+  describe("UUPS upgrades (T04)", function () {
+    it("allows admin upgrade", async function () {
       const DRv2 = await ethers.getContractFactory("DeviceRegistry");
       const v2Impl = await DRv2.deploy();
       await v2Impl.waitForDeployment();
@@ -381,7 +381,7 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.isActiveChip(CHARGER_1)).to.equal(false);
     });
 
-    it("비인가 주소 업그레이드 → revert", async function () {
+    it("reverts upgrade from an unauthorized address", async function () {
       const DRv2 = await ethers.getContractFactory("DeviceRegistry");
       const v2Impl = await DRv2.deploy();
       await v2Impl.waitForDeployment();
@@ -391,7 +391,7 @@ describe("DeviceRegistry", function () {
       );
     });
 
-    it("업그레이드 후 기존 enrolled chip data 보존", async function () {
+    it("preserves enrolled chip data after upgrade", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
 
@@ -427,7 +427,7 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.getChargerByPubkey(pubkeyHash)).to.equal(CHARGER_1);
     });
 
-    it("업그레이드 후 새 enrollChip 정상 동작", async function () {
+    it("still allows new enrollChip() calls after upgrade", async function () {
       await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(wallet1), SECP256K1);
 
       // Upgrade
@@ -444,8 +444,8 @@ describe("DeviceRegistry", function () {
 
   // ── R02: 초기화 보호 ──────────────────────────────────────────────────────
 
-  describe("초기화 보호 (R02)", function () {
-    it("reinitialize 불가", async function () {
+  describe("initializer protection (R02)", function () {
+    it("prevents reinitialize", async function () {
       await expectRevert(deviceRegistry.initialize(admin.address));
     });
   });

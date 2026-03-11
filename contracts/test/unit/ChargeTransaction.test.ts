@@ -119,8 +119,8 @@ describe("ChargeTransaction", function () {
 
   // ── 초기화 ──────────────────────────────────────────────────────────────────
 
-  describe("초기화", function () {
-    it("reinitialize 불가", async function () {
+  describe("initialization", function () {
+    it("prevents reinitialize", async function () {
       await expectRevert(
         ct.initialize(
           await deviceRegistry.getAddress(),
@@ -131,17 +131,17 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("DEFAULT_ADMIN_ROLE 설정 확인", async function () {
+    it("assigns DEFAULT_ADMIN_ROLE correctly", async function () {
       const DEFAULT_ADMIN = ZeroHash;
       expect(await ct.hasRole(DEFAULT_ADMIN, admin.address)).to.equal(true);
     });
 
-    it("ERC-721 name/symbol 확인", async function () {
+    it("sets the expected ERC-721 name and symbol", async function () {
       expect(await ct.name()).to.equal("EnergyFi Charge Session");
       expect(await ct.symbol()).to.equal("EFCS");
     });
 
-    it("zero address 초기화 → revert", async function () {
+    it("reverts on zero-address initialization", async function () {
       const { contract: ct2 } = await deployUUPSProxy<ChargeTransaction>(ethers, "ChargeTransaction");
 
       await expectRevertCustomError(
@@ -158,8 +158,8 @@ describe("ChargeTransaction", function () {
 
   // ── mint() 성공 ────────────────────────────────────────────────────────────
 
-  describe("mint() 성공", function () {
-    it("유효 SE 서명으로 mint 성공, tokenId = 1", async function () {
+  describe("mint() success", function () {
+    it("mints successfully with a valid SE signature and sets tokenId = 1", async function () {
       const session = makeSession();
       const tx = await ct.mint(session);
       await tx.wait();
@@ -167,12 +167,12 @@ describe("ChargeTransaction", function () {
       expect(await ct.totalSessions()).to.equal(1n);
     });
 
-    it("토큰 소유자 = 컨트랙트 자체 (Soulbound)", async function () {
+    it("assigns token ownership to the contract itself for Soulbound behavior", async function () {
       await ct.mint(makeSession());
       expect(await ct.ownerOf(1n)).to.equal(ctProxyAddr);
     });
 
-    it("getSession() 저장된 값 정확성 (seSignature 제외)", async function () {
+    it("stores the expected getSession() values except seSignature", async function () {
       const session = makeSession();
       await ct.mint(session);
 
@@ -190,25 +190,25 @@ describe("ChargeTransaction", function () {
     });
 
     // T05: getTokenIdBySessionId 정확성
-    it("getTokenIdBySessionId() 정확성", async function () {
+    it("returns the expected value from getTokenIdBySessionId()", async function () {
       await ct.mint(makeSession());
       expect(await ct.getTokenIdBySessionId(SESSION_1)).to.equal(1n);
     });
 
-    it("tokenId 연속 증가", async function () {
+    it("increments tokenId sequentially", async function () {
       await ct.mint(makeSession({ sessionId: SESSION_1 }));
       await ct.mint(makeSession({ sessionId: SESSION_2 }));
       expect(await ct.totalSessions()).to.equal(2n);
       expect(await ct.getTokenIdBySessionId(SESSION_2)).to.equal(2n);
     });
 
-    it("balanceOf(contract) 증가", async function () {
+    it("increases balanceOf(contract)", async function () {
       await ct.mint(makeSession());
       expect(await ct.balanceOf(ctProxyAddr)).to.equal(1n);
     });
 
     // B-1: 이벤트 파라미터 검증
-    it("ChargeSessionRecorded 이벤트 파라미터 검증 (seSignature 포함)", async function () {
+    it("emits ChargeSessionRecorded with the expected parameters, including seSignature", async function () {
       const session = makeSession();
       const tx = await ct.mint(session);
       const receipt = await tx.wait();
@@ -231,8 +231,8 @@ describe("ChargeTransaction", function () {
 
   // ── mint() 실패 ────────────────────────────────────────────────────────────
 
-  describe("mint() 실패", function () {
-    it("DuplicateSession — 동일 sessionId 중복", async function () {
+  describe("mint() failures", function () {
+    it("reverts with DuplicateSession for a repeated sessionId", async function () {
       await ct.mint(makeSession());
       await expectRevertCustomError(
         ct.mint(makeSession()),
@@ -240,14 +240,14 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("StationNotRegistered — 미등록 stationId", async function () {
+    it("reverts with StationNotRegistered for an unknown stationId", async function () {
       await expectRevertCustomError(
         ct.mint(makeSession({ stationId: STATION_99 })),
         "StationNotRegistered"
       );
     });
 
-    it("ChipNotActive — 비활성 칩", async function () {
+    it("reverts with ChipNotActive for an inactive chip", async function () {
       await deviceRegistry.revokeChip(CHARGER_1);
       await expectRevertCustomError(
         ct.mint(makeSession()),
@@ -255,7 +255,7 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("InvalidSESignature — 잘못된 서명", async function () {
+    it("reverts with InvalidSESignature for an invalid signature", async function () {
       const wrongWallet: HDNodeWallet = Wallet.createRandom();
       const msgHash = buildMsgHash(CHARGER_1, 1000n, 1700000000n, 1700003600n);
       const wrongSig = signRaw(wrongWallet, msgHash);
@@ -266,14 +266,14 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("CallerNotBridge — 비인가 주소", async function () {
+    it("reverts with CallerNotBridge for an unauthorized caller", async function () {
       await expectRevertCustomError(
         ct.connect(nonAdmin).mint(makeSession()),
         "CallerNotBridge"
       );
     });
 
-    it("미등록 칩 (enrollChip 미호출)", async function () {
+    it("reverts when the chip has not been enrolled", async function () {
       // CHARGER_2 needs a chip to pass StationRegistry.registerCharger check
       const se2 = Wallet.createRandom();
       await deviceRegistry.enrollChip(CHARGER_2, getPublicKey64(se2), 0);
@@ -299,14 +299,14 @@ describe("ChargeTransaction", function () {
       await ct.mint(makeSession());
     });
 
-    it("transferFrom 차단 → SoulboundToken", async function () {
+    it("blocks transferFrom with SoulboundToken", async function () {
       await expectRevertCustomError(
         ct.transferFrom(ctProxyAddr, admin.address, 1n),
         "SoulboundToken"
       );
     });
 
-    it("safeTransferFrom 차단 → SoulboundToken", async function () {
+    it("blocks safeTransferFrom with SoulboundToken", async function () {
       await expectRevertCustomError(
         ct["safeTransferFrom(address,address,uint256)"](ctProxyAddr, admin.address, 1n),
         "SoulboundToken"
@@ -317,31 +317,31 @@ describe("ChargeTransaction", function () {
   // ── tokenURI ───────────────────────────────────────────────────────────────
 
   describe("tokenURI", function () {
-    it("존재하는 토큰 → 빈 문자열", async function () {
+    it("returns an empty string for tokenURI of an existing token", async function () {
       await ct.mint(makeSession());
       expect(await ct.tokenURI(1n)).to.equal("");
     });
 
-    it("존재하지 않는 토큰 → revert", async function () {
+    it("reverts tokenURI for a non-existent token", async function () {
       await expectRevert(ct.tokenURI(999n));
     });
   });
 
   // ── R08: 미존재 데이터 조회 (BREAKING CHANGE) ──────────────────────────────
 
-  describe("미존재 데이터 조회 (R08)", function () {
+  describe("missing data lookups (R08)", function () {
     // R08: getSession(999) → revert SessionNotFound (was empty struct)
-    it("getSession(미존재 tokenId) → revert SessionNotFound", async function () {
+    it("reverts getSession(non-existent tokenId) with SessionNotFound", async function () {
       await expectRevertCustomError(ct.getSession(999n), "SessionNotFound");
     });
 
     // T05: getTokenIdBySessionId for unknown → 0
-    it("getTokenIdBySessionId(미존재 sessionId) → 0", async function () {
+    it("returns 0 from getTokenIdBySessionId() for an unknown sessionId", async function () {
       expect(await ct.getTokenIdBySessionId(b32("UNKNOWN-SESSION"))).to.equal(0n);
     });
 
     // T05: totalSessions 초기값
-    it("totalSessions() 초기값 = 0", async function () {
+    it("starts totalSessions() at 0", async function () {
       // Before any mint — should be 0 (not undefined/revert)
       expect(await ct.totalSessions()).to.equal(0n);
     });
@@ -350,7 +350,7 @@ describe("ChargeTransaction", function () {
   // ── R04: Pausable ──────────────────────────────────────────────────────────
 
   describe("Pausable (R04)", function () {
-    it("admin pause() → 성공, Paused 이벤트", async function () {
+    it("allows admin pause() and emits Paused", async function () {
       const tx = await ct.pause();
       const receipt = await tx.wait();
       const event = findEvent(receipt, ct, "Paused");
@@ -367,7 +367,7 @@ describe("ChargeTransaction", function () {
       await expectRevert(ct.connect(nonAdmin).unpause());
     });
 
-    it("paused 상태에서 mint() → revert EnforcedPause", async function () {
+    it("reverts mint() with EnforcedPause while paused", async function () {
       await ct.pause();
       await expectRevertCustomError(
         ct.mint(makeSession()),
@@ -375,14 +375,14 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("unpause() 후 mint() 정상 동작", async function () {
+    it("allows mint() again after unpause()", async function () {
       await ct.pause();
       await ct.unpause();
       await ct.mint(makeSession());
       expect(await ct.totalSessions()).to.equal(1n);
     });
 
-    it("paused 상태에서 view 함수 정상 동작", async function () {
+    it("keeps view functions working while paused", async function () {
       await ct.mint(makeSession());
       await ct.pause();
 
@@ -398,7 +398,7 @@ describe("ChargeTransaction", function () {
   // ── R05: Bridge Rotation ──────────────────────────────────────────────────
 
   describe("Bridge Rotation (R05)", function () {
-    it("admin updateBridgeAddress(newAddr) → 성공, 이벤트 emit", async function () {
+    it("allows admin updateBridgeAddress(newAddr) and emits the event", async function () {
       const tx = await ct.updateBridgeAddress(newBridge.address);
       const receipt = await tx.wait();
 
@@ -421,7 +421,7 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("변경 후 이전 bridge 주소 호출 불가", async function () {
+    it("rejects calls from the previous bridge address after update", async function () {
       await ct.updateBridgeAddress(newBridge.address);
 
       // Old bridge (admin) can no longer call mint
@@ -431,7 +431,7 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    it("변경 후 새 bridge 주소 호출 성공", async function () {
+    it("accepts calls from the new bridge address after update", async function () {
       await ct.updateBridgeAddress(newBridge.address);
 
       // New bridge can call mint
@@ -442,8 +442,8 @@ describe("ChargeTransaction", function () {
 
   // ── T01: 데이터 정합성 교차 검증 ──────────────────────────────────────────
 
-  describe("데이터 정합성 교차 검증 (T01)", function () {
-    it("totalSessions == 실제 mint 횟수 + reverse lookup 검증", async function () {
+  describe("cross-checking data consistency (T01)", function () {
+    it("verifies totalSessions against mint count and reverse lookup", async function () {
       const sessions = [SESSION_1, SESSION_2, SESSION_3];
       for (const sid of sessions) {
         await ct.mint(makeSession({ sessionId: sid }));
@@ -465,8 +465,8 @@ describe("ChargeTransaction", function () {
 
   // ── UUPS Upgrade ───────────────────────────────────────────────────────────
 
-  describe("UUPS 업그레이드", function () {
-    it("admin 업그레이드 성공", async function () {
+  describe("UUPS upgrades", function () {
+    it("allows admin upgrade", async function () {
       const CTv2 = await ethers.getContractFactory("ChargeTransaction");
       const v2Impl = await CTv2.deploy();
       await v2Impl.waitForDeployment();
@@ -476,7 +476,7 @@ describe("ChargeTransaction", function () {
       expect(await ct.totalSessions()).to.equal(0n);
     });
 
-    it("비인가 주소 업그레이드 → revert", async function () {
+    it("reverts upgrade from an unauthorized address", async function () {
       const CTv2 = await ethers.getContractFactory("ChargeTransaction");
       const v2Impl = await CTv2.deploy();
       await v2Impl.waitForDeployment();
@@ -487,7 +487,7 @@ describe("ChargeTransaction", function () {
     });
 
     // B-2: 업그레이드 후 기존 데이터 보존
-    it("업그레이드 후 기존 mint 데이터 보존", async function () {
+    it("preserves existing mint data after upgrade", async function () {
       // Mint 2 sessions before upgrade
       const session1 = makeSession({ sessionId: SESSION_1 });
       const session2 = makeSession({ sessionId: SESSION_2 });

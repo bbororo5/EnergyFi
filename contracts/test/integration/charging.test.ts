@@ -164,8 +164,8 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
 
   // ── processCharge 성공 ─────────────────────────────────────────────────────
 
-  describe("processCharge 성공", function () {
-    it("CT 토큰 생성 + RT 수익 누적 동시 확인", async function () {
+  describe("processCharge success", function () {
+    it("creates the CT token and accumulates RT revenue in the same call", async function () {
       const session = makeSession();
       await cr.processCharge(session, PERIOD);
 
@@ -183,7 +183,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
 
     // B-1: 이벤트 파라미터 검증 (3개 컨트랙트 모두)
-    it("ChargeProcessed 이벤트 파라미터 검증", async function () {
+    it("emits ChargeProcessed with the expected parameters", async function () {
       const session = makeSession();
       const tx = await cr.processCharge(session, PERIOD);
       const receipt = await tx.wait();
@@ -197,7 +197,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
 
     // B-7: 단일 TX에서 CT + RT + CR 이벤트 모두 emit 증거
-    it("단일 TX에서 CT·RT·CR 이벤트 동시 emit (원자적 실행 증거)", async function () {
+    it("emits CT, RT, and CR events from a single transaction", async function () {
       const session = makeSession();
       const tx = await cr.processCharge(session, PERIOD);
       const receipt = await tx.wait();
@@ -219,7 +219,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(rtEvent!.args.distributableKrw).to.equal(session.distributableKrw);
     });
 
-    it("대량 처리 후 데이터 정합성", async function () {
+    it("keeps data consistency after batch processing", async function () {
       const count = 10;
       let expectedRevenue = 0n;
 
@@ -247,7 +247,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(lastSession.stationId).to.equal(STATION_1);
     });
 
-    it("동일 sessionId 중복 처리 → revert DuplicateSession", async function () {
+    it("reverts with DuplicateSession for a repeated sessionId", async function () {
       const fixedSessionId = b32("SESS-DUP");
       await cr.processCharge(makeSession({ sessionId: fixedSessionId }), PERIOD);
 
@@ -263,9 +263,9 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
 
   // ── 원자성 검증 ────────────────────────────────────────────────────────────
 
-  describe("원자성", function () {
+  describe("atomicity", function () {
     // B-7: 성공 후 실패 시 성공 상태 유지 (부분 롤백 검증)
-    it("성공 → 실패 시 성공 TX 상태 보존 + 실패 TX 완전 롤백", async function () {
+    it("preserves prior successful state and fully rolls back the failing transaction", async function () {
       // First: successful charge
       await cr.processCharge(makeSession({ distributableKrw: DEFAULT_KRW }), PERIOD);
 
@@ -281,7 +281,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(accumulated).to.equal(DEFAULT_KRW);
     });
 
-    it("distributableKrw=0 → RT revert → CT mint도 롤백", async function () {
+    it("rolls back CT mint when RT reverts on distributableKrw=0", async function () {
       await expectRevertCustomError(
         cr.processCharge(
           makeSession({ distributableKrw: 0n }),
@@ -297,7 +297,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(accumulated).to.equal(0n);
     });
 
-    it("미등록 stationId → CT revert → 전체 롤백", async function () {
+    it("fully reverts when CT rejects an unregistered stationId", async function () {
       const unknownStation = b32("STATION-999");
       await expectRevertCustomError(
         cr.processCharge(
@@ -313,7 +313,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
 
     // B-7: CT 실패가 RT에 영향 없음 증거
-    it("비활성 칩 → CT revert → RT 수익 기록 없음", async function () {
+    it("records no RT revenue when CT reverts for an inactive chip", async function () {
       await deviceRegistry.revokeChip(CHARGER_1);
 
       await expectRevertCustomError(
@@ -326,7 +326,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(accumulated).to.equal(0n);
     });
 
-    it("잘못된 SE 서명 → CT revert → 전체 롤백", async function () {
+    it("fully reverts when CT rejects an invalid SE signature", async function () {
       const wrongWallet: HDNodeWallet = Wallet.createRandom();
       const msgHash = buildMsgHash(CHARGER_1, DEFAULT_ENERGY, DEFAULT_START_TS, DEFAULT_END_TS);
       const wrongSig = signRaw(wrongWallet, msgHash);
@@ -347,15 +347,15 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
 
   // ── 접근 제어 ──────────────────────────────────────────────────────────────
 
-  describe("접근 제어", function () {
-    it("onlyBridge — 비인가 주소 → CallerNotBridge", async function () {
+  describe("access control", function () {
+    it("reverts with CallerNotBridge for an unauthorized caller", async function () {
       await expectRevertCustomError(
         cr.connect(nonAdmin).processCharge(makeSession(), PERIOD),
         "CallerNotBridge"
       );
     });
 
-    it("CT/RT는 ChargeRouter만 호출 가능", async function () {
+    it("allows only ChargeRouter to call CT and RT write paths", async function () {
       // Direct mint on CT should fail (bridge = ChargeRouter, not admin)
       await expectRevertCustomError(
         ct.mint(makeSession()),
@@ -373,7 +373,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
   // ── R04: Pausable ──────────────────────────────────────────────────────────
 
   describe("Pausable (R04)", function () {
-    it("admin pause() → 성공, Paused 이벤트", async function () {
+    it("allows admin pause() and emits Paused", async function () {
       const tx = await crContract.pause();
       const receipt = await tx.wait();
       const event = findEvent(receipt, crContract, "Paused");
@@ -396,7 +396,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    it("paused 상태에서 processCharge() → revert EnforcedPause", async function () {
+    it("reverts processCharge() with EnforcedPause while paused", async function () {
       await crContract.pause();
       await expectRevertCustomError(
         cr.processCharge(makeSession(), PERIOD),
@@ -404,7 +404,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    it("unpause() 후 processCharge() 정상 동작", async function () {
+    it("allows processCharge() again after unpause()", async function () {
       await crContract.pause();
       await crContract.unpause();
       await cr.processCharge(makeSession(), PERIOD);
@@ -415,7 +415,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
   // ── R05: Bridge Rotation ──────────────────────────────────────────────────
 
   describe("Bridge Rotation (R05)", function () {
-    it("admin updateBridgeAddress(newAddr) → 성공, 이벤트 emit", async function () {
+    it("allows admin updateBridgeAddress(newAddr) and emits the event", async function () {
       const tx = await crContract.updateBridgeAddress(newBridge.address);
       const receipt = await tx.wait();
 
@@ -439,7 +439,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    it("변경 후 이전 bridge 주소 호출 불가", async function () {
+    it("rejects calls from the previous bridge address after update", async function () {
       await crContract.updateBridgeAddress(newBridge.address);
 
       // Old bridge (admin) can no longer call processCharge
@@ -449,7 +449,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    it("변경 후 새 bridge 주소 호출 성공", async function () {
+    it("accepts calls from the new bridge address after update", async function () {
       await crContract.updateBridgeAddress(newBridge.address);
 
       // New bridge can call processCharge
@@ -457,7 +457,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(await ct.totalSessions()).to.equal(1n);
     });
 
-    it("현재 bridge 주소와 동일한 주소로 변경 시에도 이벤트 emit", async function () {
+    it("still emits the event when updating to the same bridge address", async function () {
       const tx = await crContract.updateBridgeAddress(admin.address);
       const receipt = await tx.wait();
 
@@ -470,8 +470,8 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
 
   // ── UUPS Upgrade ───────────────────────────────────────────────────────────
 
-  describe("UUPS 업그레이드", function () {
-    it("admin 업그레이드 성공", async function () {
+  describe("UUPS upgrades", function () {
+    it("allows admin upgrade", async function () {
       const CRv2 = await ethers.getContractFactory("ChargeRouter");
       const v2Impl = await CRv2.deploy();
       await v2Impl.waitForDeployment();
@@ -479,7 +479,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       await crContract.upgradeToAndCall(await v2Impl.getAddress(), "0x");
     });
 
-    it("비인가 주소 업그레이드 → revert AccessControlUnauthorizedAccount", async function () {
+    it("reverts unauthorized upgrade with AccessControlUnauthorizedAccount", async function () {
       const CRv2 = await ethers.getContractFactory("ChargeRouter");
       const v2Impl = await CRv2.deploy();
       await v2Impl.waitForDeployment();
@@ -491,7 +491,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
 
     // B-2: 업그레이드 후 기존 데이터 보존 + 연동 유지
-    it("업그레이드 후 processCharge 계속 동작", async function () {
+    it("keeps processCharge working after upgrade", async function () {
       // Charge before upgrade
       await cr.processCharge(makeSession(), PERIOD);
 
@@ -512,8 +512,8 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
 
   // ── Double-initialize 방지 ─────────────────────────────────────────────────
 
-  describe("Double-initialize 방지", function () {
-    it("ChargeRouter 재초기화 → revert InvalidInitialization", async function () {
+  describe("double-initialize protection", function () {
+    it("reverts ChargeRouter reinitialization with InvalidInitialization", async function () {
       await expectRevertCustomError(
         crContract.initialize(
           await ctContract.getAddress(),
@@ -525,7 +525,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    it("ChargeTransaction 재초기화 → revert InvalidInitialization", async function () {
+    it("reverts ChargeTransaction reinitialization with InvalidInitialization", async function () {
       await expectRevertCustomError(
         ctContract.initialize(
           await deviceRegistry.getAddress(),
@@ -537,7 +537,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    it("RevenueTracker 재초기화 → revert InvalidInitialization", async function () {
+    it("reverts RevenueTracker reinitialization with InvalidInitialization", async function () {
       await expectRevertCustomError(
         rtContract.initialize(
           await stationRegistry.getAddress(),

@@ -85,8 +85,8 @@ describe("RevenueTracker", function () {
 
   // ── recordRevenue 성공 ─────────────────────────────────────────────────────
 
-  describe("recordRevenue 성공", function () {
-    it("수익 누적 정확성", async function () {
+  describe("recordRevenue success", function () {
+    it("accumulates revenue correctly", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_1, 3000n, PERIOD);
 
@@ -96,7 +96,7 @@ describe("RevenueTracker", function () {
       expect(pending).to.equal(8000n);
     });
 
-    it("월별 이력 정확성 — 동일 월 합산", async function () {
+    it("aggregates monthly history within the same month", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_1, 3000n, PERIOD);
 
@@ -104,7 +104,7 @@ describe("RevenueTracker", function () {
       expect(amount).to.equal(8000n);
     });
 
-    it("월별 이력 — 다른 월 별도 기록", async function () {
+    it("stores separate monthly history entries for different months", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_1, 7000n, PERIOD_2);
 
@@ -113,7 +113,7 @@ describe("RevenueTracker", function () {
     });
 
     // B-1: 이벤트 파라미터 검증
-    it("RevenueRecorded 이벤트 파라미터 검증", async function () {
+    it("emits RevenueRecorded with the expected parameters", async function () {
       const tx = await rt.recordRevenue(STN_1, 5000n, PERIOD);
       const receipt = await tx.wait();
 
@@ -125,7 +125,7 @@ describe("RevenueTracker", function () {
       expect(event!.args.period_yyyyMM).to.equal(PERIOD);
     });
 
-    it("연속 기록 시 accumulated 누적 반영된 이벤트", async function () {
+    it("emits accumulated values correctly across consecutive records", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
 
       const tx2 = await rt.recordRevenue(STN_1, 3000n, PERIOD);
@@ -138,7 +138,7 @@ describe("RevenueTracker", function () {
     });
 
     // B-3: 비순차 월 기록 (A-1 _monthlyIndex 수정 검증)
-    it("비순차 월 기록 — 월 7 → 월 6 → 월 7 추가", async function () {
+    it("handles non-sequential month writes such as month 7 -> month 6 -> month 7", async function () {
       // Record July first
       await rt.recordRevenue(STN_1, 3000n, PERIOD_2);
       // Record June (out of order)
@@ -165,7 +165,7 @@ describe("RevenueTracker", function () {
       expect(accumulated).to.equal(10000n); // 3000 + 5000 + 2000
     });
 
-    it("3개 이상 비순차 월 기록 정합성", async function () {
+    it("keeps consistency across three or more non-sequential month writes", async function () {
       // Record months out of order: Jul → May → Jun → May → Jul
       await rt.recordRevenue(STN_1, 1000n, PERIOD_2);  // Jul
       await rt.recordRevenue(STN_1, 2000n, PERIOD_3);  // May
@@ -184,7 +184,7 @@ describe("RevenueTracker", function () {
       expect(accumulated).to.equal(8000n);
     });
 
-    it("getMonthlyHistory — 기록 없는 충전소는 빈 배열", async function () {
+    it("returns an empty array from getMonthlyHistory for a station with no records", async function () {
       const history = await rt.getMonthlyHistory(STN_1);
       expect(history.length).to.equal(0);
     });
@@ -192,8 +192,8 @@ describe("RevenueTracker", function () {
 
   // ── recordRevenue 실패 ─────────────────────────────────────────────────────
 
-  describe("recordRevenue 실패", function () {
-    it("StationNotRegistered — 미등록 stationId", async function () {
+  describe("recordRevenue failures", function () {
+    it("reverts with StationNotRegistered for an unknown stationId", async function () {
       await expectRevertCustomError(
         rt.recordRevenue(STN_99, 5000n, PERIOD),
         "StationNotRegistered"
@@ -207,7 +207,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("CallerNotBridge — 비인가 호출자", async function () {
+    it("reverts with CallerNotBridge for an unauthorized caller", async function () {
       await expectRevertCustomError(
         rt.connect(nonAdmin).recordRevenue(STN_1, 5000n, PERIOD),
         "CallerNotBridge"
@@ -217,13 +217,13 @@ describe("RevenueTracker", function () {
 
   // ── claimStation 성공 ─────────────────────────────────────────────────────
 
-  describe("claimStation 성공", function () {
+  describe("claimStation success", function () {
     beforeEach(async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
     });
 
-    it("개별 스테이션 정산", async function () {
+    it("settles a single station", async function () {
       const amount = await rt.claimStation.staticCall(STN_1, PERIOD);
       expect(amount).to.equal(5000n);
 
@@ -237,7 +237,7 @@ describe("RevenueTracker", function () {
       expect(pend2).to.equal(3000n);
     });
 
-    it("StationClaimed 이벤트 emit", async function () {
+    it("emits StationClaimed", async function () {
       const tx = await rt.claimStation(STN_1, PERIOD);
       const receipt = await tx.wait();
 
@@ -248,7 +248,7 @@ describe("RevenueTracker", function () {
       expect(event!.args.period_yyyyMM).to.equal(PERIOD);
     });
 
-    it("SettlementRecorded 이벤트 emit", async function () {
+    it("emits SettlementRecorded", async function () {
       const tx = await rt.claimStation(STN_1, PERIOD);
       const receipt = await tx.wait();
 
@@ -260,7 +260,7 @@ describe("RevenueTracker", function () {
       expect(event!.args.settledAt > 0n).to.be.true;
     });
 
-    it("정산 이력 기록", async function () {
+    it("stores settlement history", async function () {
       await rt.claimStation(STN_1, PERIOD);
 
       const history = await rt.getSettlementHistory(STN_1);
@@ -271,8 +271,8 @@ describe("RevenueTracker", function () {
 
   // ── claimStation 실패 ─────────────────────────────────────────────────────
 
-  describe("claimStation 실패", function () {
-    it("StationNotRegistered — 미등록 stationId", async function () {
+  describe("claimStation failures", function () {
+    it("reverts with StationNotRegistered for an unknown stationId", async function () {
       await expectRevertCustomError(
         rt.claimStation(STN_99, PERIOD),
         "StationNotRegistered"
@@ -286,7 +286,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("비인가 호출자 → revert", async function () {
+    it("reverts for an unauthorized caller", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await expectRevert(
         rt.connect(nonAdmin).claimStation(STN_1, PERIOD)
@@ -297,7 +297,7 @@ describe("RevenueTracker", function () {
   // ── Pausable: claimStation ──────────────────────────────────────────────────
 
   describe("Pausable: claimStation", function () {
-    it("paused 상태에서 claimStation() → revert EnforcedPause", async function () {
+    it("reverts claimStation() with EnforcedPause while paused", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.pause();
       await expectRevertCustomError(
@@ -309,7 +309,7 @@ describe("RevenueTracker", function () {
 
   // ── View 함수 ──────────────────────────────────────────────────────────────
 
-  describe("View 함수", function () {
+  describe("view functions", function () {
     beforeEach(async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
@@ -317,23 +317,23 @@ describe("RevenueTracker", function () {
       await rt.recordRevenue(STN_4, 7000n, PERIOD);
     });
 
-    it("getRegionRevenue — 서울 지역 pending", async function () {
+    it("returns pending revenue for the Seoul region from getRegionRevenue", async function () {
       const pending = await rt.getRegionRevenue(REGION_SEOUL);
       expect(pending).to.equal(18000n); // STN_1 + STN_2 + STN_3
     });
 
-    it("getRegionRevenue — 부산 지역 pending", async function () {
+    it("returns pending revenue for the Busan region from getRegionRevenue", async function () {
       const pending = await rt.getRegionRevenue(REGION_BUSAN);
       expect(pending).to.equal(7000n); // STN_4 only
     });
 
-    it("getStationRevenuePeriod — 미기록 기간 = 0", async function () {
+    it("returns 0 from getStationRevenuePeriod for an unrecorded period", async function () {
       const amount = await rt.getStationRevenuePeriod(STN_1, PERIOD_2);
       expect(amount).to.equal(0n);
     });
 
     // T05: getMonthlyHistory — 다중 월 기록 후 배열 길이, 항목 검증
-    it("getMonthlyHistory — 다중 월 기록 후 배열 길이 및 항목 검증 (T05)", async function () {
+    it("verifies getMonthlyHistory item count and entries after multi-month writes (T05)", async function () {
       await rt.recordRevenue(STN_1, 2000n, PERIOD_2);
 
       const history = await rt.getMonthlyHistory(STN_1);
@@ -353,7 +353,7 @@ describe("RevenueTracker", function () {
     });
 
     // T05: getSettlementHistory — 다중 정산 후 배열 길이, 항목 검증
-    it("getSettlementHistory — 다중 정산 후 배열 길이 및 항목 검증 (T05)", async function () {
+    it("verifies getSettlementHistory item count and entries after multiple settlements (T05)", async function () {
       await rt.claimStation(STN_1, PERIOD);
       await rt.recordRevenue(STN_1, 2000n, PERIOD_2);
       await rt.claimStation(STN_1, PERIOD_2);
@@ -369,7 +369,7 @@ describe("RevenueTracker", function () {
     });
 
     // B-6: 미존재 데이터 조회
-    it("getStationRevenue(수익 미기록 충전소) → 0,0,0", async function () {
+    it("returns 0,0,0 from getStationRevenue() for a station with no recorded revenue", async function () {
       const STN_5 = b32("STATION-005");
       await stationRegistry.registerStation(STN_5, REGION_BUSAN, "부산 기장");
 
@@ -379,13 +379,13 @@ describe("RevenueTracker", function () {
       expect(pend).to.equal(0n);
     });
 
-    it("getRegionRevenue(미기록 지역) → 0", async function () {
+    it("returns 0 from getRegionRevenue() for a region with no records", async function () {
       const REGION_JEJU = regionBytes4("KR49");
       const pending = await rt.getRegionRevenue(REGION_JEJU);
       expect(pending).to.equal(0n);
     });
 
-    it("getSettlementHistory(정산 미진행 충전소) → 빈 배열", async function () {
+    it("returns an empty array from getSettlementHistory() for a station with no settlements", async function () {
       const history = await rt.getSettlementHistory(STN_1);
       expect(history.length).to.equal(0);
     });
@@ -393,7 +393,7 @@ describe("RevenueTracker", function () {
 
   // ── 페이지네이션 View 함수 ──────────────────────────────────────────────────
 
-  describe("페이지네이션 View 함수", function () {
+  describe("paginated view functions", function () {
     beforeEach(async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
@@ -401,14 +401,14 @@ describe("RevenueTracker", function () {
       await rt.recordRevenue(STN_4, 7000n, PERIOD);
     });
 
-    it("getRegionRevenuePaginated — 전체 범위 (서울)", async function () {
+    it("returns the full Seoul range from getRegionRevenuePaginated()", async function () {
       const [pend, processed, hasMore] = await rt.getRegionRevenuePaginated(REGION_SEOUL, 0n, 10n);
       expect(pend).to.equal(18000n); // STN_1 + STN_2 + STN_3
       expect(processed).to.equal(3n);
       expect(hasMore).to.equal(false);
     });
 
-    it("getRegionRevenuePaginated — 부분 범위", async function () {
+    it("returns a partial range from getRegionRevenuePaginated()", async function () {
       const [pend1, processed1, hasMore1] = await rt.getRegionRevenuePaginated(REGION_SEOUL, 0n, 2n);
       expect(processed1).to.equal(2n);
       expect(hasMore1).to.equal(true);
@@ -421,7 +421,7 @@ describe("RevenueTracker", function () {
       expect(pend1 + pend2).to.equal(18000n);
     });
 
-    it("getRegionRevenuePaginated — 빈 지역은 0 반환", async function () {
+    it("returns 0 for an empty region from getRegionRevenuePaginated()", async function () {
       const REGION_JEJU = regionBytes4("KR49");
       const [pend, processed, hasMore] = await rt.getRegionRevenuePaginated(REGION_JEJU, 0n, 10n);
       expect(pend).to.equal(0n);
@@ -439,8 +439,8 @@ describe("RevenueTracker", function () {
 
   // ── T01: 데이터 정합성 교차 검증 ──────────────────────────────────────────
 
-  describe("데이터 정합성 교차 검증 (T01)", function () {
-    it("지역 수익 = 소속 충전소 pending 합", async function () {
+  describe("cross-checking data consistency (T01)", function () {
+    it("matches region revenue to the sum of pending revenue for member stations", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
       await rt.recordRevenue(STN_3, 10000n, PERIOD);
@@ -453,7 +453,7 @@ describe("RevenueTracker", function () {
       expect(regionPending).to.equal(pend1 + pend2 + pend3);
     });
 
-    it("정산 후 교차 검증 — settled 반영, pending 감소", async function () {
+    it("reflects settlement in settled totals and reduces pending values", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
       await rt.claimStation(STN_1, PERIOD);
@@ -474,8 +474,8 @@ describe("RevenueTracker", function () {
 
   // ── T02: 월경계 정산 독립성 ──────────────────────────────────────────────
 
-  describe("월경계 정산 독립성 (T02)", function () {
-    it("claimStation 후 새 월 수익 추가 → 기존 정산 불변", async function () {
+  describe("month-boundary settlement independence (T02)", function () {
+    it("keeps prior settlement unchanged when new-month revenue is added after claimStation", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.claimStation(STN_1, PERIOD);
 
@@ -488,7 +488,7 @@ describe("RevenueTracker", function () {
       expect(pend).to.equal(3000n); // New revenue
     });
 
-    it("다중 충전소 독립 정산 — STN_1 claimStation이 STN_2에 영향 없음", async function () {
+    it("keeps station settlement independent across multiple stations", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
 
@@ -506,7 +506,7 @@ describe("RevenueTracker", function () {
   // ── R04: Pausable ──────────────────────────────────────────────────────────
 
   describe("Pausable (R04)", function () {
-    it("admin pause() → 성공, Paused 이벤트", async function () {
+    it("allows admin pause() and emits Paused", async function () {
       const tx = await rt.pause();
       const receipt = await tx.wait();
       const event = findEvent(receipt, rt, "Paused");
@@ -523,7 +523,7 @@ describe("RevenueTracker", function () {
       await expectRevert(rt.connect(nonAdmin).unpause());
     });
 
-    it("paused 상태에서 recordRevenue() → revert EnforcedPause", async function () {
+    it("reverts recordRevenue() with EnforcedPause while paused", async function () {
       await rt.pause();
       await expectRevertCustomError(
         rt.recordRevenue(STN_1, 5000n, PERIOD),
@@ -531,7 +531,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("unpause() 후 recordRevenue() 정상 동작", async function () {
+    it("allows recordRevenue() again after unpause()", async function () {
       await rt.pause();
       await rt.unpause();
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
@@ -539,7 +539,7 @@ describe("RevenueTracker", function () {
       expect(accumulated).to.equal(5000n);
     });
 
-    it("paused 상태에서 view 함수 정상 동작", async function () {
+    it("keeps view functions working while paused", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.pause();
 
@@ -559,7 +559,7 @@ describe("RevenueTracker", function () {
   // ── R05: Bridge Rotation ──────────────────────────────────────────────────
 
   describe("Bridge Rotation (R05)", function () {
-    it("admin updateBridgeAddress(newAddr) → 성공, 이벤트 emit", async function () {
+    it("allows admin updateBridgeAddress(newAddr) and emits the event", async function () {
       const tx = await rt.updateBridgeAddress(newBridge.address);
       const receipt = await tx.wait();
 
@@ -582,7 +582,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("변경 후 이전 bridge 주소 호출 불가", async function () {
+    it("rejects calls from the previous bridge address after update", async function () {
       await rt.updateBridgeAddress(newBridge.address);
 
       // Old bridge (admin) can no longer call recordRevenue
@@ -592,7 +592,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("변경 후 새 bridge 주소 호출 성공", async function () {
+    it("accepts calls from the new bridge address after update", async function () {
       await rt.updateBridgeAddress(newBridge.address);
 
       // New bridge can call recordRevenue
@@ -604,8 +604,8 @@ describe("RevenueTracker", function () {
 
   // ── B-5: 정산 후 View 정합성 ──────────────────────────────────────────────
 
-  describe("정산 후 View 정합성", function () {
-    it("claimStation 후 getStationRevenue — settled = accumulated, pending = 0", async function () {
+  describe("view consistency after settlement", function () {
+    it("returns settled = accumulated and pending = 0 after claimStation", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.claimStation(STN_1, PERIOD);
 
@@ -615,7 +615,7 @@ describe("RevenueTracker", function () {
       expect(pend).to.equal(0n);
     });
 
-    it("부분 정산 후 추가 수익 → pending 정확성", async function () {
+    it("keeps pending values correct after partial settlement and new revenue", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.claimStation(STN_1, PERIOD);
 
@@ -628,7 +628,7 @@ describe("RevenueTracker", function () {
       expect(pend).to.equal(3000n); // New revenue
     });
 
-    it("claimStation은 다른 충전소 region revenue에 영향 없음", async function () {
+    it("keeps claimStation from affecting region revenue for other stations", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_3, 10000n, PERIOD);
 
@@ -640,7 +640,7 @@ describe("RevenueTracker", function () {
       expect(pending).to.equal(10000n); // Only STN_3 pending remains
     });
 
-    it("다중 정산 후 settlementHistory 누적", async function () {
+    it("accumulates settlementHistory after multiple settlements", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.claimStation(STN_1, PERIOD);
 
@@ -658,7 +658,7 @@ describe("RevenueTracker", function () {
 
   // ── claimRegion 성공 ─────────────────────────────────────────────────────
 
-  describe("claimRegion 성공", function () {
+  describe("claimRegion success", function () {
     beforeEach(async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
@@ -666,14 +666,14 @@ describe("RevenueTracker", function () {
       await rt.recordRevenue(STN_4, 4000n, PERIOD);
     });
 
-    it("리전 내 모든 충전소 일괄 정산", async function () {
+    it("settles all stations in the region at once", async function () {
       // Seoul: STN_1(5000) + STN_2(3000) + STN_3(8000) = 16000
       const [totalClaimed, stationCount] = await rt.claimRegion.staticCall(REGION_SEOUL, PERIOD);
       expect(totalClaimed).to.equal(16000n);
       expect(stationCount).to.equal(3n);
     });
 
-    it("정산 후 각 충전소 pending = 0", async function () {
+    it("sets each station pending value to 0 after settlement", async function () {
       await rt.claimRegion(REGION_SEOUL, PERIOD);
       const [, , pend1] = await rt.getStationRevenue(STN_1);
       const [, , pend2] = await rt.getStationRevenue(STN_2);
@@ -683,7 +683,7 @@ describe("RevenueTracker", function () {
       expect(pend3).to.equal(0n);
     });
 
-    it("RegionAttestation 온체인 기록", async function () {
+    it("records RegionAttestation on-chain", async function () {
       await rt.claimRegion(REGION_SEOUL, PERIOD);
       const att = await rt.getRegionAttestation(REGION_SEOUL, PERIOD);
       expect(att.regionId).to.equal(REGION_SEOUL);
@@ -693,7 +693,7 @@ describe("RevenueTracker", function () {
       expect(att.finalizedAt).to.be.greaterThan(0n);
     });
 
-    it("RegionSettlementFinalized 이벤트 emit", async function () {
+    it("emits RegionSettlementFinalized", async function () {
       const tx = await rt.claimRegion(REGION_SEOUL, PERIOD);
       const receipt = await tx.wait();
       const event = findEvent(receipt!, rt, "RegionSettlementFinalized");
@@ -703,14 +703,14 @@ describe("RevenueTracker", function () {
       expect(event.args.stationCount).to.equal(3n);
     });
 
-    it("각 충전소별 SettlementRecorded 이벤트 emit", async function () {
+    it("emits SettlementRecorded for each station", async function () {
       const tx = await rt.claimRegion(REGION_SEOUL, PERIOD);
       const receipt = await tx.wait();
       const events = findAllEvents(receipt!, rt, "SettlementRecorded");
       expect(events.length).to.equal(3);
     });
 
-    it("이미 정산된 충전소는 스킵", async function () {
+    it("skips stations that have already been settled", async function () {
       // Settle STN_1 individually first
       await rt.claimStation(STN_1, PERIOD);
       // Then claimRegion — STN_1 pending=0 should be skipped
@@ -722,8 +722,8 @@ describe("RevenueTracker", function () {
 
   // ── claimRegion 실패 ─────────────────────────────────────────────────────
 
-  describe("claimRegion 실패", function () {
-    it("비인가 호출자 → revert", async function () {
+  describe("claimRegion failures", function () {
+    it("reverts for an unauthorized caller", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await expectRevertCustomError(
         rt.connect(nonAdmin).claimRegion(REGION_SEOUL, PERIOD),
@@ -731,14 +731,14 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("NothingToClaim — 충전소 없거나 pending 전부 0", async function () {
+    it("reverts with NothingToClaim when no stations or no pending revenue exist", async function () {
       await expectRevertCustomError(
         rt.claimRegion(REGION_DAEGU, PERIOD),
         "NothingToClaim"
       );
     });
 
-    it("PeriodAlreadyFinalized — 동일 기간 중복 정산", async function () {
+    it("reverts with PeriodAlreadyFinalized for a duplicate finalized period", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.claimRegion(REGION_SEOUL, PERIOD);
       await expectRevertCustomError(
@@ -747,7 +747,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("paused 상태에서 → revert EnforcedPause", async function () {
+    it("reverts with EnforcedPause while paused", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.pause();
       await expectRevertCustomError(
@@ -759,8 +759,8 @@ describe("RevenueTracker", function () {
 
   // ── claimRegion: period는 라벨 (필터 아님) ──────────────────────────────
 
-  describe("claimRegion: period는 라벨", function () {
-    it("기록 period와 무관하게 모든 pending 정산", async function () {
+  describe("claimRegion period as a label", function () {
+    it("settles all pending revenue regardless of the recorded source period", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_1, 1000n, PERIOD_2);
       // claimRegion(PERIOD) — PERIOD is just a label, settles ALL pending
@@ -772,7 +772,7 @@ describe("RevenueTracker", function () {
   // ── getRegionAttestation ──────────────────────────────────────────────────
 
   describe("getRegionAttestation", function () {
-    it("정산 후 정확한 attestation 반환", async function () {
+    it("returns the expected attestation after settlement", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);
       await rt.claimRegion(REGION_SEOUL, PERIOD);
@@ -781,7 +781,7 @@ describe("RevenueTracker", function () {
       expect(att.stationCount).to.equal(2n);
     });
 
-    it("미정산 기간 → 빈 attestation", async function () {
+    it("returns an empty attestation for an unfinalized period", async function () {
       const att = await rt.getRegionAttestation(REGION_SEOUL, PERIOD);
       expect(att.distributableKrw).to.equal(0n);
       expect(att.stationCount).to.equal(0n);
@@ -792,7 +792,7 @@ describe("RevenueTracker", function () {
   // ── getRegionAttestationPeriods ───────────────────────────────────────────
 
   describe("getRegionAttestationPeriods", function () {
-    it("확정 기간 목록 반환", async function () {
+    it("returns the list of finalized periods", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.claimRegion(REGION_SEOUL, PERIOD);
       // Add more revenue and finalize another period
@@ -805,7 +805,7 @@ describe("RevenueTracker", function () {
       expect(periods[1]).to.equal(PERIOD_2);
     });
 
-    it("비순차 claimRegion 호출이어도 오름차순으로 반환", async function () {
+    it("returns finalized periods in ascending order even after non-sequential claimRegion calls", async function () {
       await rt.recordRevenue(STN_1, 5000n, PERIOD_2);
       await rt.claimRegion(REGION_SEOUL, PERIOD_2);
 
@@ -818,7 +818,7 @@ describe("RevenueTracker", function () {
       expect(periods[1]).to.equal(PERIOD_2);
     });
 
-    it("마지막 항목은 항상 가장 큰 YYYYMM", async function () {
+    it("keeps the largest YYYYMM as the final item", async function () {
       await rt.recordRevenue(STN_1, 4000n, PERIOD_2);
       await rt.claimRegion(REGION_SEOUL, PERIOD_2);
 
@@ -833,7 +833,7 @@ describe("RevenueTracker", function () {
       expect(periods[periods.length - 1]).to.equal(PERIOD_2);
     });
 
-    it("attestation 미존재 → 빈 배열", async function () {
+    it("returns an empty array when attestation does not exist", async function () {
       const periods = await rt.getRegionAttestationPeriods(REGION_SEOUL);
       expect(periods.length).to.equal(0);
     });
@@ -848,7 +848,7 @@ describe("RevenueTracker", function () {
       await rt.recordRevenue(STN_3, 8000n, PERIOD);
     });
 
-    it("offset + limit으로 페이지 단위 정산", async function () {
+    it("settles by page using offset + limit", async function () {
       const [, , processed1, hasMore1] = await rt.claimRegionPaginated.staticCall(
         REGION_SEOUL, PERIOD, 0n, 1n
       );
@@ -879,14 +879,14 @@ describe("RevenueTracker", function () {
       );
     });
 
-    it("비인가 호출자 → revert", async function () {
+    it("reverts for an unauthorized caller", async function () {
       await expectRevertCustomError(
         rt.connect(nonAdmin).claimRegionPaginated(REGION_SEOUL, PERIOD, 0n, 10n),
         "AccessControlUnauthorizedAccount"
       );
     });
 
-    it("전체 한번에 처리 시 claimRegion과 동일 결과", async function () {
+    it("matches claimRegion when processed all at once", async function () {
       const [totalPag] = await rt.claimRegionPaginated.staticCall(
         REGION_SEOUL, PERIOD, 0n, 100n
       );
@@ -897,8 +897,8 @@ describe("RevenueTracker", function () {
 
   // ── UUPS Upgrade ───────────────────────────────────────────────────────────
 
-  describe("UUPS 업그레이드", function () {
-    it("admin 업그레이드 성공", async function () {
+  describe("UUPS upgrades", function () {
+    it("allows admin upgrade", async function () {
       const RTv2 = await ethers.getContractFactory("RevenueTracker");
       const v2Impl = await RTv2.deploy();
       await v2Impl.waitForDeployment();
@@ -906,7 +906,7 @@ describe("RevenueTracker", function () {
       await rt.upgradeToAndCall(await v2Impl.getAddress(), "0x");
     });
 
-    it("비인가 주소 업그레이드 → revert", async function () {
+    it("reverts upgrade from an unauthorized address", async function () {
       const RTv2 = await ethers.getContractFactory("RevenueTracker");
       const v2Impl = await RTv2.deploy();
       await v2Impl.waitForDeployment();
@@ -917,7 +917,7 @@ describe("RevenueTracker", function () {
     });
 
     // B-2: 업그레이드 후 기존 데이터 보존
-    it("업그레이드 후 기존 수익 데이터 보존", async function () {
+    it("preserves existing revenue data after upgrade", async function () {
       // Record revenue and claim before upgrade
       await rt.recordRevenue(STN_1, 5000n, PERIOD);
       await rt.recordRevenue(STN_2, 3000n, PERIOD);

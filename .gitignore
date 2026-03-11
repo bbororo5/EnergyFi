@@ -27,6 +27,8 @@ contracts/build/
 
 # Foundry (if used)
 lib/
+!contracts/scripts/lib/
+!contracts/scripts/lib/**
 !contracts/tools/live/lib/
 !contracts/tools/live/lib/**
 broadcast/

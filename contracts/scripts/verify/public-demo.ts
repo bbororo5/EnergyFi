@@ -1,13 +1,13 @@
 /**
- * EnergyFi — Judge Demo Script
+ * EnergyFi — Public Demo Verification Script
  *
  * Processes 3 live EV charging sessions on the Avalanche L1 testnet
- * and prints explorer links so judges can verify on-chain.
+ * and prints explorer links for direct public verification.
  *
  * Zero configuration required — testnet credentials are embedded.
  * This is a zero-gas testnet; the native token (EFI) has no economic value.
  *
- * Usage:  cd contracts && npm install && npm run demo
+ * Usage:  cd contracts && npm install && npm run verify:public:testnet
  */
 import {
   Contract,
@@ -46,15 +46,13 @@ const CHARGE_TX_ABI = [
 
 const REVENUE_ABI = [
   "function getRegionRevenue(bytes4 regionId) view returns (uint256)",
-  "function claimRegion(bytes4 regionId, uint256 period_yyyyMM) external returns (uint256 totalClaimed, uint256 stationCount)",
-  "function getRegionAttestation(bytes4 regionId, uint256 period_yyyyMM) view returns (tuple(bytes4 regionId, uint256 period_yyyyMM, uint256 distributableKrw, uint256 stationCount, uint256 finalizedAt))",
 ];
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const EXPLORER = "https://explorer-test.avax.network/efy";
 const MVP_URL = "https://energyfi-mobile-demo.vercel.app";
-const CURRENT_PERIOD = 202604n;
+const CURRENT_PERIOD = 202603n;
 
 // ─── ANSI Colors ─────────────────────────────────────────────────────────────
 
@@ -107,8 +105,8 @@ function signSession(
   return hexlify(wallet.signingKey.sign(digest).serialized) as `0x${string}`;
 }
 
-function judgeSessionId(runTs: number, index: number): `0x${string}` {
-  return keccak256(toUtf8Bytes(`judge-demo:${runTs}:${index}`)) as `0x${string}`;
+function publicDemoSessionId(runTs: number, index: number): `0x${string}` {
+  return keccak256(toUtf8Bytes(`public-demo:${runTs}:${index}`)) as `0x${string}`;
 }
 
 // ─── Demo session templates ──────────────────────────────────────────────────
@@ -163,7 +161,7 @@ function printBanner(signerAddress: string) {
   console.log(`
 ${C.cyan}\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
 \u2551                                                                    \u2551
-\u2551   ${C.bold}EnergyFi \u2014 Judge Demo${C.reset}${C.cyan}                                          \u2551
+\u2551   ${C.bold}EnergyFi \u2014 Public Demo Verification${C.reset}${C.cyan}                            \u2551
 \u2551   Watch live EV charging data hit the Avalanche blockchain         \u2551
 \u2551                                                                    \u2551
 \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d${C.reset}
@@ -300,7 +298,7 @@ async function main() {
   const revenueTracker = new Contract(
     CONTRACTS.RevenueTracker,
     REVENUE_ABI,
-    signer,
+    provider,
   );
 
   // Verify bridge
@@ -326,7 +324,7 @@ async function main() {
   const txHashes: string[] = [];
 
   for (const [i, template] of DEMO_SESSIONS.entries()) {
-    const sessionId = judgeSessionId(runTs, i);
+    const sessionId = publicDemoSessionId(runTs, i);
     const chargerId = encodeBytes32String(template.chargerLabel);
     const stationId = encodeBytes32String(template.stationLabel);
 
@@ -378,38 +376,7 @@ async function main() {
   const revenueAfter = await revenueTracker.getRegionRevenue(regionId);
   printAfter(totalAfter, revenueAfter);
 
-  // Step 5 — Finalize revenue attestation (so the Live MVP hero updates)
-  if (txHashes.length > 0) {
-    try {
-      const existing = await revenueTracker.getRegionAttestation(regionId, CURRENT_PERIOD);
-      if (existing.finalizedAt === 0n) {
-        const claimTx = await revenueTracker.claimRegion(regionId, CURRENT_PERIOD);
-        await claimTx.wait();
-        console.log(
-          `${C.yellow}\u2500\u2500\u2500 Revenue Attestation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
-        );
-        console.log(
-          `  ${C.green}\u2713${C.reset} Published attestation for period ${C.bold}${CURRENT_PERIOD.toString()}${C.reset}`,
-        );
-        console.log(
-          `  ${C.dim}Revenue finalized on-chain \u2192 Live MVP hero will reflect the new amount${C.reset}`,
-        );
-        console.log();
-      } else {
-        console.log(
-          `${C.yellow}\u2500\u2500\u2500 Revenue Attestation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
-        );
-        console.log(
-          `  ${C.dim}\u2713 Period ${CURRENT_PERIOD.toString()} already finalized \u2014 sessions still recorded on-chain${C.reset}`,
-        );
-        console.log();
-      }
-    } catch {
-      // claimRegion may fail if already finalized or other reason — non-critical
-    }
-  }
-
-  // Step 6 — Summary
+  // Step 5 — Summary
   printSummary(
     totalBefore,
     totalAfter,

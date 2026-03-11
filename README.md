@@ -14,15 +14,26 @@
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.28-363636?logo=solidity)](https://soliditylang.org/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-3-yellow?logo=hardhat)](https://hardhat.org/)
 [![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?logo=expo)](https://expo.dev/)
-[![Tests](https://img.shields.io/badge/Tests-289%20passing-brightgreen)](contracts/test/)
+[![Tests](https://img.shields.io/badge/Tests-CI%20tracked-brightgreen)](contracts/test/)
 
 </div>
 
 ---
 
+## Try It Yourself
+
+Mint 3 EV charging sessions on our live Avalanche L1 and verify them on the explorer:
+
+```bash
+cd contracts && npm install && npm run demo
+```
+
+The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times — each run creates new sessions.
+
+> Requires Node.js 24.x and a configured `.env` (see [Environment Setup](docs/environment-setup.md))
+
 ## Judge Quick Links
 
-- Public repository: [https://github.com/Seon-ung/EnergyFi](https://github.com/Seon-ung/EnergyFi)
 - Live MVP: [https://energyfi-mobile-demo.vercel.app](https://energyfi-mobile-demo.vercel.app)
 - Judge quick start: [docs/judge-quick-start.md](./docs/judge-quick-start.md)
 - Contract deployment links: [docs/contract-deployment-links.md](./docs/contract-deployment-links.md)
@@ -64,7 +75,7 @@ flowchart TB
     end
 
     subgraph L4["Layer 4 · Blockchain"]
-        EF["EnergyFi L1<br/>Avalanche Private Chain<br/>8 Smart Contracts"]
+        EF["EnergyFi L1<br/>Avalanche Private Chain<br/>Essential + Derived Contracts"]
     end
 
     SE --> EMB --> STR -->|invoice.paid| EF
@@ -76,7 +87,7 @@ flowchart TB
 
 **Layer 3 — Platform**: STRIKON, a production EV charging platform with 30+ Go microservices, handles charger management (OCPP 1.6/2.1), billing, payment processing, and settlement. Only after a payment is fully settled does it emit an `invoice.paid` event.
 
-**Layer 4 — Blockchain**: EnergyFi's dedicated Avalanche L1 (Chain ID 270626, zero-gas) receives the settled data via a Bridge wallet and records it immutably through 8 smart contracts.
+**Layer 4 — Blockchain**: EnergyFi's dedicated Avalanche L1 (Chain ID 270626, zero-gas) receives the settled data via a Bridge wallet and records it immutably through the contract surface defined in `contracts/docs/`.
 
 ### Bookend Signature Model
 
@@ -131,6 +142,11 @@ sequenceDiagram
 
 **Atomicity**: If the SE signature is invalid, the station is unregistered, or any check fails — the entire transaction reverts. No partial records ever exist on-chain.
 
+<div align="center">
+<img src="docs/assets/architecture.png" width="800"/>
+</div>
+
+> Canonical architecture references: [docs/README.md](docs/README.md), [contracts/docs/README.md](contracts/docs/README.md)
 ---
 
 ## Smart Contract Architecture
@@ -144,10 +160,12 @@ Every contract exists because a specific business requirement demanded it. Here 
 | **Immutably record settled payments** | `ChargeTransaction` | Soulbound ERC-721 — one token per session, no transfers, permanent record |
 | **Aggregate revenue per region** | `RevenueTracker` | Accumulates distributable KRW per station and per region. Source data for STO investors |
 | **Single trusted entry point** | `ChargeRouter` | Atomically executes mint + recordRevenue in one TX. `onlyBridge` access control |
-| **Issue per-region security tokens** | `RegionSTO` + `RegionSTOFactory` | 17 regions × tranche-based batch issuance (ERC-20) |
+| **Issue per-region security tokens** | `RegionSTO` + `RegionSTOFactory` | Current code includes an ERC-20-based prototype, but final token standard and issuance location remain policy-dependent |
 | **Station operational quality** | `ReputationRegistry` | Oracle-published region metrics (trust, rhythm, site scores) |
 
-### All 8 Contracts
+### Current Demo Surface
+
+The current public demo deployment exposes 8 contracts. The full phased contract map, including held/optional surfaces, is maintained in [contracts/docs/implementation-roadmap.md](contracts/docs/implementation-roadmap.md).
 
 | Phase | Category | Contract | Token Standard | Status |
 |:---|:---|:---|:---|:---|
@@ -156,9 +174,9 @@ Every contract exists because a specific business requirement demanded it. Here 
 | 2 | Transaction | **ChargeRouter** | — | Deployed |
 | 2 | Transaction | **ChargeTransaction** | ERC-721 (Soulbound) | Deployed |
 | 2 | Revenue | **RevenueTracker** | — | Deployed |
-| 3 | Investment | **RegionSTO** | ERC-20 | Deployed |
+| 3 | Investment | **RegionSTO** | ERC-20 prototype | Deployed (policy hold) |
 | 3 | Investment | **RegionSTOFactory** | — | Deployed |
-| 3 | Operations | **ReputationRegistry** | — | Deployed |
+| 4 | Operations | **ReputationRegistry** | — | Deployed |
 
 ### Contract Dependency Graph
 
@@ -195,9 +213,6 @@ flowchart TD
 |:---|:---|
 | **Stack** | React Native + Expo SDK 54, TypeScript |
 | **Routing** | expo-router v6 (4 tabs) |
-| **Screens** | 18 screens |
-| **Components** | 32 UI components |
-| **Hooks** | 7 custom hooks |
 | **i18n** | Korean + English |
 | **Platforms** | iOS, Android, Web |
 
@@ -207,30 +222,15 @@ flowchart TD
 
 ---
 
-## Test Coverage
+## Testing
 
-**289 passing, 1 pending** (P-256 precompile requires custom genesis)
+Test counts change over time, so this README does not freeze them. Use `cd contracts && npm test` or CI as the current source of truth.
 
-### Unit Tests (8 suites)
-
-| Contract | Tests | Key Coverage |
-|:---|:---:|:---|
-| RevenueTracker | 73 | Revenue accumulation, monthly history, settlement, cross-validation |
-| RegionSTO | 42 | Tranche issuance, admin-only transfers, decimals=0 |
-| StationRegistry | 40 | Station-charger hierarchy, region indexing, pausable |
-| ChargeTransaction | 39 | Soulbound minting, SE signature validation, atomic revert |
-| DeviceRegistry | 34+1p | P-256/secp256k1 enrollment, chip activation, signature verify |
-| RegionSTOFactory | 27 | 17-region deployment, factory patterns |
-| ReputationRegistry (behavior) | 21 | Snapshot storage, period queries, multi-region |
-| ReputationRegistry (admin) | 11 | Access control, bridge authorization |
-
-### Integration Tests (3 suites)
-
-| Suite | Tests | Coverage |
-|:---|:---:|:---|
-| Charging Pipeline | 29 | Full 5-contract atomic flow: Bridge → ChargeRouter → mint + recordRevenue |
-| STO Integration | 14 | Station → Region → Token issuance end-to-end |
-| Reputation Integration | 5 | Bridge-published snapshots, cross-contract reads |
+Key coverage areas:
+- DeviceRegistry P-256 / secp256k1 enrollment and signature verification
+- ChargeRouter atomicity across `ChargeTransaction` and `RevenueTracker`
+- Station/region mapping and revenue accumulation invariants
+- RegionSTO and ReputationRegistry demo surfaces
 
 ---
 
@@ -256,7 +256,7 @@ cd EnergyFi
 cd contracts
 npm install
 npx hardhat compile
-npx hardhat test                              # 289 tests
+npx hardhat test
 
 # Investor Mobile App
 cd ../mobile
@@ -282,14 +282,14 @@ EnergyFi/
 │   │   ├── base/               #   BridgeGuarded (shared access control)
 │   │   └── interfaces/         #   All contract interfaces
 │   ├── test/
-│   │   ├── unit/               #   8 test suites (289 tests)
-│   │   └── integration/        #   3 test suites (48 tests)
+│   │   ├── unit/               #   Contract unit tests
+│   │   └── integration/        #   Cross-contract integration tests
 │   ├── scripts/                #   Deployment & seeding scripts
 │   └── tools/dashboard/        #   Express web dashboard + CLI
 ├── mobile/                     # React Native + Expo SDK 54 (TypeScript)
-│   ├── app/                    #   18 screens (expo-router, 4 tabs)
-│   ├── components/             #   32 UI components
-│   └── hooks/                  #   7 custom hooks
+│   ├── app/                    #   expo-router screens
+│   ├── components/             #   UI building blocks
+│   └── hooks/                  #   Data/view hooks
 ├── l1-config/                  # L1 chain configuration
 │   ├── genesis.json            #   Chain ID 270626, zero-gas, RIP-7212
 │   └── config.json
@@ -300,13 +300,16 @@ EnergyFi/
 
 | Document | Description |
 |:---|:---|
+| [Root Docs Map](docs/README.md) | Canonical root-level document graph |
+| [Contracts Docs Map](contracts/docs/README.md) | Canonical contract doc graph and reading order |
 | [Architecture](docs/architecture.md) | 4-layer system architecture, trust chain, data flows |
 | [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Phase-by-phase contract specification, dependency graph |
 | [STRIKON Interface Spec](docs/strikon-interface-spec.md) | 5-step data pipeline: charger → invoice.paid |
 | [Phase 1 Spec](contracts/docs/phase1-infra-spec.md) | DeviceRegistry + StationRegistry |
 | [Phase 2 Spec](contracts/docs/phase2-transaction-spec.md) | ChargeTransaction + RevenueTracker + ChargeRouter |
 | [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | STO issuance + Revenue Attestation infrastructure |
-| [Phase 4 Spec](contracts/docs/phase4-carbon-spec.md) | Carbon credit pipeline (Verra VCS VM0038) |
+| [Phase 4 Reputation Spec](contracts/docs/phase4-reputation-spec.md) | Explore reputation snapshot interface and metric model |
+| [Phase 5 Spec](contracts/docs/phase5-carbon-spec.md) | Carbon credit pipeline (Verra VCS VM0038) |
 | [Environment Setup](docs/environment-setup.md) | Prerequisites, toolchain, network configuration |
 
 ---

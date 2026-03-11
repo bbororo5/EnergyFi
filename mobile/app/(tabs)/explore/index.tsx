@@ -54,6 +54,9 @@ export default function ExploreScreen() {
       <CommonHeader
         title="Explore"
         onNotificationPress={() => router.push('/(tabs)/account/notifications')}
+        onMorePress={() => router.push('/(tabs)/account/more')}
+        showUserIdentity
+        userDisplayName="Demo Investor"
       />
 
       <FlatList
@@ -73,7 +76,7 @@ export default function ExploreScreen() {
                 <View style={styles.heroTop}>
                   <View>
                     <Text style={styles.heroEyebrow}>Story Browser</Text>
-                    <Text style={styles.heroTitle}>Regional character, not rankings</Text>
+                    <Text numberOfLines={1} style={styles.heroTitle}>Regional character</Text>
                   </View>
                   <View style={styles.liveBadge}>
                     <View style={styles.liveDot} />
@@ -114,7 +117,6 @@ export default function ExploreScreen() {
             <FilterChips value={activeFilter} onSelect={setActiveFilter} />
 
             <SectionHeader
-              eyebrow="REPUTATION SNAPSHOTS"
               title="Live region stories"
               icon={<Compass size={18} color={colors.sky400} />}
               style={styles.sectionHeader}
@@ -141,7 +143,7 @@ export default function ExploreScreen() {
           <Animated.View entering={FadeInDown.delay(80 + index * 28).duration(320)}>
             <RegionStoryCard
               story={item}
-              onPress={item.published ? () => router.push(`/(tabs)/portfolio/${item.code}`) : undefined}
+              onPress={item.published ? () => router.push(`/region/${item.code}`) : undefined}
             />
           </Animated.View>
         )}

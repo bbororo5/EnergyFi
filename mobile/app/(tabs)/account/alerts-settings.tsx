@@ -55,7 +55,7 @@ export default function AlertsSettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Alert Types */}
-        <Text style={styles.sectionLabel}>ALERT TYPES</Text>
+        <Text numberOfLines={1} style={styles.sectionLabel}>Alert types</Text>
         <View style={styles.card}>
           {alertTypes.map((a, i) => (
             <View key={a.key}>
@@ -75,7 +75,7 @@ export default function AlertsSettingsScreen() {
         </View>
 
         {/* Channels */}
-        <Text style={styles.sectionLabel}>NOTIFICATION CHANNELS</Text>
+        <Text numberOfLines={1} style={styles.sectionLabel}>Notification channels</Text>
         <View style={styles.card}>
           {channels.map((c, i) => (
             <View key={c.key}>
@@ -119,13 +119,9 @@ const styles = StyleSheet.create({
   headerTitle: { ...typography.h4, color: colors.textPrimary, letterSpacing: -0.3 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 24 },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.textMuted,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    ...typography.sectionTitle,
+    color: colors.textPrimary,
+    marginBottom: 8,
   },
   card: {
     backgroundColor: 'rgba(22,27,38,0.4)',

@@ -1,9 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
-import { LineChart } from 'react-native-gifted-charts';
 import { CommonHeader } from '@/components/navigation/common-header';
 import { SurfaceCard } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,55 +8,27 @@ import { SmoothDigit } from '@/components/animated/smooth-digit';
 import { PortfolioCarousel } from '@/components/screens/home/portfolio-carousel';
 import { ImpactSection } from '@/components/screens/home/impact-section';
 import { LiveFeed } from '@/components/screens/home/live-feed';
+import { HeroRevenueChart } from '@/components/screens/home/hero-revenue-chart';
 import { colors } from '@/constants/theme';
-import { formatKrwShort } from '@/hooks/use-analytics-overview';
 import { useHomeDashboard } from '@/hooks/use-home-dashboard';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { dashboard, isLoading, isRefreshing, errorMessage, refresh } = useHomeDashboard();
-  const [chartWidth, setChartWidth] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (selectedIndex !== null) {
-      const timer = setTimeout(() => setSelectedIndex(null), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedIndex]);
 
   const heroChart = dashboard?.heroChart ?? [];
-  const currentPoint = selectedIndex != null ? heroChart[selectedIndex] : heroChart[heroChart.length - 1];
-  const heroValue = currentPoint ? currentPoint.value : dashboard?.heroValue ?? 0;
-  const growthPercent = dashboard?.growthPercent ?? null;
-  const isGrowthPositive = growthPercent == null || growthPercent >= 0;
-  const svgWidth = chartWidth > 0 ? chartWidth : 280;
-  const initialSpacing = 24;
-  const endSpacing = 24;
-  const chartSpacing = (svgWidth - initialSpacing - endSpacing) / Math.max(heroChart.length - 1, 1);
-  const chartValues = heroChart.map((item) => item.value);
-  const minValue = chartValues.length > 0 ? Math.min(...chartValues) : 0;
-  const maxValue = chartValues.length > 0 ? Math.max(...chartValues) : 0;
-  const range = Math.max(maxValue - minValue, 1);
-  const yAxisOffset = Math.max(0, Math.floor(minValue - range * 0.25));
-
-  const referenceLineTop = useMemo(() => {
-    if (!dashboard?.averageRevenueKrw || heroChart.length === 0) {
-      return null;
-    }
-
-    const averageValue = Number(dashboard.averageRevenueKrw);
-    const chartMax = Math.max(maxValue, averageValue);
-    const chartMin = Math.min(minValue, averageValue, yAxisOffset);
-    const chartRange = Math.max(chartMax - chartMin, 1);
-    return 160 - ((averageValue - chartMin) * 160) / chartRange - 10;
-  }, [dashboard?.averageRevenueKrw, heroChart.length, maxValue, minValue, yAxisOffset]);
+  const heroValue = dashboard?.heroValue ?? 0;
+  const heroLabel = dashboard?.heroLabel ?? 'Current month revenue';
+  const heroSubLabel = dashboard?.heroSubLabel ?? 'Reading on-chain revenue facts...';
 
   return (
     <View style={styles.container}>
       <CommonHeader
         title="Home"
         onNotificationPress={() => router.push('/(tabs)/account/notifications')}
+        onMorePress={() => router.push('/(tabs)/account/more')}
+        showUserIdentity
+        userDisplayName="Demo Investor"
       />
 
       <ScrollView
@@ -70,8 +39,8 @@ export default function HomeScreen() {
         <SurfaceCard style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroTextWrap}>
-              <Text style={styles.heroLabel}>{dashboard?.heroLabel ?? 'Monthly Revenue'}</Text>
-              <Text style={styles.heroSubLabel}>{dashboard?.heroSubLabel ?? 'Reading on-chain revenue facts...'}</Text>
+              <Text style={styles.heroLabel}>{heroLabel}</Text>
+              <Text style={styles.heroSubLabel}>{heroSubLabel}</Text>
             </View>
             <Badge
               label={dashboard?.ownershipOverlay.source === 'securities-api' ? 'ON-CHAIN + SEC' : dashboard?.ownershipOverlay.source === 'manual-input' ? 'ON-CHAIN + INPUT' : 'ON-CHAIN'}
@@ -85,91 +54,15 @@ export default function HomeScreen() {
           </View>
 
           {heroChart.length > 0 ? (
-            <View
-              style={styles.chartWrap}
-              onLayout={(event) => setChartWidth(event.nativeEvent.layout.width)}
-            >
-              <LineChart
-                data={heroChart}
-                height={160}
-                width={svgWidth}
-                color={colors.sky400}
-                thickness={4}
-                curved
-                yAxisOffset={yAxisOffset}
-                noOfSections={3}
-                hideDataPoints={false}
-                dataPointsColor={colors.white}
-                dataPointsRadius={4}
-                dataPointsShape="circle"
-                areaChart
-                startFillColor={colors.sky400}
-                endFillColor={colors.sky400}
-                startOpacity={0.25}
-                endOpacity={0}
-                xAxisColor="rgba(255,255,255,0.08)"
-                yAxisColor="transparent"
-                xAxisThickness={1}
-                yAxisThickness={0}
-                yAxisLabelWidth={0}
-                hideRules
-                hideYAxisText
-                xAxisLabelTextStyle={styles.chartLabel}
-                spacing={chartSpacing}
-                initialSpacing={initialSpacing}
-                endSpacing={endSpacing}
-                showReferenceLine1={Boolean(dashboard?.averageRevenueKrw)}
-                referenceLine1Position={dashboard?.averageRevenueKrw ? Number(dashboard.averageRevenueKrw) : undefined}
-                referenceLine1Config={{
-                  color: 'rgba(56, 189, 248, 0.2)',
-                  thickness: 1,
-                  type: 'dashed',
-                  dashWidth: 4,
-                  dashGap: 4,
-                }}
-                onPress={(_item: unknown, index: number) => setSelectedIndex(index)}
-              />
-
-              {dashboard?.averageRevenueKrw && referenceLineTop != null ? (
-                <View pointerEvents="none" style={[styles.avgLabelContainer, { top: referenceLineTop }]}>
-                  <View style={styles.avgLineBadge}>
-                    <Text style={styles.avgLineText}>{formatKrwShort(dashboard.averageRevenueKrw)}</Text>
-                  </View>
-                </View>
-              ) : null}
-            </View>
+            <HeroRevenueChart data={heroChart} />
           ) : (
             <View style={styles.emptyChart}>
               <Text style={styles.emptyChartText}>
-                {isLoading ? 'Building the revenue history from on-chain attestations...' : 'Monthly finalized revenue will appear after the first published settlement period.'}
+                {isLoading ? 'Building the published monthly record from on-chain attestations...' : 'Published monthly records will appear after the first evidence cycle closes.'}
               </Text>
             </View>
           )}
 
-          <View style={styles.divider} />
-
-          <View style={styles.portfolioBottomRow}>
-            <Text style={styles.portfolioBottomLabel}>{dashboard?.footerLabel ?? 'Network Revenue'}</Text>
-            <View style={styles.portfolioBottomValueRow}>
-              <Text style={styles.portfolioBottomValue}>{dashboard?.footerValue ?? '—'}</Text>
-              {growthPercent != null ? (
-                <View style={styles.gainBadge}>
-                  {isGrowthPositive ? (
-                    <ArrowUpRight size={12} color={colors.sky400} />
-                  ) : (
-                    <ArrowDownRight size={12} color={colors.warning} />
-                  )}
-                  <Text style={[styles.gainBadgeText, !isGrowthPositive && styles.gainBadgeTextNegative]}>
-                    {growthPercent >= 0 ? '+' : ''}{growthPercent.toFixed(1)}%
-                  </Text>
-                </View>
-              ) : dashboard?.footerBadgeText ? (
-                <View style={styles.gainBadge}>
-                  <Text style={styles.gainBadgeText}>{dashboard.footerBadgeText}</Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
         </SurfaceCard>
 
         {errorMessage ? (
@@ -245,13 +138,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 24,
   },
-  chartWrap: {
-    marginTop: 12,
-    marginBottom: 12,
-    marginHorizontal: -12,
-    height: 200,
-    justifyContent: 'center',
-  },
   emptyChart: {
     marginTop: 12,
     marginBottom: 12,
@@ -266,75 +152,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textSecondary,
     lineHeight: 20,
-  },
-  chartLabel: {
-    fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-  avgLabelContainer: {
-    position: 'absolute',
-    right: 12,
-    zIndex: 10,
-  },
-  avgLineBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.2)',
-  },
-  avgLineText: {
-    color: colors.sky400,
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    marginVertical: 20,
-  },
-  portfolioBottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
-  portfolioBottomLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-  },
-  portfolioBottomValueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  portfolioBottomValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.white,
-    fontVariant: ['tabular-nums'],
-  },
-  gainBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  gainBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.sky400,
-  },
-  gainBadgeTextNegative: {
-    color: colors.warning,
   },
   messageCard: {
     marginTop: -8,

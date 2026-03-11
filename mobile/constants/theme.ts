@@ -92,6 +92,11 @@ export const radius = {
   full: 9999,
 } as const;
 
+// ─── Layout Insets ──────────────────────────────────────────────────
+export const layout = {
+  contentInset: 20,
+} as const;
+
 // ─── Typography ─────────────────────────────────────────────────────
 const fontFamily = Platform.select({
   ios: 'System',
@@ -125,6 +130,13 @@ export const typography: Record<string, TextStyle> = {
     fontSize: 20,
     fontWeight: '500',
     lineHeight: 30,
+  },
+  sectionTitle: {
+    fontFamily,
+    fontSize: 26,
+    fontWeight: '600',
+    lineHeight: 36,
+    letterSpacing: -0.3,
   },
   body: {
     fontFamily,

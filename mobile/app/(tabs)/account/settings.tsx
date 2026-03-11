@@ -50,7 +50,7 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Display & Theme */}
-        <Text style={styles.sectionLabel}>DISPLAY & THEME</Text>
+        <Text numberOfLines={1} style={styles.sectionLabel}>Display and theme</Text>
         <View style={styles.card}>
           {/* Language */}
           <Pressable style={styles.row} onPress={() => setLangPicker(true)}>
@@ -98,7 +98,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Security */}
-        <Text style={styles.sectionLabel}>SECURITY</Text>
+        <Text numberOfLines={1} style={styles.sectionLabel}>Security</Text>
         <View style={styles.card}>
           <Pressable style={styles.row}>
             <View style={styles.iconBox}>
@@ -139,7 +139,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Data & Privacy */}
-        <Text style={styles.sectionLabel}>DATA & PRIVACY</Text>
+        <Text numberOfLines={1} style={styles.sectionLabel}>Data and privacy</Text>
         <View style={styles.card}>
           <Pressable style={styles.privacyRow}>
             <Text style={styles.rowLabel}>Clear Cache</Text>
@@ -208,14 +208,10 @@ const styles = StyleSheet.create({
   headerTitle: { ...typography.h4, color: colors.textPrimary, letterSpacing: -0.3 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 24 },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.textMuted,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 12,
+    ...typography.sectionTitle,
+    color: colors.textPrimary,
+    marginBottom: 8,
     marginTop: 16,
-    paddingHorizontal: 4,
   },
   card: {
     backgroundColor: 'rgba(22,27,38,0.4)',

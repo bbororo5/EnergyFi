@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionTitle: {
-    ...typography.h4,
+    ...typography.sectionTitle,
     color: colors.textPrimary,
   },
   statRow: {

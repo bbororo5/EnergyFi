@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Zap } from 'lucide-react-native';
-import { colors, radius, shadows } from '@/constants/theme';
+import { colors, radius, shadows, typography } from '@/constants/theme';
 import { Badge } from '@/components/ui/badge';
 import type { LiveSession } from '@/hooks/use-live-network-data';
 
@@ -14,7 +14,7 @@ export function LiveFeed({ sessions }: LiveFeedProps) {
     return (
       <View style={styles.container}>
         <View style={styles.headerRow}>
-          <Text style={styles.sectionTitle}>LIVE NETWORK REVENUE</Text>
+          <Text numberOfLines={1} style={styles.sectionTitle}>Live network revenue</Text>
           <Badge label="REAL-TIME" variant="live" dot />
         </View>
         <View style={styles.emptyCard}>
@@ -27,7 +27,7 @@ export function LiveFeed({ sessions }: LiveFeedProps) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>LIVE NETWORK REVENUE</Text>
+        <Text numberOfLines={1} style={styles.sectionTitle}>Live network revenue</Text>
         <Badge label="REAL-TIME" variant="live" dot />
       </View>
       {sessions.map((session, i) => (
@@ -60,19 +60,16 @@ export function LiveFeed({ sessions }: LiveFeedProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 10 },
+  container: { gap: 8 },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
-    paddingHorizontal: 4,
+    marginBottom: 0,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
+    ...typography.sectionTitle,
     color: colors.textPrimary,
-    letterSpacing: 0.5,
   },
   item: {
     flexDirection: 'column',

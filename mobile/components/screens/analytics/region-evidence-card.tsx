@@ -103,7 +103,11 @@ export function RegionEvidenceCard({ region, expanded, onToggle, onDetail }: Reg
 
             <Pressable onPress={onDetail} style={({ pressed }) => [styles.footer, pressed && styles.footerPressed]}>
               <Text style={styles.footerText}>
-                {region.stoAddress ? `Issuance live · ${region.trancheCount} tranches` : 'Issuance not live'}
+                {region.stoAddress
+                  ? region.ownedShareBps != null
+                    ? `Issuance live · ${region.trancheCount} tranches · ${(region.ownedShareBps / 100).toFixed(1)}% held`
+                    : `Issuance live · ${region.trancheCount} tranches`
+                  : 'Issuance not live'}
               </Text>
               <ChevronRight size={18} color={colors.textMuted} />
             </Pressable>

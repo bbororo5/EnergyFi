@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming,
   interpolate, Extrapolation,
@@ -10,17 +10,15 @@ interface FlipCardProps {
   front: React.ReactNode;
   back: React.ReactNode;
   height?: number;
+  flipped?: boolean;
 }
 
-export function FlipCard({ front, back, height = 260 }: FlipCardProps) {
-  const [flipped, setFlipped] = useState(false);
+export function FlipCard({ front, back, height = 260, flipped = false }: FlipCardProps) {
   const rotation = useSharedValue(0);
 
-  const toggleFlip = () => {
-    const next = !flipped;
-    setFlipped(next);
-    rotation.value = withTiming(next ? 180 : 0, { duration: 700 });
-  };
+  useEffect(() => {
+    rotation.value = withTiming(flipped ? 180 : 0, { duration: 700 });
+  }, [flipped, rotation]);
 
   const frontStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(rotation.value, [0, 180], [0, 180], Extrapolation.CLAMP);
@@ -41,14 +39,14 @@ export function FlipCard({ front, back, height = 260 }: FlipCardProps) {
   });
 
   return (
-    <Pressable onPress={toggleFlip} style={[styles.container, { height }]}>
+    <View style={[styles.container, { height }]}>
       <Animated.View style={[styles.face, { height }, frontStyle]}>
         {front}
       </Animated.View>
       <Animated.View style={[styles.face, styles.backFace, { height }, backStyle]}>
         {back}
       </Animated.View>
-    </Pressable>
+    </View>
   );
 }
 

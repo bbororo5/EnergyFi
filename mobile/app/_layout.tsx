@@ -26,6 +26,7 @@ export default function RootLayout() {
             <Stack.Screen name="admin/oracle" options={{ animation: 'fade' }} />
             <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
             <Stack.Screen name="login" options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="region/[id]" options={{ animation: 'slide_from_right' }} />
             <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
           </Stack>
           <StatusBar style="light" />

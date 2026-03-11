@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
   },
   sectionTitle: {
-    ...typography.bodyBold,
+    ...typography.sectionTitle,
     color: colors.textPrimary,
     paddingTop: 16,
     paddingBottom: 4,

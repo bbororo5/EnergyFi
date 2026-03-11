@@ -42,7 +42,8 @@ Runtime files:
 - overview hook: `mobile/hooks/use-analytics-overview.ts`
 - region detail hook: `mobile/hooks/use-region-analytics.ts`
 - overview screen: `mobile/app/(tabs)/portfolio/index.tsx`
-- detail screen: `mobile/app/(tabs)/portfolio/[id].tsx`
+- shared detail screen: `mobile/app/region/[id].tsx`
+- analytics wrapper route: `mobile/app/(tabs)/portfolio/[id].tsx`
 
 Runtime config can be overridden with:
 
@@ -97,7 +98,7 @@ Each region card shows:
 - latest finalized attestation state
 - issuance state
 
-Cards route to `/(tabs)/portfolio/[id]`, where `id` is the region code such as `KR11`.
+Cards route to `/region/[id]`, where `id` is the region code such as `KR11`.
 
 ### 5. Attention
 

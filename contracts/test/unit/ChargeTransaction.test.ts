@@ -1,14 +1,14 @@
 /**
- * ChargeTransaction 통합 테스트
+ * ChargeTransaction test suite
  *
  * ERC-721 Soulbound + UUPS Proxy.
- * SE 칩 서명은 secp256k1로 테스트 (로컬 네트워크에서 P-256 RIP-7212 불가).
+ * SE chip signatures are tested with secp256k1 in local environments because P-256 RIP-7212 is not available there.
  *
- * R04: Pausable — pause/unpause, whenNotPaused on mint().
+ * R04: Pausable coverage — pause/unpause and whenNotPaused on mint().
  * R05: Bridge rotation — updateBridgeAddress().
- * R08: getSession 존재 검증 — SessionNotFound.
- * T01: 데이터 정합성 교차 검증 (totalSessions == mint 횟수 + reverse lookup).
- * T05: View 함수 커버리지 강화.
+ * R08: missing-session validation — SessionNotFound.
+ * T01: cross-check data consistency (totalSessions == mint count + reverse lookup).
+ * T05: expanded view-function coverage.
  */
 
 import hre from "hardhat";
@@ -111,13 +111,13 @@ describe("ChargeTransaction", function () {
       admin.address  // admin
     );
 
-    // Setup infrastructure: Station, SE chip, Charger (chip must be enrolled before registerCharger)
-    await stationRegistry.registerStation(STATION_1, REGION_SEOUL, "서울 강남");
+    // Setup infrastructure: station, SE chip, charger (chip must be enrolled before registerCharger)
+    await stationRegistry.registerStation(STATION_1, REGION_SEOUL, "Seoul Gangnam");
     await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(seWallet), SECP256K1);
     await stationRegistry.registerCharger(CHARGER_1, STATION_1, 1);
   });
 
-  // ── 초기화 ──────────────────────────────────────────────────────────────────
+  // ── initialization ─────────────────────────────────────────────────────────
 
   describe("initialization", function () {
     it("prevents reinitialize", async function () {
@@ -156,7 +156,7 @@ describe("ChargeTransaction", function () {
     });
   });
 
-  // ── mint() 성공 ────────────────────────────────────────────────────────────
+  // ── mint() success ─────────────────────────────────────────────────────────
 
   describe("mint() success", function () {
     it("mints successfully with a valid SE signature and sets tokenId = 1", async function () {
@@ -189,7 +189,7 @@ describe("ChargeTransaction", function () {
       expect(stored.seSignature).to.equal("0x");
     });
 
-    // T05: getTokenIdBySessionId 정확성
+    // T05: getTokenIdBySessionId correctness
     it("returns the expected value from getTokenIdBySessionId()", async function () {
       await ct.mint(makeSession());
       expect(await ct.getTokenIdBySessionId(SESSION_1)).to.equal(1n);
@@ -207,14 +207,14 @@ describe("ChargeTransaction", function () {
       expect(await ct.balanceOf(ctProxyAddr)).to.equal(1n);
     });
 
-    // B-1: 이벤트 파라미터 검증
+    // B-1: event parameter validation
     it("emits ChargeSessionRecorded with the expected parameters, including seSignature", async function () {
       const session = makeSession();
       const tx = await ct.mint(session);
       const receipt = await tx.wait();
 
       const event = findEvent(receipt!, ct, "ChargeSessionRecorded");
-      expect(event, "ChargeSessionRecorded 이벤트가 emit되어야 한다").to.not.be.null;
+      expect(event, "ChargeSessionRecorded event should be emitted").to.not.be.null;
       expect(event!.args.tokenId).to.equal(1n);
       expect(event!.args.sessionId).to.equal(session.sessionId);
       expect(event!.args.chargerId).to.equal(session.chargerId);
@@ -229,7 +229,7 @@ describe("ChargeTransaction", function () {
     });
   });
 
-  // ── mint() 실패 ────────────────────────────────────────────────────────────
+  // ── mint() failures ────────────────────────────────────────────────────────
 
   describe("mint() failures", function () {
     it("reverts with DuplicateSession for a repeated sessionId", async function () {
@@ -327,7 +327,7 @@ describe("ChargeTransaction", function () {
     });
   });
 
-  // ── R08: 미존재 데이터 조회 (BREAKING CHANGE) ──────────────────────────────
+  // ── R08: missing-data lookups (BREAKING CHANGE) ────────────────────────────
 
   describe("missing data lookups (R08)", function () {
     // R08: getSession(999) → revert SessionNotFound (was empty struct)
@@ -340,7 +340,7 @@ describe("ChargeTransaction", function () {
       expect(await ct.getTokenIdBySessionId(b32("UNKNOWN-SESSION"))).to.equal(0n);
     });
 
-    // T05: totalSessions 초기값
+    // T05: totalSessions initial value
     it("starts totalSessions() at 0", async function () {
       // Before any mint — should be 0 (not undefined/revert)
       expect(await ct.totalSessions()).to.equal(0n);
@@ -440,7 +440,7 @@ describe("ChargeTransaction", function () {
     });
   });
 
-  // ── T01: 데이터 정합성 교차 검증 ──────────────────────────────────────────
+  // ── T01: cross-checking data consistency ───────────────────────────────────
 
   describe("cross-checking data consistency (T01)", function () {
     it("verifies totalSessions against mint count and reverse lookup", async function () {
@@ -486,7 +486,7 @@ describe("ChargeTransaction", function () {
       );
     });
 
-    // B-2: 업그레이드 후 기존 데이터 보존
+    // B-2: preserve existing data after upgrade
     it("preserves existing mint data after upgrade", async function () {
       // Mint 2 sessions before upgrade
       const session1 = makeSession({ sessionId: SESSION_1 });

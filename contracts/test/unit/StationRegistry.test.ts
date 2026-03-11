@@ -1,13 +1,13 @@
 /**
- * StationRegistry 통합 테스트
+ * StationRegistry test suite
  *
  * Hardhat 3 + hardhat-ethers v4 API:
  *   ethers = (await hre.network.connect()).ethers
  *
- * R03: UUPS 전환 — constructor → initialize(admin, deviceRegistry).
- * R04: Pausable — pause/unpause, whenNotPaused 적용 확인.
- * T04: UUPS 업그레이드 데이터 보존.
- * T05: View 함수 커버리지 강화.
+ * R03: UUPS migration — constructor -> initialize(admin, deviceRegistry).
+ * R04: Pausable coverage — pause/unpause and whenNotPaused behavior.
+ * T04: UUPS upgrade data preservation.
+ * T05: Expanded view-function coverage.
  *
  * All stations are EnergyFi-owned. No CPO concept on-chain.
  */
@@ -74,7 +74,7 @@ describe("StationRegistry", function () {
 
   describe("station management", function () {
     it("emits StationRegistered on registerStation()", async function () {
-      const tx = await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      const tx = await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       const receipt = await tx.wait();
       const event = findEvent(receipt, registry, "StationRegistered");
       expect(event).to.not.be.null;
@@ -83,7 +83,7 @@ describe("StationRegistry", function () {
     });
 
     it("returns the station after registration through getStation()", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       const s = await registry.getStation(STN_1);
 
       expect(s.stationId).to.equal(STN_1);
@@ -94,20 +94,20 @@ describe("StationRegistry", function () {
     it("reverts registerStation() from an unauthorized address", async function () {
       await expectRevert(
         registry.connect(nonAdmin).registerStation(
-          STN_1, REGION_SEOUL, "서울 강남"
+          STN_1, REGION_SEOUL, "Seoul Gangnam"
         )
       );
     });
 
     it("reverts with RegionRequired when registering a station without regionId", async function () {
       await expectRevertCustomError(
-        registry.registerStation(STN_3, REGION_EMPTY, "서울"),
+        registry.registerStation(STN_3, REGION_EMPTY, "Seoul"),
         "RegionRequired"
       );
     });
 
     it("reverts deactivateStation() from an unauthorized address", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await expectRevert(registry.connect(nonAdmin).deactivateStation(STN_1));
     });
 
@@ -116,8 +116,8 @@ describe("StationRegistry", function () {
     });
 
     it("removes the station from getStationsByRegion() after deactivateStation()", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
-      await registry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
+      await registry.registerStation(STN_3, REGION_SEOUL, "Seoul Jongno");
       await registry.deactivateStation(STN_3);
       const stations = await registry.getStationsByRegion(REGION_SEOUL);
       expect(stations).to.include(STN_1);
@@ -125,7 +125,7 @@ describe("StationRegistry", function () {
     });
 
     it("reverts deactivateStation() with HasActiveChargers when active chargers remain", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(Wallet.createRandom()), 0);
       await registry.registerCharger(CHG_1, STN_1, 1); // L2
 
@@ -133,7 +133,7 @@ describe("StationRegistry", function () {
     });
 
     it("allows deactivateStation() when no active chargers remain", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await registry.deactivateStation(STN_1);
       const s = await registry.getStation(STN_1);
       expect(s.active).to.equal(false);
@@ -144,7 +144,7 @@ describe("StationRegistry", function () {
 
   describe("charger management", function () {
     beforeEach(async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       // Enroll SE chips for chargers (required by registerCharger)
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(seWallet), 0);
       const se2 = Wallet.createRandom();
@@ -199,7 +199,7 @@ describe("StationRegistry", function () {
       expect(c.active).to.equal(false);
     });
 
-    // T05: getChargersByStation — deactivate 후 배열 반영
+    // T05: getChargersByStation reflects deactivation in the returned array
     it("removes the charger from getChargersByStation() after deactivateCharger()", async function () {
       await registry.registerCharger(CHG_1, STN_1, 1);
       await registry.registerCharger(CHG_2, STN_1, 2);
@@ -242,8 +242,8 @@ describe("StationRegistry", function () {
 
   describe("region index lookups", function () {
     it("includes all stations from the same region in getStationsByRegion()", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
-      await registry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
+      await registry.registerStation(STN_3, REGION_SEOUL, "Seoul Jongno");
 
       const stations = await registry.getStationsByRegion(REGION_SEOUL);
       expect(stations.length).to.equal(2);
@@ -252,8 +252,8 @@ describe("StationRegistry", function () {
     });
 
     it("excludes stations from other regions in getStationsByRegion()", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
-      await registry.registerStation(STN_3, REGION_BUSAN, "부산 해운대");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
+      await registry.registerStation(STN_3, REGION_BUSAN, "Busan Haeundae");
 
       const seoulStations = await registry.getStationsByRegion(REGION_SEOUL);
       expect(seoulStations).to.include(STN_1);
@@ -265,7 +265,7 @@ describe("StationRegistry", function () {
 
   describe("isRegistered (T05)", function () {
     it("returns true for a registered station", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       expect(await registry.isRegistered(STN_1)).to.equal(true);
     });
 
@@ -297,13 +297,13 @@ describe("StationRegistry", function () {
     it("reverts registerStation() with EnforcedPause while paused", async function () {
       await registry.pause();
       await expectRevertCustomError(
-        registry.registerStation(STN_1, REGION_SEOUL, "서울 강남"),
+        registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam"),
         "EnforcedPause"
       );
     });
 
     it("reverts registerCharger() with EnforcedPause while paused", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(seWallet), 0);
       await registry.pause();
       await expectRevertCustomError(
@@ -313,7 +313,7 @@ describe("StationRegistry", function () {
     });
 
     it("reverts deactivateStation() with EnforcedPause while paused", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await registry.pause();
       await expectRevertCustomError(
         registry.deactivateStation(STN_1),
@@ -322,7 +322,7 @@ describe("StationRegistry", function () {
     });
 
     it("reverts deactivateCharger() with EnforcedPause while paused", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(seWallet), 0);
       await registry.registerCharger(CHG_1, STN_1, 1);
       await registry.pause();
@@ -335,13 +335,13 @@ describe("StationRegistry", function () {
     it("allows registerStation() again after unpause()", async function () {
       await registry.pause();
       await registry.unpause();
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       const s = await registry.getStation(STN_1);
       expect(s.active).to.equal(true);
     });
 
     it("keeps view functions working while paused", async function () {
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       await registry.pause();
 
       // View functions should still work while paused
@@ -353,7 +353,7 @@ describe("StationRegistry", function () {
     });
   });
 
-  // ── T04: UUPS 업그레이드 데이터 보존 ──────────────────────────────────────
+  // ── T04: UUPS upgrade data preservation ────────────────────────────────────
 
   describe("UUPS upgrades (T04)", function () {
     it("allows admin upgrade", async function () {
@@ -376,8 +376,8 @@ describe("StationRegistry", function () {
 
     it("preserves existing station and charger data after upgrade", async function () {
       // Setup data before upgrade
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
-      await registry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
+      await registry.registerStation(STN_3, REGION_SEOUL, "Seoul Jongno");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(seWallet), 0);
       await registry.registerCharger(CHG_1, STN_1, 1);
 
@@ -409,12 +409,12 @@ describe("StationRegistry", function () {
       await registry.upgradeToAndCall(await v2Impl.getAddress(), "0x");
 
       // New registrations after upgrade
-      await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
+      await registry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
       expect(await registry.isRegistered(STN_1)).to.equal(true);
     });
   });
 
-  // ── R03: 초기화 보호 ──────────────────────────────────────────────────────
+  // ── R03: initializer protection ────────────────────────────────────────────
 
   describe("initializer protection (R03)", function () {
     it("prevents reinitialize", async function () {

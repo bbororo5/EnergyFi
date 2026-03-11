@@ -1,14 +1,14 @@
 /**
- * Charging Pipeline (Phase 1 → 2) 통합 테스트
+ * Charging Pipeline (Phase 1 -> 2) integration test suite
  *
- * 5개 컨트랙트 전체 배포 (모두 UUPS proxy):
+ * Deploys the full 5-contract surface (all UUPS proxies):
  *   DeviceRegistry + StationRegistry + ChargeTransaction + RevenueTracker + ChargeRouter
  *
- * processCharge() 원자성 검증: mint + recordRevenue 동시 성공/실패.
+ * Verifies processCharge() atomicity: mint + recordRevenue succeed or fail together.
  *
- * R04: Pausable — pause/unpause, whenNotPaused on processCharge().
+ * R04: Pausable coverage — pause/unpause and whenNotPaused on processCharge().
  * R05: Bridge rotation — updateBridgeAddress() on CR.
- * T03: 접근 제어 전면 검증.
+ * T03: end-to-end access-control validation.
  */
 
 import hre from "hardhat";
@@ -44,7 +44,7 @@ const SECP256K1 = 0;
 const PERIOD = 202606n;
 
 const DEFAULT_START_TS = 1700000000n;
-const DEFAULT_END_TS   = 1700003600n;  // +3600s = 1시간
+const DEFAULT_END_TS   = 1700003600n;  // +3600s = 1 hour
 const DEFAULT_KRW      = 5000n;
 const DEFAULT_ENERGY    = 1000n;
 
@@ -157,12 +157,12 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     rt = IRevenueTracker__factory.connect(await rtContract.getAddress(), admin);
 
     // 8. Setup infrastructure (chip must be enrolled before registerCharger)
-    await stationRegistry.registerStation(STATION_1, REGION_SEOUL, "서울 강남");
+    await stationRegistry.registerStation(STATION_1, REGION_SEOUL, "Seoul Gangnam");
     await deviceRegistry.enrollChip(CHARGER_1, getPublicKey64(seWallet), SECP256K1);
     await stationRegistry.registerCharger(CHARGER_1, STATION_1, 1);
   });
 
-  // ── processCharge 성공 ─────────────────────────────────────────────────────
+  // ── processCharge success ──────────────────────────────────────────────────
 
   describe("processCharge success", function () {
     it("creates the CT token and accumulates RT revenue in the same call", async function () {
@@ -182,21 +182,21 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(pending).to.equal(5000n);
     });
 
-    // B-1: 이벤트 파라미터 검증 (3개 컨트랙트 모두)
+    // B-1: event parameter validation across all three contracts
     it("emits ChargeProcessed with the expected parameters", async function () {
       const session = makeSession();
       const tx = await cr.processCharge(session, PERIOD);
       const receipt = await tx.wait();
 
       const crEvent = findEvent(receipt!, crContract, "ChargeProcessed");
-      expect(crEvent, "ChargeProcessed 이벤트가 emit되어야 한다").to.not.be.null;
+      expect(crEvent, "ChargeProcessed event should be emitted").to.not.be.null;
       expect(crEvent!.args.tokenId).to.equal(1n);
       expect(crEvent!.args.sessionId).to.equal(session.sessionId);
       expect(crEvent!.args.stationId).to.equal(session.stationId);
       expect(crEvent!.args.period_yyyyMM).to.equal(PERIOD);
     });
 
-    // B-7: 단일 TX에서 CT + RT + CR 이벤트 모두 emit 증거
+    // B-7: prove that CT + RT + CR all emit from a single transaction
     it("emits CT, RT, and CR events from a single transaction", async function () {
       const session = makeSession();
       const tx = await cr.processCharge(session, PERIOD);
@@ -261,10 +261,10 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
   });
 
-  // ── 원자성 검증 ────────────────────────────────────────────────────────────
+  // ── atomicity validation ───────────────────────────────────────────────────
 
   describe("atomicity", function () {
-    // B-7: 성공 후 실패 시 성공 상태 유지 (부분 롤백 검증)
+    // B-7: keep the successful state after a later failure (partial rollback check)
     it("preserves prior successful state and fully rolls back the failing transaction", async function () {
       // First: successful charge
       await cr.processCharge(makeSession({ distributableKrw: DEFAULT_KRW }), PERIOD);
@@ -312,7 +312,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       expect(accumulated).to.equal(0n);
     });
 
-    // B-7: CT 실패가 RT에 영향 없음 증거
+    // B-7: prove that CT failure leaves RT unchanged
     it("records no RT revenue when CT reverts for an inactive chip", async function () {
       await deviceRegistry.revokeChip(CHARGER_1);
 
@@ -345,7 +345,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
   });
 
-  // ── 접근 제어 ──────────────────────────────────────────────────────────────
+  // ── access control ─────────────────────────────────────────────────────────
 
   describe("access control", function () {
     it("reverts with CallerNotBridge for an unauthorized caller", async function () {
@@ -468,7 +468,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
   });
 
-  // ── UUPS Upgrade ───────────────────────────────────────────────────────────
+  // ── UUPS upgrades ──────────────────────────────────────────────────────────
 
   describe("UUPS upgrades", function () {
     it("allows admin upgrade", async function () {
@@ -490,7 +490,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
       );
     });
 
-    // B-2: 업그레이드 후 기존 데이터 보존 + 연동 유지
+    // B-2: preserve existing data and integration behavior after upgrade
     it("keeps processCharge working after upgrade", async function () {
       // Charge before upgrade
       await cr.processCharge(makeSession(), PERIOD);
@@ -510,7 +510,7 @@ describe("Charging Pipeline (Phase 1 → 2)", function () {
     });
   });
 
-  // ── Double-initialize 방지 ─────────────────────────────────────────────────
+  // ── double-initialize protection ───────────────────────────────────────────
 
   describe("double-initialize protection", function () {
     it("reverts ChargeRouter reinitialization with InvalidInitialization", async function () {

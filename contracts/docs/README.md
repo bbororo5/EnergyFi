@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`contracts/docs/` is the **canonical documentation set for the smart-contract layer**.  
+`contracts/docs/` is the **canonical documentation set for the smart-contract layer**.
 Documents in this directory should be read in three categories.
 
 - `Canonical`: documents that describe the current implementation or currently approved policy

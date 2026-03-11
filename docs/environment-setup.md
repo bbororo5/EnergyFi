@@ -48,20 +48,20 @@ avalanche blockchain deploy energyfitest --local
 
 > For full details on local subnet configuration, anti-patterns, and troubleshooting, see **[Local Subnet Guide](local-subnet-guide.md)**.
 
-### 2.4 개발 환경 구성
+### 2.4 Development Environments
 
-| 환경 | 용도 | 네트워크 | Deploy Command |
+| Environment | Purpose | Network | Deploy Command |
 |:---|:---|:---|:---|
-| **Hardhat EVM** | 유닛 테스트, 오라클 빠른 검증 | `localhost` (8545) | — |
-| **로컬 서브넷** | 통합 테스트, E2E | `energyfi-l1-local` | `npm run deploy:local` |
+| **Hardhat EVM** | Unit tests and fast oracle validation | `localhost` (8545) | — |
+| **Local Subnet** | Integration tests and E2E | `energyfi-l1-local` | `npm run deploy:local` |
 
 ### 2.5 Clone & Environment Variables
 ```bash
 git clone <repo-url> && cd EnergyFi
 cp .env.example .env
 # Edit .env:
-#   DEPLOYER_PRIVATE_KEY    — 컨트랙트 배포 및 오라클 서명용 지갑
-#   ENERGYFI_L1_LOCAL_RPC   — 로컬 Avalanche-CLI 서브넷 RPC URL
+#   DEPLOYER_PRIVATE_KEY    — wallet used for contract deployment and oracle signing
+#   ENERGYFI_L1_LOCAL_RPC   — local Avalanche-CLI subnet RPC URL
 ```
 
 ### 2.6 Install Dependencies
@@ -81,7 +81,7 @@ cd contracts && npm run compile    # solc 0.8.20
 |:---|:---|:---|:---|:---|:---|
 | **A** (L1 Config) | `l1-config/` | Avalanche-CLI | JSON | — | Active |
 | **B** (L1 Contracts) | `contracts/` | Node.js 24 | ESM (`"type": "module"`) | hardhat@3.1.7, ethers@6, OZ@5 | Active |
-| **C** (Frontend) | `frontend/` | Node.js 24 | ESM | expo@54, react-native, expo-router | Planned |
+| **C** (Mobile App) | `mobile/` | Node.js 24 | ESM | expo@54, react-native, expo-router | Active (demo) |
 
 ## 4. Hardhat 3 Notes
 

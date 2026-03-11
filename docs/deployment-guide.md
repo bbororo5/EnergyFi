@@ -8,7 +8,7 @@ This document covers the deployment units, their execution procedures, and the p
 |:---|:---|:---|:---|:---|:---|
 | **A** | L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | AvalancheGo node | Active |
 | **B** | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | **Unit A** running | Active |
-| **C** | Frontend | `frontend/` | React Native + Expo (SDK 54), TypeScript | **Unit B** deployed | Planned |
+| **C** | Mobile App | `mobile/` | React Native + Expo (SDK 54), TypeScript | **Unit B** deployed | Active (demo) |
 
 > **Note:** Off-chain services (data relay, oracle pattern) are managed by the STRIKON platform and are outside the scope of this repository.
 
@@ -83,7 +83,7 @@ For hackathon submission, the L1 is deployed via [AvaCloud](https://avacloud.io)
 #    - AvaCloud provisions 2 validator nodes automatically
 
 # 3. Save the AvaCloud-provided RPC URL to .env
-#    ENERGYFI_L1_TESTNET_RPC=<AvaCloud console에서 제공하는 RPC URL>
+#    ENERGYFI_L1_TESTNET_RPC=<RPC URL provided by the AvaCloud console>
 
 # 4. Deploy contracts for the demo surface
 cd contracts
@@ -107,7 +107,7 @@ For production launch (June 2026~), the L1 is deployed via AvaCloud Mainnet with
 #    - Configure validator nodes (company-operated, separate regions)
 
 # 3. Save the AvaCloud-provided RPC URL to .env
-#    ENERGYFI_L1_MAINNET_RPC=<AvaCloud console에서 제공하는 RPC URL>
+#    ENERGYFI_L1_MAINNET_RPC=<RPC URL provided by the AvaCloud console>
 
 # 4. Deploy contracts
 #    Production uses the same full-surface deployment script after
@@ -157,12 +157,12 @@ npm run test:integration
 
 # Deploy to target environment:
 npm run deploy:testnet       # Essential surface only
-npm run deploy:full:testnet  # Essential + frontend read surface
+npm run deploy:full:testnet  # Essential + mobile demo read surface
 ```
 
 > **Note:** `hardhat.config.ts` loads `.env` from the project root (`../.env`), not from `contracts/`. Environment variables are centrally managed in the root `.env` file.
 
-> **Deployer funding:** The deployer wallet (`0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD`) must have EFI balance on the target chain before deployment. Fund it from the Core wallet via AvaCloud console or Core Wallet app.
+> **Deployer funding:** The deployer wallet configured in your local environment must have EFI balance on the target chain before deployment. Fund that address from the Core wallet via AvaCloud console or Core Wallet app.
 
 ### Phase 1 Contracts (2026.03, Testnet)
 
@@ -186,32 +186,42 @@ The AvaCloud demo path writes:
 Seed data and tranche issuance are separate post-deploy steps.
 `deploy:full:testnet` intentionally stops after contract deployment and address recording.
 
-As the 12-contract + 1 factory architecture is implemented in phases, deployment scripts and addresses will be updated:
+As the phased contract surface is implemented, deployment scripts and addresses will be updated:
 ```
-# Phase 1 (Essential — 2026.03 구현 완료, 테스트넷 배포 진행 중)
+# Phase 1 (Essential — implemented in the repository, testnet deployment in progress)
 DEVICE_REGISTRY_ADDRESS=0x...
 STATION_REGISTRY_ADDRESS=0x...
 
-# Phase 2 (Essential — Phase 1 완료 후)
+# Phase 2 (Essential — after Phase 1 rollout)
 CHARGE_TRANSACTION_ADDRESS=0x...
 REVENUE_TRACKER_ADDRESS=0x...
 
-# Phase 4 (Derived — Carbon)
+# Phase 3 (Derived — STO, after the issuance path is finalized)
+CCIP_REVENUE_SENDER_ADDRESS=0x...
+STO_PORTFOLIO_ADDRESS=0x...
+REGION_STO_FACTORY_ADDRESS=0x...
+
+# Phase 4 (Derived — Reputation, optional)
+REPUTATION_REGISTRY_ADDRESS=0x...
+
+# Phase 5 (Derived — Carbon)
 PARAMETER_REGISTRY_ADDRESS=0x...
 CARBON_REDUCTION_ADDRESS=0x...
 CARBON_BATCH_ADDRESS=0x...
 VCU_REFERENCE_ADDRESS=0x...
-
-# Phase 3 (Derived — STO, 발행 경로 확정 후)
-CCIP_REVENUE_SENDER_ADDRESS=0x...
-REPUTATION_REGISTRY_ADDRESS=0x...
-STO_PORTFOLIO_ADDRESS=0x...
-REGION_STO_FACTORY_ADDRESS=0x...
 ```
 
-## 5. [Unit C] Frontend — PLANNED
+## 5. [Unit C] Mobile App
 
-> The frontend will be reimplemented to support the per-region STO model (17 administrative regions, ISO 3166-2:KR) and the 12-contract + 1 factory architecture. Frontend spec is planned for a future phase.
+The investor-facing client lives in `mobile/` and is built with React Native + Expo. It should be treated as a consumer of the canonical contract docs rather than as a source of contract truth.
+
+```bash
+cd mobile
+npm install
+npx expo start
+```
+
+Mobile UX and screen documents are maintained under `mobile/docs/`.
 
 ## 6. Deployment Checklist
 
@@ -236,8 +246,8 @@ REGION_STO_FACTORY_ADDRESS=0x...
 | Network | Chain ID | RPC | Explorer |
 |:---|:---|:---|:---|
 | EnergyFi L1 Testnet | 270626 | `https://subnets.avax.network/energyfi/testnet/rpc` (AvaCloud) | `https://explorer-test.avax.network/energyfi` |
-| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet, 미구성) | TBD |
+| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet, not configured yet) | TBD |
 | Avalanche Fuji C-Chain | 43113 | `https://api.avax-test.network/ext/bc/C/rpc` | [testnet.snowtrace.io](https://testnet.snowtrace.io) |
 | Avalanche Mainnet | 43114 | `https://api.avax.network/ext/bc/C/rpc` | [snowtrace.io](https://snowtrace.io) |
 
-> **AvaCloud 테스트넷 상태 (2026.03):** Chain ID 270626 확인, 블록 생성 중, Node Region: Seoul (Validator 2, RPC 2), Explorer Indexer: Tokyo. Testnet Starter 5일 무료 체험 중.
+> **AvaCloud testnet status (March 2026):** Chain ID `270626` is confirmed, blocks are being produced, the node region is Seoul (Validator 2, RPC 2), and the explorer indexer is in Tokyo. The environment is currently running on a five-day Testnet Starter trial.

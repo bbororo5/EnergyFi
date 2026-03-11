@@ -31,11 +31,11 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 **Definition**: All on-chain behavior must conform to applicable Korean financial regulations — the Capital Markets Act, the Electronic Securities Act (effective 2027.02.04), and KSD total-supply management requirements.
 
 **Evaluation Criteria**:
-- [ ] STO tokens enforce admin-only transfer (no unauthorized secondary market movement)
-- [ ] `totalSupply()` is always verifiable and matches issued tranches exactly
-- [ ] No on-chain dividend distribution logic (securities firm domain per CLAUDE.md §2.5)
-- [ ] No on-chain KYC/AML logic (securities firm domain per CLAUDE.md §2.6)
-- [ ] Issuance scope only — no distribution mechanics (CLAUDE.md §2.6)
+- [ ] Issuance-related state changes are admin-gated or explicitly delegated to the securities-firm side
+- [ ] `totalSupply()` and tranche-level issuance totals are always verifiable
+- [ ] No on-chain dividend distribution logic (securities firm domain)
+- [ ] No on-chain KYC/AML logic (securities firm domain)
+- [ ] Issuance scope only — no secondary distribution mechanics in EnergyFi contracts
 
 **Relevant Contracts**: RegionSTO, RegionSTOFactory, RevenueTracker
 
@@ -52,7 +52,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 - [ ] RegionAttestation records are idempotent (PeriodAlreadyFinalized guard)
 - [ ] Storage layout is upgrade-safe (gap pattern, append-only storage)
 
-**Relevant Contracts**: RegionSTO, RevenueTracker, RevenueTracker
+**Relevant Contracts**: RegionSTO, RevenueTracker, CCIPRevenueSender
 
 ---
 
@@ -94,7 +94,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 **Evaluation Criteria**:
 - [ ] `ChargeRouter.processCharge()` atomically executes mint + recordRevenue
 - [ ] `claimRegion()` settles all eligible stations or reverts entirely
-- [ ] `issueTranche()` validates all stations before minting any tokens
+- [ ] Tranche issuance validates all inputs before minting any tokens
 - [ ] Single-pass validation pattern (validate + write in one loop, no two-phase)
 
 **Relevant Contracts**: ChargeRouter, RevenueTracker, RegionSTO
@@ -103,7 +103,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 
 ### 6. Upgradeability Safety
 
-**Definition**: UUPS proxy upgrades must never corrupt storage layout or break existing functionality. This is critical because 7 of 10 deployed contracts use UUPS proxies.
+**Definition**: UUPS proxy upgrades must never corrupt storage layout or break existing functionality. This is critical because multiple core contracts rely on UUPS proxies.
 
 **Evaluation Criteria**:
 - [ ] All upgradeable contracts include `uint256[50] private __gap` (or appropriate size)
@@ -171,7 +171,7 @@ Each attribute is assigned a **tier** reflecting its criticality to the business
 - [ ] Upgrade tests verify existing storage is preserved after UUPS upgrade
 - [ ] Custom errors are tested (not just revert, but correct error name)
 
-**Current Status**: 329 passing, 1 pending (P-256 precompile skip)
+**Current Status**: Test counts change over time. Read the current CI/test report instead of treating this document as the source of truth.
 
 ---
 

@@ -1,12 +1,9 @@
 # L1 Smart Contracts
 
-This directory contains contracts deployed to the EnergyFi L1 (Avalanche L1 private chain).
+This directory contains the Solidity contracts and related tooling for the EnergyFi Avalanche L1.
 
-12-contract architecture (see `docs/implementation-roadmap.md` for architecture overview):
+Canonical documentation lives in [`contracts/docs/README.md`](./docs/README.md).
 
-| Category | Contract |
-|:---|:---|
-| A: Physical Infrastructure | StationRegistry |
-| B: Charging Data & Carbon | ChargeTransaction, CarbonReduction, ParameterRegistry |
-| C: Carbon Credit Pipeline | CarbonBatch, VCUReference |
-| D: Investment & Operations | ReputationRegistry, STOPortfolio, RegionSTO |
+- Current implementation order and dependency graph: [`contracts/docs/implementation-roadmap.md`](./docs/implementation-roadmap.md)
+- Phase specs: [`contracts/docs/`](./docs/)
+- Historical/non-canonical material: [`contracts/docs/archive/`](./docs/archive/)

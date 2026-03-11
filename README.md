@@ -25,7 +25,7 @@
 Mint 3 EV charging sessions on our live Avalanche L1 and verify them on the explorer:
 
 ```bash
-cd contracts && npm install && npm run verify:public:testnet
+cd contracts && npm install && npm run judge:testnet
 ```
 
 The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times — each run creates new sessions.

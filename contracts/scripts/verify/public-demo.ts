@@ -1,13 +1,13 @@
 /**
- * EnergyFi — Public Demo Verification Script
+ * EnergyFi — Judge Testnet Script
  *
  * Processes 3 live EV charging sessions on the Avalanche L1 testnet
- * and prints explorer links for direct public verification.
+ * and prints explorer links for direct judge verification.
  *
  * Zero configuration required — testnet credentials are embedded.
  * This is a zero-gas testnet; the native token (EFI) has no economic value.
  *
- * Usage:  cd contracts && npm install && npm run verify:public:testnet
+ * Usage:  cd contracts && npm install && npm run judge:testnet
  */
 import {
   Contract,
@@ -161,7 +161,7 @@ function printBanner(signerAddress: string) {
   console.log(`
 ${C.cyan}\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
 \u2551                                                                    \u2551
-\u2551   ${C.bold}EnergyFi \u2014 Public Demo Verification${C.reset}${C.cyan}                            \u2551
+\u2551   ${C.bold}EnergyFi \u2014 Judge Testnet${C.reset}${C.cyan}                                      \u2551
 \u2551   Watch live EV charging data hit the Avalanche blockchain         \u2551
 \u2551                                                                    \u2551
 \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d${C.reset}

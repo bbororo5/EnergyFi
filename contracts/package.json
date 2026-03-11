@@ -14,7 +14,6 @@
     "node": "npx hardhat node",
     "deploy:essential:testnet": "npx hardhat run scripts/deploy/essential.ts --network energyfi-l1-testnet",
     "deploy:surface:testnet": "npx hardhat run scripts/deploy/surface.ts --network energyfi-l1-testnet",
-    "seed:reputation:testnet": "npx hardhat run scripts/seed/reputation.ts --network energyfi-l1-testnet",
     "seed:demo:testnet": "npx hardhat run scripts/seed/demo.ts --network energyfi-l1-testnet",
     "seed:demo:local": "npx hardhat run scripts/seed/demo.ts --network localhost",
     "judge:testnet": "tsx scripts/verify/public-demo.ts",

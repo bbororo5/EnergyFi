@@ -212,7 +212,7 @@ flowchart TD
 
 ## Testing
 
-Test counts change over time, so this README does not freeze them. Use `cd contracts && npm test` or CI as the current source of truth.
+Test counts change over time, so this README does not freeze them. Use the contract test scripts below or CI as the current source of truth.
 
 Key coverage areas:
 - DeviceRegistry P-256 / secp256k1 enrollment and signature verification
@@ -221,7 +221,7 @@ Key coverage areas:
 - RegionSTO and ReputationRegistry demo surfaces
 
 Local test entry points:
-- `cd contracts && npm test` — unit tests
+- `cd contracts && npm run test:unit` — unit tests
 - `cd contracts && npm run test:integration` — integration tests
 - `cd contracts && npm run test:all` — unit + integration
 
@@ -251,9 +251,9 @@ cd EnergyFi
 cd contracts
 npm install
 npm run compile
-npm test                     # unit tests
+npm run test:unit            # unit tests
 npm run test:integration     # integration tests
-# or: npm run test:all       # full local contract suite
+# or: npm run test:all       # full Hardhat-based local contract suite
 
 # Investor Mobile App
 cd ../mobile

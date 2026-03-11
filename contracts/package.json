@@ -6,9 +6,10 @@
   "scripts": {
     "compile": "npx hardhat compile && npm run typechain",
     "typechain": "typechain --target ethers-v6 --out-dir typechain-types 'artifacts/contracts/**/*.json'",
-    "test": "npx hardhat test",
+    "test": "npm run test:unit",
+    "test:unit": "npx hardhat test",
     "test:integration": "npx hardhat test test/integration/*.test.ts",
-    "test:all": "npm test && npm run test:integration",
+    "test:all": "npm run test:unit && npm run test:integration",
     "test:live": "tsx scripts/live-test.ts energyfi-l1-testnet",
     "clean": "npx hardhat clean",
     "node": "npx hardhat node",

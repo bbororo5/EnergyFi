@@ -1,0 +1,41 @@
+{
+  "tabs": {
+    "home": "홈",
+    "explore": "탐색",
+    "analytics": "분석",
+    "account": "계정"
+  },
+  "home": {
+    "monthlyEarnings": "월간 수익",
+    "portfolios": "나의 투자",
+    "impact": "실제 환경 영향",
+    "liveFeed": "실시간 네트워크 수익"
+  },
+  "explore": {
+    "title": "탐색",
+    "portfolios": "포트폴리오 {{count}}개",
+    "allRegions": "전체 지역",
+    "highestApy": "최고 수익률",
+    "lowVolatility": "낮은 변동성"
+  },
+  "portfolio": {
+    "title": "분석",
+    "overview": "성과 요약",
+    "allocation": "포트폴리오 배분",
+    "holdings": "보유 현황",
+    "alerts": "운영 알림"
+  },
+  "account": {
+    "title": "계정",
+    "preferences": "계정 및 설정",
+    "investment": "투자 안내",
+    "support": "고객 지원",
+    "legal": "법률 및 공시",
+    "signOut": "로그아웃"
+  },
+  "common": {
+    "continue": "계속",
+    "back": "뒤로",
+    "cancel": "취소"
+  }
+}

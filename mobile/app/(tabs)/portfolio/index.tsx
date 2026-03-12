@@ -7,12 +7,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { SurfaceCard } from '@/components/ui/card';
 import { TabScreenLayout } from '@/components/layout/tab-screen-layout';
+import { ScreenSection } from '@/components/ui/screen-section';
+import { MessageStateCard } from '@/components/ui/message-state-card';
 import { colors, typography, radius, shadows } from '@/constants/theme';
 import { formatKrwShort } from '@/lib/domain/analytics';
 import {
   type AccountPayoutRecord,
   useDemoInvestorPortfolio,
 } from '@/hooks/use-demo-investor-portfolio';
+import { appRoutes } from '@/lib/navigation/routes';
 
 function PayoutStatusBadge({ status }: { status: AccountPayoutRecord['payoutStatus'] }) {
   if (status === 'Paid') {
@@ -106,110 +109,118 @@ export default function PortfolioScreen() {
           </View>
         </SurfaceCard>
 
-        <Text numberOfLines={1} style={styles.sectionLabel}>Region positions</Text>
-        <View style={styles.holdingsWrap}>
-          {regionPositions.length > 0 ? regionPositions.map((holding) => (
-            <SurfaceCard key={holding.code} style={styles.holdingCard}>
-              <View style={styles.holdingHeader}>
-                <View>
-                  <Text style={styles.holdingName}>{holding.name}</Text>
-                  <Text style={styles.holdingMeta}>{holding.code} · {holding.balance.toLocaleString()} units</Text>
+        <ScreenSection
+          title="Region positions"
+          intro="Live RegionSTO balances and current monthly share are shown for the demo investor across the strongest active regions."
+        >
+          <View style={styles.holdingsWrap}>
+            {regionPositions.length > 0 ? regionPositions.map((holding) => (
+              <SurfaceCard key={holding.code} style={styles.holdingCard}>
+                <View style={styles.holdingHeader}>
+                  <View>
+                    <Text style={styles.holdingName}>{holding.name}</Text>
+                    <Text style={styles.holdingMeta}>{holding.code} · {holding.balance.toLocaleString()} units</Text>
+                  </View>
+                  <Text style={styles.holdingShare}>{formatShareBps(holding.ownedShareBps)}</Text>
                 </View>
-                <Text style={styles.holdingShare}>{formatShareBps(holding.ownedShareBps)}</Text>
-              </View>
-              <View style={styles.holdingStats}>
-                <View style={styles.holdingStat}>
-                  <Text style={styles.holdingStatLabel}>Monthly Share</Text>
-                  <Text style={styles.holdingStatValue}>{formatKrwShort(holding.estimatedFinalizedMonthlyRevenueKrw)}</Text>
+                <View style={styles.holdingStats}>
+                  <View style={styles.holdingStat}>
+                    <Text style={styles.holdingStatLabel}>Monthly Share</Text>
+                    <Text style={styles.holdingStatValue}>{formatKrwShort(holding.estimatedFinalizedMonthlyRevenueKrw)}</Text>
+                  </View>
+                  <View style={styles.holdingStat}>
+                    <Text style={styles.holdingStatLabel}>This Month So Far</Text>
+                    <Text style={[styles.holdingStatValue, { color: colors.sky400 }]}>
+                      {formatKrwShort(holding.currentPendingRevenueShareKrw)}
+                    </Text>
+                  </View>
+                  <View style={styles.holdingStat}>
+                    <Text style={styles.holdingStatLabel}>Latest Tranche</Text>
+                    <Text style={styles.holdingStatValue}>
+                      {holding.latestTrancheTokenAmount != null ? holding.latestTrancheTokenAmount.toLocaleString() : '—'}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.holdingStat}>
-                  <Text style={styles.holdingStatLabel}>This Month So Far</Text>
-                  <Text style={[styles.holdingStatValue, { color: colors.sky400 }]}>
-                    {formatKrwShort(holding.currentPendingRevenueShareKrw)}
-                  </Text>
-                </View>
-                <View style={styles.holdingStat}>
-                  <Text style={styles.holdingStatLabel}>Latest Tranche</Text>
-                  <Text style={styles.holdingStatValue}>
-                    {holding.latestTrancheTokenAmount != null ? holding.latestTrancheTokenAmount.toLocaleString() : '—'}
-                  </Text>
-                </View>
-              </View>
-            </SurfaceCard>
-          )) : (
-            <SurfaceCard style={styles.emptyCard}>
-              <Text style={styles.emptyTitle}>{isLoading ? 'Reading RegionSTO balances' : 'No live holdings detected'}</Text>
-              <Text style={styles.emptyText}>
-                {isLoading
+              </SurfaceCard>
+            )) : (
+              <MessageStateCard
+                message={isLoading
                   ? 'EnergyFi is reading live token balances and tranche data for the demo investor.'
                   : 'Deploy and issue region STOs to populate this section.'}
-              </Text>
-            </SurfaceCard>
-          )}
-        </View>
-
-        <Text numberOfLines={1} style={styles.sectionLabel}>Monthly records</Text>
-        <SurfaceCard style={styles.recordsCard}>
-          <View style={styles.recordsTop}>
-            <View style={styles.recordsTextWrap}>
-              <Text numberOfLines={1} style={styles.recordsTitle}>Recent monthly records</Text>
-              <Text style={styles.recordsSub}>
-                EnergyFi provides the monthly revenue record. Payout state below is shown as a demo partner timeline.
-              </Text>
-            </View>
-            <Badge label="Demo partner timeline" variant="info" />
+              />
+            )}
           </View>
+        </ScreenSection>
 
-          {payoutPreview.length > 0 ? (
-            <View style={styles.recordsList}>
-              {payoutPreview.map((record) => (
-                <PayoutPreviewRow key={record.periodId.toString()} record={record} />
+        <ScreenSection
+          title="Monthly records"
+          intro="EnergyFi explains the monthly revenue record. Payout state below is shown as a demo partner timeline."
+          rightElement={<Badge label="Demo partner timeline" variant="info" />}
+        >
+          <SurfaceCard style={styles.recordsCard}>
+            {payoutPreview.length > 0 ? (
+              <View style={styles.recordsList}>
+                {payoutPreview.map((record) => (
+                  <PayoutPreviewRow key={record.periodId.toString()} record={record} />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyInlineCard}>
+                <Text style={styles.emptyInlineTitle}>No monthly records yet</Text>
+                <Text style={styles.emptyInlineText}>
+                  Published monthly revenue records will appear here after the first finalized attestation reaches your holdings.
+                </Text>
+              </View>
+            )}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View full payout history"
+              accessibilityHint="Shows the complete monthly record and payout timeline"
+              onPress={() => router.push(appRoutes.portfolioPayoutHistory)}
+              style={({ pressed }) => [styles.historyBtn, pressed && styles.historyBtnPressed]}
+            >
+              <Text style={styles.historyBtnText}>View full payout history</Text>
+              <ChevronRight size={18} color={colors.textPrimary} strokeWidth={2.2} />
+            </Pressable>
+          </SurfaceCard>
+        </ScreenSection>
+
+        <ScreenSection
+          title="Partner access"
+          intro="EnergyFi explains the record. KYC, subscription, and payout execution happen on the partner platform."
+        >
+          <SurfaceCard style={styles.investCard}>
+            <View style={styles.investIconBox}>
+              <Building2 size={24} color={colors.emerald400} strokeWidth={2} />
+            </View>
+            <Text numberOfLines={1} style={styles.investTitle}>Partner guidance</Text>
+            <Text style={styles.investSub}>EnergyFi explains the record. KYC, subscription, and payout execution happen on the partner platform.</Text>
+            <View style={styles.investSteps}>
+              {[
+                'Review monthly records and region evidence in EnergyFi',
+                'Open and verify a partner securities account',
+                'Follow the partner timeline for subscription and payout events',
+              ].map((text, index) => (
+                <View key={index} style={styles.stepRow}>
+                  <View style={styles.stepBadge}>
+                    <Text style={styles.stepNum}>{index + 1}</Text>
+                  </View>
+                  <Text style={styles.stepText}>{text}</Text>
+                </View>
               ))}
             </View>
-          ) : (
-            <View style={styles.emptyInlineCard}>
-              <Text style={styles.emptyInlineTitle}>No monthly records yet</Text>
-              <Text style={styles.emptyInlineText}>
-                Published monthly revenue records will appear here after the first finalized attestation reaches your holdings.
-              </Text>
-            </View>
-          )}
-
-          <Pressable
-            onPress={() => router.push('/portfolio/payout-history')}
-            style={({ pressed }) => [styles.historyBtn, pressed && styles.historyBtnPressed]}
-          >
-            <Text style={styles.historyBtnText}>View full payout history</Text>
-            <ChevronRight size={18} color={colors.textPrimary} strokeWidth={2.2} />
-          </Pressable>
-        </SurfaceCard>
-
-        <Text numberOfLines={1} style={styles.sectionLabel}>Partner access</Text>
-        <SurfaceCard style={styles.investCard}>
-          <View style={styles.investIconBox}>
-            <Building2 size={24} color={colors.emerald400} strokeWidth={2} />
-          </View>
-          <Text numberOfLines={1} style={styles.investTitle}>Partner Guidance</Text>
-          <Text style={styles.investSub}>EnergyFi explains the record. KYC, subscription, and payout execution happen on the partner platform.</Text>
-          <View style={styles.investSteps}>
-            {[
-              'Review monthly records and region evidence in EnergyFi',
-              'Open and verify a partner securities account',
-              'Follow the partner timeline for subscription and payout events',
-            ].map((text, index) => (
-              <View key={index} style={styles.stepRow}>
-                <View style={styles.stepBadge}>
-                  <Text style={styles.stepNum}>{index + 1}</Text>
-                </View>
-                <Text style={styles.stepText}>{text}</Text>
-              </View>
-            ))}
-          </View>
-          <Pressable style={({ pressed }) => [styles.investBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}>
-            <ExternalLink size={16} color={colors.black} strokeWidth={2.5} />
-            <Text style={styles.investBtnText}>View Partner Flow</Text>
-          </Pressable>
-        </SurfaceCard>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View partner flow"
+              accessibilityHint="Explains how partner securities onboarding and payouts connect to your portfolio"
+              style={({ pressed }) => [styles.investBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }]}
+            >
+              <ExternalLink size={16} color={colors.black} strokeWidth={2.5} />
+              <Text style={styles.investBtnText}>View Partner Flow</Text>
+            </Pressable>
+          </SurfaceCard>
+        </ScreenSection>
       </ScrollView>
     </TabScreenLayout>
   );

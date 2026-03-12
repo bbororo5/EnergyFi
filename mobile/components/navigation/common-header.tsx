@@ -1,38 +1,46 @@
 import { useEffect, useState } from 'react';
-import { LayoutChangeEvent, View, Text, StyleSheet, Pressable } from 'react-native';
+import { LayoutChangeEvent, View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, Ellipsis, UserRound } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { brandAssets } from '@/constants/assets';
 import { colors, typography, radius } from '@/constants/theme';
 import type { AnchorRect } from '@/components/navigation/anchored-popover';
+import { IconButton } from '@/components/ui/icon-button';
 
 interface CommonHeaderProps {
   title?: string;
-  onBellPress?: () => void;
-  onMorePress?: () => void;
-  showUserIdentity?: boolean;
-  userDisplayName?: string;
   leftElement?: React.ReactNode;
-  unreadCount?: number;
-  bellActive?: boolean;
   onBellAnchorChange?: (rect: AnchorRect | null) => void;
+  identity?: {
+    label: string;
+  } | null;
+  actions?: {
+    bell?: {
+      onPress: () => void;
+      unreadCount?: number;
+      active?: boolean;
+    };
+    more?: {
+      onPress: () => void;
+    };
+  };
 }
 
 export function CommonHeader({
   title = 'EnergyFi',
-  onBellPress,
-  onMorePress,
-  showUserIdentity = false,
-  userDisplayName = 'Demo Investor',
   leftElement,
-  unreadCount = 0,
-  bellActive = false,
   onBellAnchorChange,
+  identity = null,
+  actions,
 }: CommonHeaderProps) {
   const insets = useSafeAreaInsets();
   const [actionsLayout, setActionsLayout] = useState<AnchorRect | null>(null);
   const [bellLayout, setBellLayout] = useState<AnchorRect | null>(null);
+  const bellAction = actions?.bell;
+  const moreAction = actions?.more;
+  const unreadCount = bellAction?.unreadCount ?? 0;
+  const bellActive = bellAction?.active ?? false;
 
   useEffect(() => {
     if (!actionsLayout || !bellLayout) {
@@ -66,28 +74,44 @@ export function CommonHeader({
         )}
         <Text numberOfLines={1} style={styles.title}>{title}</Text>
       </View>
-      {(showUserIdentity || onBellPress || onMorePress) ? (
-        <View style={styles.actions} onLayout={handleActionsLayout}>
-          {showUserIdentity ? (
+      {(identity || bellAction || moreAction) ? (
+        <View testID="header-actions" style={styles.actions} onLayout={handleActionsLayout}>
+          {identity ? (
             <View style={styles.userPill}>
               <UserRound size={14} color={colors.sky400} strokeWidth={2.2} />
-              <Text numberOfLines={1} style={styles.userPillText}>{userDisplayName}</Text>
+              <Text
+                numberOfLines={1}
+                accessibilityRole="text"
+                accessibilityLabel={`Signed in as ${identity.label}`}
+                style={styles.userPillText}
+              >
+                {identity.label}
+              </Text>
             </View>
           ) : null}
 
-          {onBellPress ? (
-            <View onLayout={handleBellLayout} style={styles.notificationWrap}>
-              <Pressable style={[styles.iconButton, bellActive && styles.iconButtonActive]} onPress={onBellPress}>
-                <Bell size={20} color={bellActive ? colors.sky400 : colors.textSecondary} strokeWidth={2.2} />
-              </Pressable>
+          {bellAction ? (
+            <View testID="header-bell-anchor" onLayout={handleBellLayout} style={styles.notificationWrap}>
+              <IconButton
+                accessibilityLabel="Open notifications"
+                accessibilityHint="Shows the latest EnergyFi updates and alerts"
+                accessibilityState={{ expanded: bellActive }}
+                onPress={bellAction.onPress}
+                style={[styles.iconButton, bellActive && styles.iconButtonActive]}
+                icon={<Bell size={20} color={bellActive ? colors.sky400 : colors.textSecondary} strokeWidth={2.2} />}
+              />
               {unreadCount > 0 ? <View style={styles.badge} /> : null}
             </View>
           ) : null}
 
-          {onMorePress ? (
-            <Pressable style={styles.iconButton} onPress={onMorePress}>
-              <Ellipsis size={20} color={colors.textSecondary} strokeWidth={2.2} />
-            </Pressable>
+          {moreAction ? (
+            <IconButton
+              accessibilityLabel="Open more options"
+              accessibilityHint="Shows preferences, support, and legal pages"
+              onPress={moreAction.onPress}
+              style={styles.iconButton}
+              icon={<Ellipsis size={20} color={colors.textSecondary} strokeWidth={2.2} />}
+            />
           ) : null}
         </View>
       ) : null}

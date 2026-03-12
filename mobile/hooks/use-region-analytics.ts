@@ -1,10 +1,10 @@
-import { startTransition, useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import {
   formatKrwShort,
   formatPeriodLabel,
   type RegionEvidenceSummary,
 } from '@/lib/domain/analytics';
-import { useAnalyticsOverview } from '@/hooks/use-analytics-overview';
+import { useAnalyticsOverviewQuery } from '@/hooks/use-analytics-overview';
 import { regionCatalog } from '@/data/regions';
 
 type RegionNarrativeTone = 'sky' | 'emerald' | 'indigo' | 'neutral';
@@ -246,20 +246,15 @@ function buildNarratives(region: RegionEvidenceSummary): RegionAnalyticsNarrativ
 }
 
 export function useRegionAnalytics(regionCode: string | undefined) {
-  const { overview, isLoading, isRefreshing, errorMessage, refresh } = useAnalyticsOverview();
-  const [detail, setDetail] = useState<RegionAnalyticsDetail | null>(null);
-
-  useEffect(() => {
+  const { overview, isLoading, isRefreshing, errorMessage, refresh } = useAnalyticsOverviewQuery();
+  const detail = useMemo<RegionAnalyticsDetail | null>(() => {
     const normalized = regionCode?.toUpperCase();
     if (!normalized || !overview) {
-      setDetail(null);
-      return;
+      return null;
     }
 
     const nextDetail = overview.regions.find((region) => region.code === normalized) ?? null;
-    startTransition(() => {
-      setDetail(nextDetail ? { ...nextDetail, narratives: buildNarratives(nextDetail) } : null);
-    });
+    return nextDetail ? { ...nextDetail, narratives: buildNarratives(nextDetail) } : null;
   }, [overview, regionCode]);
 
   const regionMeta = regionCatalog.find((region) => region.code === regionCode?.toUpperCase()) ?? null;

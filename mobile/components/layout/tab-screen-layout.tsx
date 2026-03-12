@@ -6,6 +6,7 @@ import { NotificationPopover } from '@/components/navigation/notification-popove
 import type { AnchorRect } from '@/components/navigation/anchored-popover';
 import { colors } from '@/constants/theme';
 import { useDemoNotifications } from '@/hooks/use-demo-notifications';
+import { appRoutes } from '@/lib/navigation/routes';
 
 interface TabScreenLayoutProps {
   title: string;
@@ -27,17 +28,22 @@ export function TabScreenLayout({ title, children, leftElement }: TabScreenLayou
   };
 
   return (
-    <View style={styles.container} onLayout={handleLayout}>
+    <View testID="tab-screen-layout-root" style={styles.container} onLayout={handleLayout}>
       <CommonHeader
         title={title}
         leftElement={leftElement}
-        showUserIdentity
-        userDisplayName="Demo Investor"
-        unreadCount={unreadCount}
-        bellActive={isPopoverOpen}
-        onBellPress={() => setIsPopoverOpen((prev) => !prev)}
-        onMorePress={() => router.push('/portfolio/more')}
         onBellAnchorChange={setBellAnchor}
+        identity={{ label: 'Demo Investor' }}
+        actions={{
+          bell: {
+            onPress: () => setIsPopoverOpen((prev) => !prev),
+            unreadCount,
+            active: isPopoverOpen,
+          },
+          more: {
+            onPress: () => router.push(appRoutes.portfolioMore),
+          },
+        }}
       />
 
       {children}
@@ -52,7 +58,7 @@ export function TabScreenLayout({ title, children, leftElement }: TabScreenLayou
         onClose={() => setIsPopoverOpen(false)}
         onViewAll={() => {
           setIsPopoverOpen(false);
-          router.push('/portfolio/notifications');
+          router.push(appRoutes.portfolioNotifications);
         }}
       />
     </View>

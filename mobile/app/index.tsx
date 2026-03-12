@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import { colors } from '@/constants/theme';
 import { SplashAnimation } from '@/components/animated/splash-animation';
+import { appRoutes } from '@/lib/navigation/routes';
 
 export default function EntryScreen() {
   const [splashDone, setSplashDone] = useState(false);
@@ -18,7 +19,7 @@ export default function EntryScreen() {
 
   useEffect(() => {
     if (!splashDone) return;
-    router.replace('/(tabs)');
+    router.replace(appRoutes.tabs);
   }, [splashDone]);
 
   return (

@@ -5,13 +5,14 @@ import { Image } from 'expo-image';
 import { brandAssets } from '@/constants/assets';
 import { colors, typography, radius } from '@/constants/theme';
 import { OnboardingFrame } from '@/components/screens/onboarding/onboarding-frame';
+import { appRoutes } from '@/lib/navigation/routes';
 
 export default function WelcomeScreen() {
   return (
     <OnboardingFrame
       step={0}
       buttonTitle="Explore Dashboard"
-      onPress={() => router.push('/onboarding/features')}
+      onPress={() => router.push(appRoutes.onboardingFeatures)}
     >
       <Animated.View entering={FadeIn.duration(700)} style={styles.logoPill}>
         <Image source={brandAssets.logo} style={styles.logo} contentFit="contain" />

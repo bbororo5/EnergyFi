@@ -7,10 +7,27 @@ import {
 } from 'lucide-react-native';
 import { SurfaceCard } from '@/components/ui/card';
 import { colors, typography, radius } from '@/constants/theme';
+import { appRoutes } from '@/lib/navigation/routes';
 
-function MenuButton({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
+function MenuButton({
+  icon,
+  label,
+  onPress,
+  accessibilityHint,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  accessibilityHint?: string;
+}) {
   return (
-    <Pressable style={({ pressed }) => [styles.menuBtn, pressed && styles.menuBtnPressed]} onPress={onPress}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
+      style={({ pressed }) => [styles.menuBtn, pressed && styles.menuBtnPressed]}
+      onPress={onPress}
+    >
       <View style={styles.menuIcon}>{icon}</View>
       <Text style={styles.menuLabel}>{label}</Text>
       <ChevronRight size={20} color={colors.textMuted} strokeWidth={2} style={{ marginRight: 4 }} />
@@ -25,6 +42,9 @@ export default function MoreScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back to portfolio"
+          accessibilityHint="Returns to the main portfolio screen"
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
         >
@@ -43,29 +63,47 @@ export default function MoreScreen() {
           <MenuButton
             icon={<Bell size={20} color={colors.textSecondary} strokeWidth={2} />}
             label="Alert settings"
-            onPress={() => router.push('/portfolio/alerts-settings')}
+            accessibilityHint="Opens notification preferences and alert delivery options"
+            onPress={() => router.push(appRoutes.portfolioAlertsSettings)}
           />
           <View style={styles.menuDivider} />
           <MenuButton
             icon={<Settings size={20} color={colors.textSecondary} strokeWidth={2} />}
             label="Settings"
-            onPress={() => router.push('/portfolio/settings')}
+            accessibilityHint="Opens portfolio application settings"
+            onPress={() => router.push(appRoutes.portfolioSettings)}
           />
           <View style={styles.menuDivider} />
           <MenuButton
             icon={<BookOpen size={20} color={colors.textSecondary} strokeWidth={2} />}
             label="Learn"
-            onPress={() => router.push('/portfolio/learn')}
+            accessibilityHint="Opens the learning hub for portfolio and region concepts"
+            onPress={() => router.push(appRoutes.portfolioLearn)}
           />
         </SurfaceCard>
 
         <Text numberOfLines={1} style={styles.sectionLabel}>Support and help</Text>
         <SurfaceCard padded={false} style={styles.menuCard}>
-          <MenuButton icon={<HelpCircle size={20} color={colors.textSecondary} />} label="Help Center" onPress={() => {}} />
+          <MenuButton
+            icon={<HelpCircle size={20} color={colors.textSecondary} />}
+            label="Help Center"
+            accessibilityHint="Opens portfolio support guidance"
+            onPress={() => {}}
+          />
           <View style={styles.menuDivider} />
-          <MenuButton icon={<Mail size={20} color={colors.textSecondary} />} label="Contact Support" onPress={() => {}} />
+          <MenuButton
+            icon={<Mail size={20} color={colors.textSecondary} />}
+            label="Contact Support"
+            accessibilityHint="Opens support contact options"
+            onPress={() => {}}
+          />
           <View style={styles.menuDivider} />
-          <MenuButton icon={<Phone size={20} color={colors.textSecondary} />} label="1588-0000" onPress={() => {}} />
+          <MenuButton
+            icon={<Phone size={20} color={colors.textSecondary} />}
+            label="1588-0000"
+            accessibilityHint="Shows the partner support phone number"
+            onPress={() => {}}
+          />
         </SurfaceCard>
 
         <Text numberOfLines={1} style={styles.sectionLabel}>Legal</Text>
@@ -81,7 +119,8 @@ export default function MoreScreen() {
               <MenuButton
                 icon={<item.icon size={20} color={colors.textSecondary} />}
                 label={item.label}
-                onPress={() => router.push(`/portfolio/document?type=${item.type}`)}
+                accessibilityHint={`Opens the ${item.label.toLowerCase()} document`}
+                onPress={() => router.push(appRoutes.portfolioDocument(item.type))}
               />
             </View>
           ))}

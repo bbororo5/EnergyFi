@@ -36,6 +36,9 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back to more options"
+          accessibilityHint="Returns to the previous more options screen"
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}
         >
@@ -53,7 +56,13 @@ export default function SettingsScreen() {
         <Text numberOfLines={1} style={styles.sectionLabel}>Display and theme</Text>
         <View style={styles.card}>
           {/* Language */}
-          <Pressable style={styles.row} onPress={() => setLangPicker(true)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Change language"
+            accessibilityHint="Opens the language picker"
+            style={styles.row}
+            onPress={() => setLangPicker(true)}
+          >
             <View style={styles.iconBox}>
               <Globe size={20} color={colors.sky400} strokeWidth={2} />
             </View>
@@ -83,7 +92,13 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
 
           {/* Currency */}
-          <Pressable style={styles.row} onPress={() => setCurrencyPicker(true)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Change currency"
+            accessibilityHint="Opens the currency picker"
+            style={styles.row}
+            onPress={() => setCurrencyPicker(true)}
+          >
             <View style={styles.iconBox}>
               <DollarSign size={20} color={colors.emerald400} strokeWidth={2} />
             </View>
@@ -100,7 +115,12 @@ export default function SettingsScreen() {
         {/* Security */}
         <Text numberOfLines={1} style={styles.sectionLabel}>Security</Text>
         <View style={styles.card}>
-          <Pressable style={styles.row}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Change password"
+            accessibilityHint="Opens the password update flow"
+            style={styles.row}
+          >
             <View style={styles.iconBox}>
               <Lock size={20} color={colors.textSecondary} strokeWidth={2} />
             </View>
@@ -141,12 +161,22 @@ export default function SettingsScreen() {
         {/* Data & Privacy */}
         <Text numberOfLines={1} style={styles.sectionLabel}>Data and privacy</Text>
         <View style={styles.card}>
-          <Pressable style={styles.privacyRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear cache"
+            accessibilityHint="Clears temporary portfolio data stored on this device"
+            style={styles.privacyRow}
+          >
             <Text style={styles.rowLabel}>Clear Cache</Text>
             <Text style={styles.rowSub}>Temporary data storage - 142 MB</Text>
           </Pressable>
           <View style={styles.divider} />
-          <Pressable style={styles.privacyRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Download my data"
+            accessibilityHint="Requests an export of your EnergyFi data"
+            style={styles.privacyRow}
+          >
             <Text style={styles.rowLabel}>Download My Data</Text>
             <Text style={styles.rowSub}>Request full data export (GDPR)</Text>
           </Pressable>

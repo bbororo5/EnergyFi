@@ -13,7 +13,22 @@ interface RegionStoryCardProps {
 
 export function RegionStoryCard({ story, onPress }: RegionStoryCardProps) {
   return (
-    <Pressable disabled={!onPress} onPress={onPress} style={({ pressed }) => [pressed && onPress ? styles.pressed : undefined]}>
+    <Pressable
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={
+        onPress
+          ? `Open ${story.name} region story`
+          : `${story.name} region story unavailable`
+      }
+      accessibilityHint={
+        onPress
+          ? 'Shows the detailed regional evidence view'
+          : 'This region becomes interactive after the first monthly snapshot is published'
+      }
+      onPress={onPress}
+      style={({ pressed }) => [pressed && onPress ? styles.pressed : undefined]}
+    >
       <SurfaceCard style={styles.card}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>

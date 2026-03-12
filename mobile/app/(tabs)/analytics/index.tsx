@@ -4,15 +4,18 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CircleAlert, DatabaseZap, Layers3, ShieldCheck } from 'lucide-react-native';
 import { TabScreenLayout } from '@/components/layout/tab-screen-layout';
-import { SectionHeader } from '@/components/ui/section-header';
 import { SurfaceCard } from '@/components/ui/card';
 import { StatTile } from '@/components/ui/stat-tile';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { Badge } from '@/components/ui/badge';
+import { ScreenSection } from '@/components/ui/screen-section';
+import { MessageStateCard } from '@/components/ui/message-state-card';
+import { MetricPairCard } from '@/components/ui/metric-pair-card';
 import { RegionEvidenceCard } from '@/components/screens/analytics/region-evidence-card';
 import { colors, radius } from '@/constants/theme';
 import { formatKrwShort } from '@/lib/domain/analytics';
 import { useAnalyticsOverview } from '@/hooks/use-analytics-overview';
+import { appRoutes } from '@/lib/navigation/routes';
 
 const ATTENTION_DEFAULT_LIMIT = 3;
 
@@ -50,137 +53,134 @@ export default function AnalyticsScreen() {
           </View>
         </SurfaceCard>
 
-        {errorMessage ? (
-          <SurfaceCard style={styles.messageCard}>
-            <Text style={styles.messageEyebrow}>READ STATUS</Text>
-            <Text style={styles.messageText}>{errorMessage}</Text>
-          </SurfaceCard>
-        ) : null}
+        {errorMessage ? <MessageStateCard message={errorMessage} tone="warning" /> : null}
 
-        <SectionHeader
+        <ScreenSection
           title="Current proof of value"
           icon={<DatabaseZap size={18} color={colors.sky400} />}
-        />
+          intro="These two values summarize the network-wide read before you inspect region-level detail."
+        >
+          <MetricPairCard
+            left={{
+              label: 'Total pending revenue',
+              value: overview ? formatKrwShort(overview.totalPendingRevenueKrw) : '₩0',
+              caption: 'Aggregated from RevenueTracker.getRegionRevenue(regionId) across the catalog.',
+            }}
+            right={{
+              label: 'Latest finalized period',
+              value: overview?.latestSettlementPeriodLabel ?? 'Not finalized',
+              valueColor: colors.emerald400,
+              caption: 'If no attestation exists yet, regions are read as pending-only instead of empty.',
+            }}
+          />
+        </ScreenSection>
 
-        <View style={styles.cardStack}>
-          <SurfaceCard style={styles.revenueCard}>
-            <Text style={styles.metricEyebrow}>TOTAL PENDING REVENUE</Text>
-            <Text style={styles.bigValue}>{overview ? formatKrwShort(overview.totalPendingRevenueKrw) : '₩0'}</Text>
-            <Text style={styles.metricCaption}>Aggregated from `RevenueTracker.getRegionRevenue(regionId)` across the catalog.</Text>
-          </SurfaceCard>
-
-          <SurfaceCard style={styles.revenueCard}>
-            <Text style={styles.metricEyebrow}>LATEST FINALIZED PERIOD</Text>
-            <Text style={styles.bigValueSmall}>{overview?.latestSettlementPeriodLabel ?? 'Not finalized'}</Text>
-            <Text style={styles.metricCaption}>If no attestation exists yet, regions are read as pending-only instead of empty.</Text>
-          </SurfaceCard>
-        </View>
-
-        <SectionHeader
+        <ScreenSection
           title="Coverage and hardware trust"
           icon={<ShieldCheck size={18} color={colors.emerald400} />}
-        />
+          intro="Hardware activity and chip coverage explain how much live operational evidence is flowing into the system."
+        >
+          <SurfaceCard style={styles.integrityCard}>
+            <View style={styles.integrityRow}>
+              <View style={styles.integrityMetric}>
+                <Text style={styles.metricEyebrow}>Stations</Text>
+                <Text style={styles.metricValue}>{overview?.aggregateActiveStations ?? 0} / {overview?.aggregateStations ?? 0}</Text>
+              </View>
+              <View style={styles.integrityMetric}>
+                <Text style={styles.metricEyebrow}>Chargers</Text>
+                <Text style={styles.metricValue}>{overview?.aggregateActiveChargers ?? 0} / {overview?.aggregateChargers ?? 0}</Text>
+              </View>
+              <View style={styles.integrityMetric}>
+                <Text style={styles.metricEyebrow}>Chip Coverage</Text>
+                <Text style={[styles.metricValue, { color: colors.sky400 }]}>
+                  {overview?.aggregateActiveChipCoverage != null ? `${overview.aggregateActiveChipCoverage.toFixed(1)}%` : 'N/A'}
+                </Text>
+              </View>
+            </View>
 
-        <SurfaceCard style={styles.integrityCard}>
-          <View style={styles.integrityRow}>
-            <View style={styles.integrityMetric}>
-              <Text style={styles.metricEyebrow}>Stations</Text>
-              <Text style={styles.metricValue}>{overview?.aggregateActiveStations ?? 0} / {overview?.aggregateStations ?? 0}</Text>
+            <View style={styles.progressBlock}>
+              <View style={styles.progressRow}>
+                <Text style={styles.progressLabel}>Active Charger Coverage</Text>
+                <Text style={styles.progressValue}>
+                  {overview?.aggregateChargers
+                    ? `${((overview.aggregateActiveChargers / overview.aggregateChargers) * 100).toFixed(1)}%`
+                    : 'N/A'}
+                </Text>
+              </View>
+              <ProgressBar
+                value={overview?.aggregateChargers ? (overview.aggregateActiveChargers / overview.aggregateChargers) * 100 : 0}
+                color={colors.emerald400}
+                height={8}
+              />
             </View>
-            <View style={styles.integrityMetric}>
-              <Text style={styles.metricEyebrow}>Chargers</Text>
-              <Text style={styles.metricValue}>{overview?.aggregateActiveChargers ?? 0} / {overview?.aggregateChargers ?? 0}</Text>
-            </View>
-            <View style={styles.integrityMetric}>
-              <Text style={styles.metricEyebrow}>Chip Coverage</Text>
-              <Text style={[styles.metricValue, { color: colors.sky400 }]}>
-                {overview?.aggregateActiveChipCoverage != null ? `${overview.aggregateActiveChipCoverage.toFixed(1)}%` : 'N/A'}
-              </Text>
-            </View>
-          </View>
 
-          <View style={styles.progressBlock}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>Active Charger Coverage</Text>
-              <Text style={styles.progressValue}>
-                {overview?.aggregateChargers
-                  ? `${((overview.aggregateActiveChargers / overview.aggregateChargers) * 100).toFixed(1)}%`
-                  : 'N/A'}
-              </Text>
+            <View style={styles.progressBlock}>
+              <View style={styles.progressRow}>
+                <Text style={styles.progressLabel}>Active Chip Coverage</Text>
+                <Text style={styles.progressValue}>
+                  {overview?.aggregateActiveChipCoverage != null ? `${overview.aggregateActiveChipCoverage.toFixed(1)}%` : 'N/A'}
+                </Text>
+              </View>
+              <ProgressBar
+                value={overview?.aggregateActiveChipCoverage ?? 0}
+                color={colors.sky400}
+                height={8}
+              />
             </View>
-            <ProgressBar
-              value={overview?.aggregateChargers ? (overview.aggregateActiveChargers / overview.aggregateChargers) * 100 : 0}
-              color={colors.emerald400}
-              height={8}
-            />
-          </View>
+          </SurfaceCard>
+        </ScreenSection>
 
-          <View style={styles.progressBlock}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>Active Chip Coverage</Text>
-              <Text style={styles.progressValue}>
-                {overview?.aggregateActiveChipCoverage != null ? `${overview.aggregateActiveChipCoverage.toFixed(1)}%` : 'N/A'}
-              </Text>
-            </View>
-            <ProgressBar
-              value={overview?.aggregateActiveChipCoverage ?? 0}
-              color={colors.sky400}
-              height={8}
-            />
-          </View>
-        </SurfaceCard>
-
-        <SectionHeader
+        <ScreenSection
           title="Per-region proof cards"
           icon={<Layers3 size={18} color={colors.indigo400} />}
-        />
+          intro="Each card combines settlement, hardware coverage, usage rhythm, and issuance context for a single region."
+        >
+          {overview?.regions.map((region) => (
+            <RegionEvidenceCard
+              key={region.code}
+              region={region}
+              expanded={expandedRegion === region.code}
+              onToggle={() => setExpandedRegion(prev => prev === region.code ? null : region.code)}
+              onDetail={() => router.push(appRoutes.regionDetail(region.code))}
+            />
+          ))}
+        </ScreenSection>
 
-        {overview?.regions.map((region) => (
-          <RegionEvidenceCard
-            key={region.code}
-            region={region}
-            expanded={expandedRegion === region.code}
-            onToggle={() => setExpandedRegion(prev => prev === region.code ? null : region.code)}
-            onDetail={() => router.push(`/region/${region.code}`)}
-          />
-        ))}
-
-        <SectionHeader
+        <ScreenSection
           title="Items needing context"
           icon={<CircleAlert size={18} color={colors.warning} />}
-        />
-
-        {overview && overview.attention.length > 0 ? (
-          <>
-            {overview.attention
-              .slice(0, showAllAttention ? undefined : ATTENTION_DEFAULT_LIMIT)
-              .map((item, index) => (
-                <SurfaceCard key={`${item.regionCode}-${index}`} style={styles.attentionCard}>
-                  <View style={styles.attentionLeft}>
-                    <View style={[
-                      styles.attentionDot,
-                      item.tone === 'warning' ? styles.attentionDotWarning : styles.attentionDotInfo,
-                    ]} />
-                    <View style={styles.attentionTextWrap}>
-                      <Text style={styles.attentionRegion}>{item.regionCode}</Text>
-                      <Text style={styles.attentionMessage}>{item.message}</Text>
+          intro="These are not failures by default. They are the current areas where the reader may want more context."
+        >
+          {overview && overview.attention.length > 0 ? (
+            <>
+              {overview.attention
+                .slice(0, showAllAttention ? undefined : ATTENTION_DEFAULT_LIMIT)
+                .map((item, index) => (
+                  <SurfaceCard key={`${item.regionCode}-${index}`} style={styles.attentionCard}>
+                    <View style={styles.attentionLeft}>
+                      <View style={[
+                        styles.attentionDot,
+                        item.tone === 'warning' ? styles.attentionDotWarning : styles.attentionDotInfo,
+                      ]} />
+                      <View style={styles.attentionTextWrap}>
+                        <Text style={styles.attentionRegion}>{item.regionCode}</Text>
+                        <Text style={styles.attentionMessage}>{item.message}</Text>
+                      </View>
                     </View>
-                  </View>
-                </SurfaceCard>
-              ))}
-            {!showAllAttention && overview.attention.length > ATTENTION_DEFAULT_LIMIT && (
-              <Pressable onPress={() => setShowAllAttention(true)} style={({ pressed }) => [styles.showMoreBtn, pressed && styles.showMorePressed]}>
-                <Text style={styles.showMoreText}>Show {overview.attention.length - ATTENTION_DEFAULT_LIMIT} more</Text>
-              </Pressable>
-            )}
-          </>
-        ) : (
-          <SurfaceCard style={styles.emptyAttention}>
-            <Text style={styles.emptyAttentionText}>
-              {isLoading ? 'Reading attention states from contracts...' : 'No major attention flags surfaced from the current read set.'}
-            </Text>
-          </SurfaceCard>
-        )}
+                  </SurfaceCard>
+                ))}
+              {!showAllAttention && overview.attention.length > ATTENTION_DEFAULT_LIMIT && (
+                <Pressable onPress={() => setShowAllAttention(true)} style={({ pressed }) => [styles.showMoreBtn, pressed && styles.showMorePressed]}>
+                  <Text style={styles.showMoreText}>Show {overview.attention.length - ATTENTION_DEFAULT_LIMIT} more</Text>
+                </Pressable>
+              )}
+            </>
+          ) : (
+            <MessageStateCard
+              message={isLoading ? 'Reading attention states from contracts...' : 'No major attention flags surfaced from the current read set.'}
+            />
+          )}
+        </ScreenSection>
       </ScrollView>
     </TabScreenLayout>
   );

@@ -18,8 +18,75 @@ interface AnchoredPopoverProps {
   children: React.ReactNode;
   preferredWidth?: number;
   horizontalMargin?: number;
-  topOffset?: number;
+  offset?: number;
   tailInset?: number;
+  placement?: 'bottom-start' | 'bottom-center' | 'bottom-end';
+  showTail?: boolean;
+}
+
+export interface AnchoredPopoverLayout {
+  left: number;
+  top: number;
+  maxHeight: number;
+  sheetWidth: number;
+  tailLeft: number;
+  anchorOffsetX: number;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+export function calculateAnchoredPopoverLayout(input: {
+  anchorRect: AnchorRect;
+  containerWidth: number;
+  containerHeight: number;
+  preferredWidth: number;
+  horizontalMargin: number;
+  offset: number;
+  tailInset: number;
+  placement: 'bottom-start' | 'bottom-center' | 'bottom-end';
+}): AnchoredPopoverLayout {
+  const {
+    anchorRect,
+    containerWidth,
+    containerHeight,
+    preferredWidth,
+    horizontalMargin,
+    offset,
+    tailInset,
+    placement,
+  } = input;
+
+  const sheetWidth = Math.min(preferredWidth, containerWidth - horizontalMargin * 2);
+  const anchorCenterX = anchorRect.x + anchorRect.width / 2;
+  const anchorStartX = anchorRect.x;
+  const anchorEndX = anchorRect.x + anchorRect.width;
+  const unclampedLeft =
+    placement === 'bottom-start'
+      ? anchorStartX - tailInset
+      : placement === 'bottom-center'
+        ? anchorCenterX - sheetWidth / 2
+        : anchorEndX - sheetWidth + tailInset;
+  const left = clamp(
+    unclampedLeft,
+    horizontalMargin,
+    Math.max(horizontalMargin, containerWidth - sheetWidth - horizontalMargin),
+  );
+  const top = Math.max(anchorRect.y + anchorRect.height + offset, horizontalMargin);
+  const maxHeight = Math.max(240, containerHeight - top - horizontalMargin);
+  const anchorOffsetX = clamp(anchorCenterX - left, 32, sheetWidth - 32);
+  const tailSize = 14;
+  const tailLeft = anchorOffsetX - tailSize / 2;
+
+  return {
+    left,
+    top,
+    maxHeight,
+    sheetWidth,
+    tailLeft,
+    anchorOffsetX,
+  };
 }
 
 export function AnchoredPopover({
@@ -31,25 +98,25 @@ export function AnchoredPopover({
   children,
   preferredWidth = 320,
   horizontalMargin = 12,
-  topOffset = 12,
+  offset = 12,
   tailInset = 42,
+  placement = 'bottom-end',
+  showTail = true,
 }: AnchoredPopoverProps) {
   if (!visible || !anchorRect || containerWidth <= 0 || containerHeight <= 0) {
     return null;
   }
 
-  const sheetWidth = Math.min(preferredWidth, containerWidth - horizontalMargin * 2);
-  const anchorCenterX = anchorRect.x + anchorRect.width / 2;
-  const idealLeft = anchorCenterX - sheetWidth + tailInset;
-  const left = Math.min(
-    Math.max(idealLeft, horizontalMargin),
-    Math.max(horizontalMargin, containerWidth - sheetWidth - horizontalMargin),
-  );
-  const top = Math.max(anchorRect.y + anchorRect.height + topOffset, horizontalMargin);
-  const maxHeight = Math.max(240, containerHeight - top - horizontalMargin);
-  const anchorOffsetX = Math.max(32, Math.min(sheetWidth - 32, anchorCenterX - left));
-  const tailSize = 14;
-  const tailLeft = anchorOffsetX - tailSize / 2;
+  const { left, top, maxHeight, sheetWidth, tailLeft, anchorOffsetX } = calculateAnchoredPopoverLayout({
+    anchorRect,
+    containerWidth,
+    containerHeight,
+    preferredWidth,
+    horizontalMargin,
+    offset,
+    tailInset,
+    placement,
+  });
   const entryScale = 0.82;
   const centerX = sheetWidth / 2;
   const startTranslateX = (anchorOffsetX - centerX) * (1 - entryScale);
@@ -83,7 +150,7 @@ export function AnchoredPopover({
         exiting={popoverExit}
         style={[styles.sheet, { top, left, width: sheetWidth, maxHeight }]}
       >
-        <View style={[styles.tail, { left: tailLeft }]} />
+        {showTail ? <View style={[styles.tail, { left: tailLeft }]} /> : null}
         {children}
       </Animated.View>
     </View>

@@ -24,6 +24,7 @@ import {
 } from 'viem';
 import { Button } from '@/components/ui/button';
 import { colors, radius, shadows, spacing, typography } from '@/constants/theme';
+import { appRoutes } from '@/lib/navigation/routes';
 import {
   chargeRouterAddress,
   demoOperatorAddress,
@@ -489,7 +490,7 @@ export default function OracleAdminScreen() {
           Connect the Core wallet that controls {shorten(expectedAdminAddress)} and point bridge/admin rights at the demo operator.
         </Text>
         <View style={styles.linkRow}>
-          <Link href="/(tabs)" style={styles.linkText}>Back to app</Link>
+          <Link href={appRoutes.tabs} style={styles.linkText}>Back to app</Link>
         </View>
       </View>
 

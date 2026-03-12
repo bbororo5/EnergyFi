@@ -30,7 +30,13 @@ export function RegionEvidenceCard({ region, expanded, onToggle, onDetail }: Reg
     : 'Pending';
 
   return (
-    <Pressable onPress={onToggle} style={({ pressed }) => [pressed && styles.pressed]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${region.name} evidence card`}
+      accessibilityHint={expanded ? 'Collapses the region evidence summary' : 'Expands the region evidence summary'}
+      onPress={onToggle}
+      style={({ pressed }) => [pressed && styles.pressed]}
+    >
       <SurfaceCard style={styles.card}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -101,7 +107,13 @@ export function RegionEvidenceCard({ region, expanded, onToggle, onDetail }: Reg
               </View>
             ) : null}
 
-            <Pressable onPress={onDetail} style={({ pressed }) => [styles.footer, pressed && styles.footerPressed]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${region.name} detailed analytics`}
+              accessibilityHint="Shows the full evidence desk for this region"
+              onPress={onDetail}
+              style={({ pressed }) => [styles.footer, pressed && styles.footerPressed]}
+            >
               <Text style={styles.footerText}>
                 {region.stoAddress
                   ? region.ownedShareBps != null

@@ -132,6 +132,10 @@ export function HeroRevenueChart({ data }: HeroRevenueChartProps) {
   return (
     <View
       style={styles.container}
+      accessible
+      accessibilityRole="adjustable"
+      accessibilityLabel="Published monthly revenue history"
+      accessibilityHint="Drag across the chart to inspect the published value for each month"
       onLayout={handleLayout}
       onStartShouldSetResponder={() => points.length > 0}
       onMoveShouldSetResponder={() => points.length > 0}

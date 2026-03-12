@@ -5,6 +5,7 @@ import { Mail } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, typography, radius, shadows } from '@/constants/theme';
 import { useOnboarding } from '@/hooks/use-onboarding';
+import { appRoutes } from '@/lib/navigation/routes';
 
 function AppleIcon() {
   return (
@@ -31,7 +32,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     await completeOnboarding();
-    router.replace('/(tabs)');
+    router.replace(appRoutes.tabs);
   };
 
   return (

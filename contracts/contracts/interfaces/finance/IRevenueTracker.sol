@@ -214,6 +214,9 @@ interface IRevenueTracker {
 
     /**
      * @notice List all finalized periods for a region.
+     * @dev Returned period labels MUST be unique and ordered in ascending
+     *      `period_yyyyMM` order (oldest → newest) so consumers can safely
+     *      treat the last element as the latest finalized period.
      * @param regionId ISO 3166-2:KR bytes4 region code.
      */
     function getRegionAttestationPeriods(bytes4 regionId)

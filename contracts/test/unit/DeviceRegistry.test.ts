@@ -10,7 +10,7 @@
  * T05: View 함수 커버리지 강화.
  *
  * P-256 (secp256r1) 테스트는 RIP-7212 precompile이 필요하므로 Hardhat in-memory에서는 skip.
- * energyfi-l1-local 네트워크에서는 통과: npx hardhat test --network energyfi-l1-local
+ * energyfi-l1-testnet 네트워크에서는 통과: npx hardhat test --network energyfi-l1-testnet
  */
 
 import hre from "hardhat";
@@ -205,9 +205,9 @@ describe("DeviceRegistry", function () {
     });
 
     it("P-256 verifySignature() — RIP-7212 precompile 통합 테스트", async function () {
-      // RIP-7212 precompile (address 0x100) is only available on EnergyFi L1 local.
-      // Run with: npx hardhat test --network energyfi-l1-local
-      if (hre.network.name !== "energyfi-l1-local") {
+      // RIP-7212 precompile (address 0x100) is only available on EnergyFi L1.
+      // Run with: npx hardhat test --network energyfi-l1-testnet
+      if (hre.network.name !== "energyfi-l1-testnet") {
         this.skip();
       }
 

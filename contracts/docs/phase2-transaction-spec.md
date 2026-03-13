@@ -347,6 +347,13 @@ function getMonthlyHistory(bytes32 stationId)
 
 function getSettlementHistory(bytes32 stationId)
     external view returns (SettlementRecord[] memory)
+
+function getRegionAttestationPeriods(bytes4 regionId)
+    external view returns (uint256[] memory)
+// 반환 규칙:
+//   - 중복 없음
+//   - period_yyyyMM 오름차순 (과거 → 최신)
+//   - 마지막 항목을 latest finalized period로 사용 가능
 ```
 
 #### 이벤트

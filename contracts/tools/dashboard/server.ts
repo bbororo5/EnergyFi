@@ -2,8 +2,7 @@
  * EnergyFi 웹 대시보드 — Express 서버
  * Phase 1 + Phase 2 통합 (Phase 2 graceful degradation)
  *
- * 실행: npm run dashboard:l1-local
- *      npm run dashboard:local
+ * 실행: npm run dashboard
  *
  * 배포자 프라이빗 키는 서버 내에서만 사용. 브라우저에 노출되지 않음.
  */
@@ -75,7 +74,7 @@ interface DeploymentAddresses {
 
 function loadDeployments(network: string): DeploymentAddresses {
   const p = path.resolve(__dirname, "../../deployments.json");
-  if (!fs.existsSync(p)) throw new Error("deployments.json not found. npm run deploy:local을 먼저 실행하세요.");
+  if (!fs.existsSync(p)) throw new Error("deployments.json not found. npm run deploy를 먼저 실행하세요.");
   const all = JSON.parse(fs.readFileSync(p, "utf8"));
   const net = all[network];
   if (!net?.DeviceRegistry || !net?.StationRegistry)
@@ -87,18 +86,17 @@ function loadDeployments(network: string): DeploymentAddresses {
 
 function getRpcUrl(network: string): string {
   const map: Record<string, string> = {
-    "energyfi-l1-local":  process.env["ENERGYFI_L1_LOCAL_RPC"] ?? "",
-    "localhost":            "http://127.0.0.1:8545",
+    "energyfi-l1-testnet": process.env["ENERGYFI_L1_TESTNET_RPC"] ?? "",
   };
   const url = map[network];
-  if (!url) throw new Error(`알 수 없는 네트워크: ${network}. RPC URL을 .env의 ENERGYFI_L1_LOCAL_RPC에 설정하세요.`);
+  if (!url) throw new Error(`알 수 없는 네트워크: ${network}. RPC URL을 .env의 ENERGYFI_L1_TESTNET_RPC에 설정하세요.`);
   return url;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  const networkArg = process.argv[2] ?? "energyfi-l1-local";
+  const networkArg = process.argv[2] ?? "energyfi-l1-testnet";
   const port = Number(process.env["DASHBOARD_PORT"] ?? 3000);
 
   console.log(`\n=== EnergyFi 웹 대시보드 ===`);

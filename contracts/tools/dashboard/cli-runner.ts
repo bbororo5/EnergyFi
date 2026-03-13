@@ -58,7 +58,7 @@ interface DeploymentAddresses {
 
 function loadDeployments(network: string): DeploymentAddresses {
   const p = path.resolve(process.cwd(), "deployments.json");
-  if (!fs.existsSync(p)) throw new Error("deployments.json not found. deploy_subnet.ts를 먼저 실행하세요.");
+  if (!fs.existsSync(p)) throw new Error("deployments.json not found. npm run deploy를 먼저 실행하세요.");
   const all = JSON.parse(fs.readFileSync(p, "utf8"));
   const net = all[network];
   if (!net?.DeviceRegistry || !net?.StationRegistry)
@@ -68,8 +68,7 @@ function loadDeployments(network: string): DeploymentAddresses {
 
 function getRpcUrl(network: string): string {
   const map: Record<string, string> = {
-    "energyfi-l1-local":   process.env["ENERGYFI_L1_LOCAL_RPC"] ?? "",
-    "localhost":           "http://127.0.0.1:8545",
+    "energyfi-l1-testnet": process.env["ENERGYFI_L1_TESTNET_RPC"] ?? "",
   };
   const url = map[network];
   if (!url) throw new Error(`알 수 없는 네트워크: ${network}. RPC URL을 .env에 설정하세요.`);
@@ -175,7 +174,7 @@ async function runSuites(
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  const networkArg = process.argv[2] ?? "energyfi-l1-local";
+  const networkArg = process.argv[2] ?? "energyfi-l1-testnet";
   const startTime = Date.now();
 
   console.log(`\n=== EnergyFi 통합 테스트 ===`);

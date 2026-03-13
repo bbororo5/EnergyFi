@@ -1,20 +1,20 @@
 <div align="center">
 
 # EnergyFi
-### Powered by STRIKON
 
-### Hardware-Anchored RWA — Real-Time Infrastructure Finance on Avalanche
+### Hardware-to-Blockchain Vertical Stack for EV Charging Infrastructure Tokenization
 
 <br/>
 
 <img src="docs/assets/wingside_logo.png" height="300"/>
 <br/>
 
-
-[![Avalanche](https://img.shields.io/badge/Avalanche-Evergreen%20Standard-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
+[![Avalanche L1](https://img.shields.io/badge/Avalanche-L1%20Private%20Chain-E84142?logo=avalanche&logoColor=white)](https://www.avax.network/)
 [![Hardware Security](https://img.shields.io/badge/TPM%202.0-Hardware%20Anchor-blue?logo=intel)](https://en.wikipedia.org/wiki/Trusted_Platform_Module)
-[![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?logo=solidity)](https://soliditylang.org/)
+[![Solidity](https://img.shields.io/badge/Solidity-^0.8.28-363636?logo=solidity)](https://soliditylang.org/)
+[![Hardhat](https://img.shields.io/badge/Hardhat-3-yellow?logo=hardhat)](https://hardhat.org/)
 [![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?logo=expo)](https://expo.dev/)
+[![Tests](https://img.shields.io/badge/Tests-287%20passing-brightgreen)](contracts/test/)
 
 </div>
 
@@ -22,60 +22,196 @@
 
 ## What is EnergyFi?
 
-EnergyFi is the blockchain protocol powering **STRIKON**, the world's first AI-native EV charging infrastructure.
+EV charging stations in South Korean apartment complexes generate steady, predictable revenue — but retail investors have no way to access this asset class. Revenue stays concentrated in operators.
 
-Unlike traditional RWA projects that rely on third-party APIs (Software Trust), EnergyFi leverages a **Hardware Anchor (TPM 2.0)** embedded in every charger. We tokenize the charging infrastructure itself, allowing investors to own a piece of the hardware and receive **real-time dividends** from charging revenue, verified directly from the chip to the chain.
+EnergyFi solves this by building a **vertically integrated system** from the physical charger's TPM 2.0 chip all the way to the blockchain. Every charging session is cryptographically signed at the hardware level, flows through our platform, and is permanently recorded on a dedicated Avalanche L1. This creates a transparent, tamper-proof revenue pipeline that enables **per-region Security Token Offerings (STO)** — allowing apartment residents and small investors to fractionally own charging infrastructure.
 
-> **Note:** While our roadmap includes V2G (Vehicle-to-Grid) technology for future power grid interaction, our current core STO focuses on **infrastructure asset securitization** and **charging revenue distribution**.
+| | Legacy RWA | EnergyFi |
+|:---|:---|:---|
+| **Data Source** | Third-party API (modifiable) | **TPM 2.0 Secure Element** (physical chip) |
+| **Verification** | Manual audit / trusting the API provider | **Cryptographic signing** at hardware level |
+| **On-chain Recording** | Periodic batch uploads | **Per-session**, triggered by payment settlement |
+| **Trust Model** | Software trust | **Hardware anchor** — data signed before it leaves the charger |
+
+---
+
+## How It Works — The Vertical Stack
+
+EnergyFi is not just smart contracts. It is a **4-layer vertical stack** where hardware, embedded systems, platform software, and blockchain work as a single pipeline.
+
+```mermaid
+flowchart TB
+    subgraph L1["Layer 1 · Hardware"]
+        SE["TPM 2.0 SE Chip\nSigns raw kWh data (P-256)"]
+    end
+
+    subgraph L2["Layer 2 · Embedded"]
+        EMB["Embedded System\nTransmits SE-signed data"]
+    end
+
+    subgraph L3["Layer 3 · Platform"]
+        STR["STRIKON Platform\n30+ Go microservices\nOCPP · Billing · Settlement"]
+    end
+
+    subgraph L4["Layer 4 · Blockchain"]
+        EF["EnergyFi L1\nAvalanche Private Chain\n8 Smart Contracts"]
+    end
+
+    SE --> EMB --> STR -->|invoice.paid| EF
+
+    style L1 fill:#1a1a2e,stroke:#E84142,color:#fff
+    style L2 fill:#1a1a2e,stroke:#E84142,color:#fff
+    style L3 fill:#1a1a2e,stroke:#E84142,color:#fff
+    style L4 fill:#1a1a2e,stroke:#E84142,color:#fff
+    style SE fill:#E84142,stroke:#fff,color:#fff
+    style EMB fill:#333,stroke:#fff,color:#fff
+    style STR fill:#333,stroke:#fff,color:#fff
+    style EF fill:#E84142,stroke:#fff,color:#fff
+```
+
+**Layer 1 — Hardware**: A TPM 2.0 Secure Element chip embedded in every charger signs raw metering data (kWh, timestamps) using P-256 (secp256r1) cryptography. This signature is created at the point of physical measurement — before the data ever leaves the device.
+
+**Layer 2 — Embedded**: The proprietary embedded system transmits the SE-signed data packet to the platform. The hardware signature travels intact through this layer.
+
+**Layer 3 — Platform**: STRIKON, a production EV charging platform with 30+ Go microservices, handles charger management (OCPP 1.6/2.1), billing, payment processing, and settlement. Only after a payment is fully settled does it emit an `invoice.paid` event.
+
+**Layer 4 — Blockchain**: EnergyFi's dedicated Avalanche L1 (Chain ID 270626, zero-gas) receives the settled data via a Bridge wallet and records it immutably through 8 smart contracts.
+
+### Bookend Signature Model
+
+How do we guarantee the data wasn't tampered with between the charger and the blockchain?
+
+We don't need to trust every intermediate layer. Instead, we verify at **both endpoints**:
 
 ```mermaid
 flowchart LR
-    subgraph Hardware["Hardware Anchor (Trust Source)"]
-        A[EV Charger] -->|Sign Data| B[TPM 2.0 Chip]
-    end
+    A["SE Chip\n(Layer 1)\nSigns raw data\nP-256"] --->|"Data travels through\nembedded + platform"| B["Bridge Wallet\n(Layer 3→4)\nSigns on-chain TX\nAWS KMS HSM"]
 
-    subgraph Blockchain["Avalanche Infrastructure"]
-        B -->|Signed Telemetry| C["EnergyFi Subnet\n(Evergreen Compatible)"]
-        C -->|Verified Revenue| D["Smart Contract\n(Yield Distribution)"]
-    end
+    B --> C{"DeviceRegistry\ncompares SE signature\nvs on-chain data"}
 
-    subgraph User["Investor Experience"]
-        D -->|Real-Time Settlement| E[Investor Wallet]
-    end
+    C -->|Match| D["✓ Path Integrity\nProven"]
+    C -->|Mismatch| E["✗ TX Reverted"]
 
-    style Hardware fill:#222,stroke:#fff,stroke-width:2px
-    style B fill:#E84142,stroke:#fff,stroke-width:2px,color:#fff
-    style Blockchain fill:#1a1a2e,stroke:#E84142
-    style C fill:#1a1a2e,stroke:#E84142,stroke-dasharray: 5 5
+    style A fill:#E84142,stroke:#fff,color:#fff
+    style B fill:#E84142,stroke:#fff,color:#fff
+    style D fill:#2d6a4f,stroke:#fff,color:#fff
+    style E fill:#d00000,stroke:#fff,color:#fff
 ```
 
+The SE chip (origin) and Bridge wallet (destination) form a **bookend**. If the data at both ends matches, the entire intermediate path is proven intact — without requiring signatures at every hop.
 
+### Data Pipeline: Charging Session → On-Chain Record
 
-## Why We Are Different: The Hardware Anchor
+When a charging session is paid, here is exactly what happens on-chain:
 
-Most RWA projects suffer from the **"Oracle Problem"**—if the physical data is tampered with before it hits the blockchain, the on-chain asset is worthless.
+```mermaid
+sequenceDiagram
+    participant S as STRIKON Platform
+    participant B as Bridge Wallet<br/>(AWS KMS)
+    participant CR as ChargeRouter
+    participant CT as ChargeTransaction<br/>(ERC-721)
+    participant DR as DeviceRegistry
+    participant SR as StationRegistry
+    participant RT as RevenueTracker
 
-EnergyFi solves this at the source:
+    S->>B: invoice.paid event
+    B->>CR: processCharge(session, period)
 
-| Feature | Legacy RWA | EnergyFi (STRIKON) |
-| :--- | :--- | :--- |
-| **Data Source** | Third-party API (modifiable) | **TPM 2.0 / SE Module** (Physical Chip) |
-| **Verification** | Manual Audit / Trusting the API provider | **Cryptographic Signing** at Hardware Level |
-| **Settlement** | T+2 Days / Quarterly Dividends | **Real-Time** (Second-by-Second Yield) |
-| **Security** | Software Level | **Hardware Level** (Anti-Tamper) |
+    rect rgb(40, 40, 60)
+        Note over CR,RT: Atomic — both succeed or both revert
+        CR->>CT: mint(session)
+        CT->>DR: verifySignature(chargerId, hash, seSignature)
+        DR-->>CT: ✓ valid SE signature
+        CT->>SR: isRegistered(stationId)
+        SR-->>CT: ✓ station exists
+        CT-->>CT: _mint(address(this), tokenId)
+        Note over CT: Soulbound ERC-721<br/>No transfers, permanent record
 
-**"Code is Law"**: By securing data at the chip level, we eliminate the need for costly manual verification by brokerage firms, enabling a true **Trustless Architecture**.
+        CR->>RT: recordRevenue(stationId, krw, period)
+        RT->>SR: getStation(stationId) → regionId
+        RT-->>RT: accumulate revenue per station & region
+    end
+```
 
----
-## The Foundation — Already Built
-
-EnergyFi is not starting from zero. It sits on top of two production-grade systems built by Wingside:
-
-### STRIKON Platform — The Data Source
+**Atomicity**: If the SE signature is invalid, the station is unregistered, or any check fails — the entire transaction reverts. No partial records ever exist on-chain.
 
 <div align="center">
-<img src="docs/assets/strikon_logo.jpeg" height="200"/>
-<br/><br/>
+<img src="docs/assets/architecture.png" width="800"/>
+</div>
+
+> [View interactive architecture diagram with hover details](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/architecture-diagram.html)
+
+---
+
+## Smart Contract Architecture
+
+Every contract exists because a specific business requirement demanded it. Here is the mapping:
+
+| Business Requirement | Contract | Design Rationale |
+|:---|:---|:---|
+| **Prevent charger data tampering** | `DeviceRegistry` | Pre-enrolls SE chip public keys (P-256, 64 bytes). Verifies hardware signature on every charging session |
+| **Map stations to investment regions** | `StationRegistry` | Groups stations by 17 Korean administrative regions (ISO 3166-2:KR). Region = STO investment unit |
+| **Immutably record settled payments** | `ChargeTransaction` | Soulbound ERC-721 — one token per session, no transfers, permanent record |
+| **Aggregate revenue per region** | `RevenueTracker` | Accumulates distributable KRW per station and per region. Source data for STO investors |
+| **Single trusted entry point** | `ChargeRouter` | Atomically executes mint + recordRevenue in one TX. `onlyBridge` access control |
+| **Issue per-region security tokens** | `RegionSTO` + `RegionSTOFactory` | 17 regions × tranche-based batch issuance (ERC-20) |
+| **Station operational quality** | `ReputationRegistry` | Oracle-published region metrics (trust, rhythm, site scores) |
+
+### All 8 Contracts
+
+| Phase | Category | Contract | Token Standard | Status |
+|:---|:---|:---|:---|:---|
+| 1 | Infrastructure | **DeviceRegistry** | — | Deployed |
+| 1 | Infrastructure | **StationRegistry** | — | Deployed |
+| 2 | Transaction | **ChargeRouter** | — | Deployed |
+| 2 | Transaction | **ChargeTransaction** | ERC-721 (Soulbound) | Deployed |
+| 2 | Revenue | **RevenueTracker** | — | Deployed |
+| 3 | Investment | **RegionSTO** | ERC-20 | Implemented |
+| 3 | Investment | **RegionSTOFactory** | — | Implemented |
+| 3 | Operations | **ReputationRegistry** | — | Implemented |
+
+### Contract Dependency Graph
+
+```mermaid
+flowchart TD
+    Bridge["Bridge Wallet\n(AWS KMS)"] --> CR["ChargeRouter"]
+    CR --> CT["ChargeTransaction\n(ERC-721)"]
+    CR --> RT["RevenueTracker"]
+    CT --> DR["DeviceRegistry"]
+    CT --> SR["StationRegistry"]
+    RT --> SR
+    RT -.->|revenue source| STO["RegionSTO\n(RegionSTOFactory)"]
+    SR -.->|station data| REP["ReputationRegistry"]
+
+    style Bridge fill:#E84142,stroke:#fff,color:#fff
+    style CR fill:#4a4e69,stroke:#fff,color:#fff
+    style CT fill:#4a4e69,stroke:#fff,color:#fff
+    style RT fill:#4a4e69,stroke:#fff,color:#fff
+    style DR fill:#22577a,stroke:#fff,color:#fff
+    style SR fill:#22577a,stroke:#fff,color:#fff
+    style STO fill:#2d6a4f,stroke:#fff,color:#fff
+    style REP fill:#2d6a4f,stroke:#fff,color:#fff
+```
+
+**Essential contracts** (solid lines): DeviceRegistry, StationRegistry, ChargeTransaction, RevenueTracker, ChargeRouter — the core data pipeline. Without these, the system cannot operate.
+
+**Derived contracts** (dashed lines): RegionSTO, RegionSTOFactory, and ReputationRegistry consume data produced by the essential contracts.
+
+### Key Design Decisions
+
+- **Soulbound ERC-721**: Charging sessions are immutable evidence, not tradeable assets. Minted to `address(this)`, transfers disabled.
+- **UUPS Proxy**: All contracts are upgradeable via UUPS pattern for post-deployment bug fixes and regulatory adaptation.
+- **`BridgeGuarded` base contract**: The Bridge wallet (AWS KMS HSM) is the sole trusted entry point from STRIKON. `onlyBridge` modifier on all write operations.
+- **Zero-gas private chain**: Chain ID 270626. Designed for IoT-scale data ingestion. Gas optimization is irrelevant — investor protection takes priority.
+- **Issuance-only scope**: EnergyFi handles token minting and burning. Dividend distribution, KYC/AML, and compliance are the securities firm's domain.
+
+---
+
+## The Foundation — STRIKON Platform
+
+EnergyFi does not start from zero. It sits on top of **STRIKON**, a production EV charging platform launching June 2026.
+
+<div align="center">
 <table>
 <tr>
 <td align="center"><b>Mobile App</b></td>
@@ -88,189 +224,137 @@ EnergyFi is not starting from zero. It sits on top of two production-grade syste
 </table>
 </div>
 
-> 🔗 [View interactive platform architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/strikon_platform_architecture.html)
+> [View interactive platform architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/strikon_platform_architecture.html)
 
-STRIKON is the **EV charging platform** that operates the physical stations — 30+ microservices handling charger management, billing, real-time monitoring, and revenue tracking. **6 specialised AI agents** automate demand forecasting, pricing, maintenance scheduling, and fleet routing — cutting operational costs by replacing manual processes with autonomous decision-making. Launching June 2026.
+STRIKON handles the entire physical operation: OCPP 1.6/2.1 charger management, real-time monitoring, billing, payment processing (INICIS, TOSS), and settlement. EnergyFi's on-chain contracts receive only **settlement-completed data** — the `invoice.paid` event is the sole trigger for blockchain recording.
 
-### APEX Engine — The AI Brain
-
-<div align="center">
-<table>
-<tr>
-<td align="center"><b>APEX Dashboard</b></td>
-<td align="center"><b>AI Agent Architecture (6 agents)</b></td>
-</tr>
-<tr>
-<td><img src="docs/assets/apex_dashboard_1.png" width="420"/></td>
-<td><img src="docs/assets/strikon_ai_agents.png" width="420"/></td>
-</tr>
-</table>
-</div>
-
-> 🔗 [View interactive AI agent architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/ai_agent_architecture.html)
-
-APEX analyses every charging station and produces **investment-grade intelligence**:
-
-| Output | Detail |
-| :--- | :--- |
-| **Investment Score** | NPV, IRR, payback period — per station |
-| **Risk Grade** | Revenue stability, utilization trend, equipment health, competition |
-| **AI Signal** | UNDERVALUED / FAIR VALUE / OVERVALUED |
-| **Revenue Forecast** | Monthly projections with confidence intervals |
-
-> 📖 Full interface schema: [Interface Spec](docs/strikon-interface-spec.md)
-
-### What EnergyFi Adds
-
-EnergyFi is the **blockchain layer** that connects these systems to Avalanche:
-
-| STRIKON provides | APEX provides | EnergyFi does |
-| :--- | :--- | :--- |
-| kWh dispensed, revenue, uptime | Fair value, risk score, yield forecast | **Tokenise** the station as an STO |
-| Real-time charger health | Buy/sell signal per station | **Trade** tokens P2P on-chain |
-| Monthly financial reports | Portfolio optimisation | **Distribute** yield to token holders |
-
-> **Hackathon demo**: mock JSON matching production schema · **At launch (June 2026)**: live data via STRIKON API
-
-###  Virtual Twin — Reliability
-
-To ensure financial accuracy, every AI decision is regression-tested in our **Virtual Twin** environment before deployment. We don't guess; we simulate.
-
-<div align="center">
-<img src="docs/assets/strikon_virtual_twin.png" width="100%" style="border-radius: 10px;"/>
-</div>
-
-> 🔗 [View interactive Virtual Twin architecture](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/virtual_twin_architecture.html)
 ---
 
+## Investor Mobile App
+
+<div align="center">
+
+| Spec | Detail |
+|:---|:---|
+| **Stack** | React Native + Expo SDK 54, TypeScript |
+| **Routing** | expo-router v6 (4 tabs) |
+| **Screens** | 23 pages |
+| **Components** | 31 UI components |
+| **Hooks** | 7 custom hooks |
+| **i18n** | Korean + English |
+| **Platforms** | iOS, Android, Web |
+
+</div>
+
+**Tabs**: Home (real-time impact data) · Explore (region reputation) · Portfolio (STO holdings) · Account (settings, KYC docs)
+
+---
+
+## Test Coverage
+
+**287 passing, 1 pending** (P-256 precompile requires custom genesis)
+
+### Unit Tests (8 suites)
+
+| Contract | Tests | Key Coverage |
+|:---|:---:|:---|
+| RevenueTracker | 73 | Revenue accumulation, monthly history, settlement, cross-validation |
+| RegionSTO | 42 | Tranche issuance, admin-only transfers, decimals=0 |
+| StationRegistry | 40 | Station-charger hierarchy, region indexing, pausable |
+| ChargeTransaction | 39 | Soulbound minting, SE signature validation, atomic revert |
+| DeviceRegistry | 34+1p | P-256/secp256k1 enrollment, chip activation, signature verify |
+| RegionSTOFactory | 27 | 17-region deployment, factory patterns |
+| ReputationRegistry (behavior) | 21 | Snapshot storage, period queries, multi-region |
+| ReputationRegistry (admin) | 11 | Access control, bridge authorization |
+
+### Integration Tests (3 suites)
+
+| Suite | Tests | Coverage |
+|:---|:---:|:---|
+| Charging Pipeline | 29 | Full 5-contract atomic flow: Bridge → ChargeRouter → mint + recordRevenue |
+| STO Integration | 14 | Station → Region → Token issuance end-to-end |
+| Reputation Integration | 5 | Bridge-published snapshots, cross-contract reads |
+
+---
 
 ## Why Avalanche?
 
-| Need | Solution | Why only Avalanche? |
-| :--- | :--- | :--- |
-| **Regulatory speed** | ERC-3643 + Subnet permissioning | Compliance-ready out of the box — no custom framework needed |
-| **Global capital pipeline** | C-Chain (public L1) | Institutional DeFi ecosystem to connect Korean RWA assets with global liquidity |
-| **IoT-scale data ingestion** | Wingside Subnet (custom L2) | Sovereign chain with near-instant finality and low gas for high-frequency device data |
-| **FinTech-grade reliability** | Avalanche consensus | Absolute finality and data consistency required for securities settlement |
+| Need | Avalanche Solution |
+|:---|:---|
+| **IoT-scale data ingestion** | Dedicated L1 private chain — sovereign, zero gas, sub-second finality |
+| **Securities-grade finality** | Avalanche consensus (BFT) — absolute finality, no probabilistic reorgs |
+| **Cross-chain readiness** | Avalanche Warp Messaging (AWM) — native cross-chain capability when needed |
+| **Managed infrastructure** | AvaCloud — managed validators, monitoring, RPC endpoints |
 
-Avalanche is the only ecosystem where you can **spin up a dedicated chain for your use case** while settling on a shared, liquid public chain — without a third-party bridge.
-
-## Avalanche Strategy: Built for Institutions
-
-We are not just building a private subnet; we are building an **Institutional-Ready Infrastructure** aligned with **Avalanche Evergreen** standards.
-
-### 1. Private Subnet for Data Security
-* **Purpose:** Handling high-frequency IoT data (voltage, amperage, session logs) requires zero latency and zero gas costs for devices.
-* **Security:** Our private subnet ensures that sensitive raw data is processed securely before yield data is bridged to the public chain.
-
-### 2. Evergreen Compatibility (Future-Proofing)
-* **Standardization:** We adopt the data standards and permissioning structures used by **Spruce** and **Intain** (Avalanche's institutional subnets).
-* **Interoperability:** This design ensures that when EnergyFi STOs are ready for global liquidity, they can seamlessly connect with Wall Street institutions and regulated DeFi protocols on the Avalanche network.
+Avalanche is the only ecosystem where you can spin up a **dedicated private chain** for your use case with native cross-chain messaging built in — ready when regulatory clarity arrives.
 
 ---
 
-## The "Infinite Snowball" Model
+## Quick Start
 
-EnergyFi introduces a self-replicating economic model powered by AI and Blockchain transparency.
+```bash
+# Prerequisites: Node.js 24.x (nvm use 24)
+git clone https://github.com/Seon-ung/EnergyFi.git
+cd EnergyFi
 
-* **30% Avalanche Foundation:** Token buy-back & burn to defend ecosystem value.
-* **20% Operations:** Funding for **HELIX** (Self-healing AI) and **APEX** (Investment AI) development.
-* **50% Re-investment (The Snowball):** Automatically allocated to manufacture and install *new* chargers.
-    * *Result:* The infrastructure grows geometrically without needing continuous external capital injection.
+# Smart Contracts
+cd contracts
+npm install
+npx hardhat compile
+npx hardhat test                              # 287 tests
 
----
+# Investor Mobile App
+cd ../mobile
+npm install
+npx expo start                                # iOS / Android / Web
+```
 
-## Architecture
-
-<div align="center">
-<img src="docs/assets/architecture.png" width="800"/>
-</div>
-
-> 🔗 [View interactive version with hover details](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/architecture-diagram.html)
-
----
-
-## Token Lifecycle
-
-**From Hardware to Handheld Yield** — How real-world utilization turns into investor profit:
-
-| Step | Component | Action & Logic |
-| :---: | :--- | :--- |
-| ① | **STRIKON API** | **Data Generation:** Real-time kWh & revenue logs (Signed by TPM). |
-| ② | **APEX Engine** | **Valuation:** AI calculates risk scores and fair value dynamically. |
-| ③ | **EnergyToken** | **Asset Tokenization:** Investors fund hardware via STO (ERC-3643). |
-| ④ | **STRIKON Platform** | **Bridge:** Verifies off-chain revenue data and pushes it on-chain. |
-| ⑤ | **RevenueVault** | **Distribution:** Converts fiat revenue to **Stablecoins (USDC)** and distributes yield via Smart Contracts. |
-| ⑥ | **EnergyDEX** | **Liquidity:** P2P trading of security tokens *(Phase 2)*. |
-| ⑦ | **Investor App** | **Claim:** Investors view real-time APY and claim dividends. |
-
-> 📖 Full detail: See [Implementation Roadmap](contracts/docs/implementation-roadmap.md)
+> Full setup guide: [Environment Setup](docs/environment-setup.md)
 
 ---
 
-## Regulatory Roadmap: 2026 STO Act
+## Project Structure
 
-We are preparing for the enforcement of South Korea's **Electronic Securities Act (Jan 2026)**.
-
-* **Goal:** Obtain status as a **"Self-Issuing Account Management Institution"**.
-* **Strategy:** By proving that our **Hardware Anchor + Blockchain Ledger** provides higher transparency than human auditors, we aim to bypass traditional brokerage intermediaries.
-* **Current Status:** Technical Due Diligence (Retro9000 Proposal) in progress.
-
----
-
-## Future Expansion: V2G & VPP
-
-While our current focus is on the **Charging Station STO**, the hardware is future-proofed for:
-
-* **V2G (Vehicle-to-Grid):** Turning EVs into mobile batteries to stabilize the grid.
-* **VPP (Virtual Power Plant):** Aggregating distributed chargers to trade power.
-
-*These features will be activated in Phase 3 (Global Standard), creating additional revenue streams for STO holders beyond simple charging fees.*
-
----
-
-## 🛠️ Technology Stack
-
-EnergyFi connects established hardware infrastructure with the Avalanche blockchain.
-
-| Layer | Component  | Technology |
-| :--- | :--- | :--- |
-| **Asset (Off-chain)** | **EV Charger** | Custom Hardware, TPM 2.0, metering IC |
-| **Platform (Off-chain)** | **STRIKON** | Golang 30+ microservices, Python AI Agents (APEX) |
-| **Protocol (On-chain)** | **EnergyFi** | **Solidity ^0.8.20**, **Avalanche L1**, Hardhat 3 |
-| **Interface** | **App** | React Native + Expo (TypeScript), WalletConnect v2, ethers.js |
-
-> **Hackathon Focus:** During this hackathon, we built the **EnergyFi Protocol** (Smart Contracts & L1 config) that records TPM 2.0 SE-signed charging data on-chain and applies VM0038 carbon reduction calculations.
----
+```
+EnergyFi/
+├── contracts/                  # Avalanche L1 smart contracts (Solidity, Hardhat 3)
+│   ├── contracts/
+│   │   ├── infra/              #   DeviceRegistry, StationRegistry
+│   │   ├── core/               #   ChargeTransaction, ChargeRouter
+│   │   ├── finance/            #   RevenueTracker
+│   │   ├── sto/                #   RegionSTO, RegionSTOFactory
+│   │   ├── ops/                #   ReputationRegistry
+│   │   ├── base/               #   BridgeGuarded (shared access control)
+│   │   └── interfaces/         #   All contract interfaces
+│   ├── test/
+│   │   ├── unit/               #   8 test suites (287 tests)
+│   │   └── integration/        #   3 test suites (48 tests)
+│   ├── scripts/                #   Deployment & seeding scripts
+│   └── tools/dashboard/        #   Express web dashboard + CLI
+├── mobile/                     # React Native + Expo SDK 54 (TypeScript)
+│   ├── app/                    #   23 screens (expo-router, 4 tabs)
+│   ├── components/             #   31 UI components
+│   └── hooks/                  #   7 custom hooks
+├── l1-config/                  # L1 chain configuration
+│   ├── genesis.json            #   Chain ID 270626, zero-gas, RIP-7212
+│   └── config.json
+└── docs/                       # Architecture & specification documents
+```
 
 ## Documentation
 
 | Document | Description |
-| :--- | :--- |
-| [**Architecture Diagram**](docs/assets/architecture-diagram.html) | Interactive system architecture (HTML) |
-| [Project Overview](docs/project-overview.md) | Vision, differentiators, tech stack |
-| [Architecture](docs/architecture.md) | System architecture & hybrid topology |
-| [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Architecture overview, phase-by-phase implementation plan |
-| [ERC Standards Analysis](contracts/docs/erc-standards-analysis.md) | ERC standard compliance analysis |
-| [Environment Setup](docs/environment-setup.md) | Development environment setup |
-| [Deployment Guide](docs/deployment-guide.md) | 3-phase deployment (Dev → Hackathon → Production) |
-| [Interface Spec](docs/strikon-interface-spec.md) | STRIKON ↔ EnergyFi interface schemas (9 steps) |
-| [Frontend Design](frontend/docs/flutter-design.md) | Investor Flutter app design |
-
-<details>
-<summary><b>Quick Start (click to expand)</b></summary>
-
-```bash
-git clone https://github.com/Seon-ung/EnergyFi.git
-cd EnergyFi
-
-# L1 Smart Contracts
-cd contracts && npm install && npx hardhat compile
-```
-
-> 📖 Full guide: [Environment Setup](docs/environment-setup.md)
-
-</details>
+|:---|:---|
+| [Architecture Diagram (interactive)](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/architecture-diagram.html) | Full system architecture with hover details |
+| [Architecture](docs/architecture.md) | 4-layer system architecture, trust chain, data flows |
+| [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Phase-by-phase contract specification, dependency graph |
+| [STRIKON Interface Spec](docs/strikon-interface-spec.md) | 5-step data pipeline: charger → invoice.paid |
+| [Phase 1 Spec](contracts/docs/phase1-infra-spec.md) | DeviceRegistry + StationRegistry |
+| [Phase 2 Spec](contracts/docs/phase2-transaction-spec.md) | ChargeTransaction + RevenueTracker + ChargeRouter |
+| [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | STO issuance + Revenue Attestation infrastructure |
+| [Phase 4 Spec](contracts/docs/phase4-carbon-spec.md) | Carbon credit pipeline (Verra VCS VM0038) |
+| [Environment Setup](docs/environment-setup.md) | Prerequisites, toolchain, network configuration |
+| [Deployment Guide](docs/deployment-guide.md) | 3-phase deployment (Dev → Testnet → Mainnet) |
 
 ---
 

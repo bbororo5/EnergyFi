@@ -21,6 +21,9 @@ cp .env.example .env
 #   DEPLOYER_PRIVATE_KEY        — wallet for contract deployment
 #   ENERGYFI_L1_TESTNET_RPC     — Testnet RPC (after Unit A)
 #   ENERGYFI_L1_MAINNET_RPC     — Mainnet RPC (Production phase)
+#   ENERGYFI_ADMIN_ADDRESS      — DEFAULT_ADMIN_ROLE recipient for deployed proxies
+#   ENERGYFI_BRIDGE_ADDRESS     — ChargeRouter bridge wallet
+#   ENERGYFI_REPUTATION_BRIDGE_ADDRESS — ReputationRegistry oracle wallet
 ```
 
 ### 2.2 Install Dependencies
@@ -82,9 +85,9 @@ For hackathon submission, the L1 is deployed via [AvaCloud](https://avacloud.io)
 # 3. Save the AvaCloud-provided RPC URL to .env
 #    ENERGYFI_L1_TESTNET_RPC=<AvaCloud console에서 제공하는 RPC URL>
 
-# 4. Deploy contracts (same command as Phase 1)
+# 4. Deploy contracts for the demo surface
 cd contracts
-npm run deploy:testnet
+npm run deploy:full:testnet
 ```
 
 > **Note:** The same `genesis.json` (Chain ID 270626, zero-gas) works for both Avalanche-CLI and AvaCloud deployments. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC` regardless of infrastructure provider.
@@ -107,8 +110,10 @@ For production launch (June 2026~), the L1 is deployed via AvaCloud Mainnet with
 #    ENERGYFI_L1_MAINNET_RPC=<AvaCloud console에서 제공하는 RPC URL>
 
 # 4. Deploy contracts
-cd contracts
-npm run deploy:mainnet
+#    Production uses the same full-surface deployment script after
+#    `hardhat.config.ts` is extended with the `energyfi-l1-mainnet` network.
+#    Mainnet deployment wiring is intentionally deferred until AvaCloud
+#    mainnet RPC and validator topology are finalized.
 ```
 
 **Validator structure in production:**
@@ -147,11 +152,12 @@ Deploy contracts onto the EnergyFi L1 (requires Unit A running).
 ```bash
 cd contracts
 npm run compile
-npm run test              # 47 passing, 1 pending (P-256 skip) — Phase 1 완료
+npm run test
+npm run test:integration
 
 # Deploy to target environment:
-npm run deploy:testnet    # Testnet (Development or Hackathon)
-npm run deploy:mainnet    # Mainnet (Production)
+npm run deploy:testnet       # Essential surface only
+npm run deploy:full:testnet  # Essential + frontend read surface
 ```
 
 > **Note:** `hardhat.config.ts` loads `.env` from the project root (`../.env`), not from `contracts/`. Environment variables are centrally managed in the root `.env` file.
@@ -168,13 +174,17 @@ npm run deploy:mainnet    # Mainnet (Production)
 Deployed on **2026.03.03** to `energyfi-l1-testnet` (Chain ID 270626).
 
 Deployment produces `contracts/deployments.json` with addresses per network.
+The AvaCloud demo path writes:
+- `DeviceRegistry`, `StationRegistry`, `ChargeTransaction`, `RevenueTracker`, `ChargeRouter`
+- `ReputationRegistry`, `RegionSTOImpl`, `RegionSTOFactory`
 
-After deployment, run the Mock Oracle to register test data:
-```bash
-cd contracts
-npm run oracle:testnet    # 대화형 CLI — 옵션 5 (전체 등록) 선택
-npm run dashboard:testnet # 3-화면 ASCII 대시보드 출력
-```
+`deploy:full:testnet` assumes:
+- `RIP-7212 (0x100)` is enabled on the target L1
+- `ENERGYFI_ADMIN_ADDRESS`, `ENERGYFI_BRIDGE_ADDRESS`, `ENERGYFI_REPUTATION_BRIDGE_ADDRESS` are all present
+- no tranche issuance or seed data is performed during deployment
+
+Seed data and tranche issuance are separate post-deploy steps.
+`deploy:full:testnet` intentionally stops after contract deployment and address recording.
 
 As the 12-contract + 1 factory architecture is implemented in phases, deployment scripts and addresses will be updated:
 ```

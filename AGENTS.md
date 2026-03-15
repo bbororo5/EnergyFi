@@ -43,7 +43,7 @@ Layer 3 (Blockchain): EnergyFi — Avalanche L1 private chain (this repository)
 
 **Key boundaries**:
 - STRIKON is an external platform. From EnergyFi's perspective, it is a **trusted external caller** via the Bridge wallet (`onlyBridge` modifier).
-- EnergyFi repo scope: smart contracts (`contracts/`) + investor mobile app (`mobile/`). The target L1 config is being rewritten and is not currently committed in this repository snapshot.
+- EnergyFi repo scope: smart contracts (`contracts/`) + investor mobile app (`mobile/`).
 - Data flow: SE chip signature → Embedded System → STRIKON → Bridge wallet → On-chain `ChargeTransaction.mint()` → `DeviceRegistry.verifySignature()`.
 - Trust model: Bookend Signature — SE chip signs at origin (P-256), Bridge wallet signs on-chain TX. DeviceRegistry verifies the SE signature on every mint(). Both match = path integrity verified.
 - SE chip public keys are pre-enrolled in DeviceRegistry before charger launch. From Phase 1, all charging sessions carry real SE signatures.
@@ -71,7 +71,7 @@ EnergyFi/
 
 | Deployment Unit | Path | Stack | Status |
 |:---|:---|:---|:---|
-| L1 Infrastructure | external/private config workspace | Avalanche-CLI / AvaCloud | Being rewritten |
+| L1 Infrastructure | AvaCloud (Fuji) | Avalanche-CLI / AvaCloud | Active (testnet) |
 | L1 Smart Contracts | `contracts/` | Solidity ^0.8.20, Hardhat 3 | Active |
 | Mobile App | `mobile/` | React Native + Expo, TypeScript | Active (demo) |
 
@@ -96,7 +96,7 @@ These rules are absolute. Never bypass them.
 | Package Manager | npm | 11.x |
 | TypeScript | TypeScript | ^5.7.0 |
 | Module System | ESM | `"type": "module"` throughout |
-| Blockchain | Avalanche L1 (Subnet-EVM) | Chain ID 270626 |
+| Blockchain | Avalanche L1 (Subnet-EVM) | Chain ID 59823 |
 | Smart Contracts | Solidity ^0.8.20, Hardhat 3 | See `contracts/AGENTS.md` |
 | Mobile App | React Native + Expo (SDK 54), TypeScript, expo-router | Active (demo) |
 
@@ -116,8 +116,8 @@ cd contracts && npm install
 
 | Network | Chain ID | RPC Env Var |
 |:---|:---|:---|
-| EnergyFi L1 Testnet | 270626 | `ENERGYFI_L1_TESTNET_RPC` |
-| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` |
+| EnergyFi L1 Testnet | 59823 | `ENERGYFI_L1_TESTNET_RPC` |
+| EnergyFi L1 Mainnet | TBD | `ENERGYFI_L1_MAINNET_RPC` |
 | Avalanche Fuji C-Chain | 43113 | `AVAX_CCHAIN_RPC` |
 
 ---

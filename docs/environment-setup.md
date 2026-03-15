@@ -76,7 +76,7 @@ cd contracts && npm run compile    # solc 0.8.20
 
 | Unit | Path | Runtime | Module System | Key Dependencies | Status |
 |:---|:---|:---|:---|:---|:---|
-| **A** (L1 Config) | external/private config workspace | Avalanche-CLI | JSON | — | Being rewritten |
+| **A** (L1 Config) | AvaCloud (Fuji) | Avalanche-CLI | JSON | — | Active (testnet) |
 | **B** (L1 Contracts) | `contracts/` | Node.js 24 | ESM (`"type": "module"`) | hardhat@3.1.7, ethers@6, OZ@5 | Active |
 | **C** (Mobile App) | `mobile/` | Node.js 24 | ESM | expo@54, react-native, expo-router | Active (demo) |
 

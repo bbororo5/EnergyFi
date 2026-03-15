@@ -6,7 +6,7 @@ This document covers the deployment units, their execution procedures, and the p
 
 | Unit | Name | Path | Stack | Depends On | Status |
 |:---|:---|:---|:---|:---|:---|
-| **A** | L1 Infrastructure | external/private config workspace | Avalanche-CLI / AvaCloud | AvalancheGo node | Being rewritten |
+| **A** | L1 Infrastructure | AvaCloud (Fuji) | Avalanche-CLI / AvaCloud | AvalancheGo node | Active (testnet) |
 | **B** | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | **Unit A** running | Active |
 | **C** | Mobile App | `mobile/` | React Native + Expo (SDK 54), TypeScript | **Unit B** deployed | Active (demo) |
 
@@ -34,7 +34,7 @@ cd contracts && npm install
 
 ### 3.1 Phase Overview
 
-EnergyFi L1 infrastructure progresses through 3 phases. The long-term target chain uses Chain ID `270626` and zero-gas economics. Its canonical genesis/runtime config is currently being rewritten and is not committed in this repo snapshot. The repository's public judge-review flow is separate and is documented in [judge-quick-start.md](./judge-quick-start.md).
+EnergyFi L1 infrastructure progresses through 3 phases. The current testnet chain uses Chain ID `59823` and zero-gas economics. The repository's public judge-review flow is documented in [judge-quick-start.md](./judge-quick-start.md).
 
 | Phase | Environment | Infrastructure | Validators | `.env` Variable | Deploy Command |
 |:---|:---|:---|:---|:---|:---|
@@ -66,7 +66,7 @@ Verify the chain is running:
 ```bash
 curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
   -H "Content-Type: application/json" $ENERGYFI_L1_TESTNET_RPC
-# Expected: {"result":"0x42122"}  (chainId 270626 from the target genesis config)
+# Expected: {"result":"0xe9af"}  (chainId 59823)
 ```
 
 ### 3.3 Phase 2: Hackathon Submission (AvaCloud Testnet)
@@ -89,7 +89,7 @@ cd contracts
 npm run deploy:surface:testnet
 ```
 
-> **Note:** The same target genesis config (Chain ID `270626`, zero-gas) should work for both Avalanche-CLI and AvaCloud deployments once it is rewritten and reintroduced. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC`, and only enforces a chain ID if `ENERGYFI_L1_TESTNET_CHAIN_ID` is explicitly set in the environment.
+> **Note:** The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC`, and enforces the chain ID set in `ENERGYFI_L1_TESTNET_CHAIN_ID`. When migrating to a new chain, update both variables in `.env`. See [chain-migration-guide.md](./chain-migration-guide.md) for the full procedure.
 
 > **Development → Hackathon transition:** Replace `ENERGYFI_L1_TESTNET_RPC` in `.env` with the AvaCloud-provided URL. Contracts must be redeployed on the new chain.
 
@@ -216,8 +216,8 @@ Mobile UX and screen documents are maintained under `mobile/docs/`.
 
 | Network | Chain ID | RPC | Explorer |
 |:---|:---|:---|:---|
-| EnergyFi L1 Target Testnet | 270626 | `ENERGYFI_L1_TESTNET_RPC` | environment-specific |
-| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet, not configured yet) | TBD |
+| EnergyFi L1 Testnet | 59823 | `ENERGYFI_L1_TESTNET_RPC` | [explorer-test.avax.network/enf](https://explorer-test.avax.network/enf) |
+| EnergyFi L1 Mainnet | TBD | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet, not configured yet) | TBD |
 | Avalanche Fuji C-Chain | 43113 | `https://api.avax-test.network/ext/bc/C/rpc` | [testnet.snowtrace.io](https://testnet.snowtrace.io) |
 | Avalanche Mainnet | 43114 | `https://api.avax.network/ext/bc/C/rpc` | [snowtrace.io](https://snowtrace.io) |
 

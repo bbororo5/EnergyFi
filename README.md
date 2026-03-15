@@ -42,11 +42,11 @@ It prints the increase in `KR11` region total pending revenue. The Home hero in 
 
 Current judge-facing review network:
 
-- Chain ID: `64058`
-- RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
-- Explorer: [https://explorer-test.avax.network/efy](https://explorer-test.avax.network/efy)
+- Chain ID: `59823`
+- RPC: [https://subnets.avax.network/enf/testnet/rpc](https://subnets.avax.network/enf/testnet/rpc)
+- Explorer: [https://explorer-test.avax.network/enf](https://explorer-test.avax.network/enf)
 
-This review network is defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts). It is separate from the repository's long-term target L1 configuration, which is being rewritten and is not committed in this repo snapshot.
+This network is defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts) and matches the repository's deployed contract surface.
 
 ## What is EnergyFi?
 
@@ -85,7 +85,7 @@ flowchart TB
 
 **Layer 3 — Platform**: STRIKON, a production EV charging platform with 30+ Go microservices, handles charger management (OCPP 1.6/2.1), billing, payment processing, and settlement. Only after a payment is fully settled does it emit an `invoice.paid` event.
 
-**Layer 4 — Blockchain**: EnergyFi's long-term target is a dedicated Avalanche L1 with Chain ID `270626` and zero-gas economics. The canonical target-chain config is currently being rewritten and is not committed in this repo snapshot. The current public judge flow above runs on a separate review network (`64058`) defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts).
+**Layer 4 — Blockchain**: EnergyFi runs on a dedicated Avalanche L1 (Chain ID `59823`) with zero-gas economics. The current deployment and judge review flow both run on this chain, defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts).
 
 ### Bookend Signature Model
 
@@ -193,7 +193,7 @@ flowchart TD
 - **Soulbound ERC-721**: Charging sessions are immutable evidence, not tradeable assets. Minted to `address(this)`, transfers disabled.
 - **UUPS Proxy**: All contracts are upgradeable via UUPS pattern for post-deployment bug fixes and regulatory adaptation.
 - **`BridgeGuarded` base contract**: The Bridge wallet (AWS KMS HSM) is the sole trusted entry point from STRIKON. `onlyBridge` modifier on all write operations.
-- **Zero-gas target L1**: EnergyFi's long-term target chain uses Chain ID `270626`. The canonical target-chain config is currently being rewritten and is not committed in this repo snapshot. The current judge-facing review flow uses a separate review chain (`64058`) so reviewers can run `judge:testnet` without reproducing the full deployment environment.
+- **Zero-gas L1**: EnergyFi runs on a dedicated Avalanche L1 (Chain ID `59823`) with zero-gas economics. Reviewers can run `judge:testnet` directly — testnet credentials are embedded in the script.
 
 ---
 
@@ -302,19 +302,32 @@ EnergyFi/
 
 ## Documentation
 
+### Current Canonical Docs
+
 | Document | Description |
 |:---|:---|
-| [Root Docs Map](docs/README.md) | Canonical root-level document graph |
-| [Contracts Docs Map](contracts/docs/README.md) | Canonical contract doc graph and reading order |
-| [Architecture](docs/architecture.md) | 4-layer system architecture, trust chain, data flows |
-| [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Phase-by-phase contract specification, dependency graph |
-| [STRIKON Interface Spec](docs/strikon-interface-spec.md) | 5-step data pipeline: charger → invoice.paid |
-| [Phase 1 Spec](contracts/docs/phase1-infra-spec.md) | DeviceRegistry + StationRegistry |
-| [Phase 2 Spec](contracts/docs/phase2-transaction-spec.md) | ChargeTransaction + RevenueTracker + ChargeRouter |
-| [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | STO issuance + Revenue Attestation infrastructure |
-| [Phase 4 Reputation Spec](contracts/docs/phase4-reputation-spec.md) | Explore reputation snapshot interface and metric model |
-| [Phase 5 Spec](contracts/docs/phase5-carbon-spec.md) | Carbon credit pipeline (Verra VCS VM0038) |
-| [Environment Setup](docs/environment-setup.md) | Prerequisites, toolchain, network configuration |
+| [Root Docs Map](docs/README.md) | Root-level document graph and authority map |
+| [Contracts Docs Map](contracts/docs/README.md) | Contract-doc graph, categories, and reading order |
+| [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Primary contract planning reference for phases, dependencies, and risks |
+| [STRIKON Interface Spec](docs/strikon-interface-spec.md) | Off-chain interface boundary from charger flow to `invoice.paid` |
+| [Phase 1 Spec](contracts/docs/phase1-infra-spec.md) | Current canonical spec for `DeviceRegistry` and `StationRegistry` |
+| [Phase 2 Spec](contracts/docs/phase2-transaction-spec.md) | Current canonical spec for `ChargeRouter`, `ChargeTransaction`, and `RevenueTracker` |
+| [Phase 4 Spec](contracts/docs/phase4-reputation-spec.md) | Current canonical spec for region-level `ReputationRegistry` snapshots |
+| [Environment Setup](docs/environment-setup.md) | Full development environment and target-L1 reference setup |
+
+### Top-Level Scope Docs
+
+| Document | Description |
+|:---|:---|
+| [Architecture](docs/architecture.md) | Top-level architecture narrative and implementation/planning boundary map |
+| [Project Overview](docs/project-overview.md) | Repository scope, deployment units, and current surface summary |
+
+### Planning / Future-Phase Docs
+
+| Document | Description |
+|:---|:---|
+| [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | On-hold issuance boundary and Revenue Attestation design |
+| [Phase 5 Spec](contracts/docs/phase5-carbon-spec.md) | Planned carbon pipeline design for future implementation |
 
 ---
 

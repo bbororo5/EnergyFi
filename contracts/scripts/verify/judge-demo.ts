@@ -22,15 +22,15 @@ import {
 
 // ─── Testnet Configuration (zero-gas, no economic value) ─────────────────────
 
-const RPC_URL = "https://subnets.avax.network/efy/testnet/rpc";
-const EXPECTED_CHAIN_ID = 64058n;
+const RPC_URL = "https://subnets.avax.network/enf/testnet/rpc";
+const EXPECTED_CHAIN_ID = 59823n;
 const BRIDGE_KEY =
   "0x6b70ae3b66cbfc19f03cf7f0dbb49476ef1cea1c35152f8929c9a608c656a030";
 
 const CONTRACTS = {
-  ChargeRouter: "0x8Fae69Bf1Bc4e1c987508a5fC6Cc0f65BaC829E7",
-  ChargeTransaction: "0x743907BE700c527950D912ec2fe35D3e701D1286",
-  RevenueTracker: "0x3D23900e2AFF32363d129c2237e606efb00C9777",
+  ChargeRouter: "0xACb74aAA9D8f479c72780849BCEd1c43F0AfB3F7",
+  ChargeTransaction: "0x3c1d0E0572b00D67d6E4e8f7381C7960eB0ADDC3",
+  RevenueTracker: "0x693F237E5e15884A19cC81bA584F0535Bb9b3D02",
 };
 
 // ─── Minimal ABIs (only the functions this script calls) ─────────────────────
@@ -50,7 +50,7 @@ const REVENUE_ABI = [
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const EXPLORER = "https://explorer-test.avax.network/efy";
+const EXPLORER = "https://explorer-test.avax.network/enf";
 const MVP_URL = "https://energyfi-mobile-demo.vercel.app";
 const CURRENT_PERIOD = 202603n;
 

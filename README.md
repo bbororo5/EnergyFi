@@ -300,7 +300,6 @@ EnergyFi/
 
 | Document | Description |
 |:---|:---|
-| [Architecture Diagram (interactive)](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/architecture-diagram.html) | Full system architecture with hover details |
 | [Architecture](docs/architecture.md) | 4-layer system architecture, trust chain, data flows |
 | [Implementation Roadmap](contracts/docs/implementation-roadmap.md) | Phase-by-phase contract specification, dependency graph |
 | [STRIKON Interface Spec](docs/strikon-interface-spec.md) | 5-step data pipeline: charger → invoice.paid |

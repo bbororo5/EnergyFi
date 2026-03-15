@@ -118,8 +118,6 @@ cd contracts && npm install
 | Network | Chain ID | RPC Env Var |
 |:---|:---|:---|
 | EnergyFi L1 Testnet | 270626 | `ENERGYFI_L1_TESTNET_RPC` |
-| EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` |
-| Avalanche Fuji C-Chain | 43113 | `AVAX_CCHAIN_RPC` |
 
 ---
 

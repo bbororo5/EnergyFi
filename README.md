@@ -131,12 +131,6 @@ sequenceDiagram
 
 **Atomicity**: If the SE signature is invalid, the station is unregistered, or any check fails — the entire transaction reverts. No partial records ever exist on-chain.
 
-<div align="center">
-<img src="docs/assets/architecture.png" width="800"/>
-</div>
-
-> [View interactive architecture diagram with hover details](https://htmlpreview.github.io/?https://github.com/Seon-ung/EnergyFi/blob/main/docs/assets/architecture-diagram.html)
-
 ---
 
 ## Smart Contract Architecture

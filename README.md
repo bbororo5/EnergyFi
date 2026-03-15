@@ -312,6 +312,7 @@ EnergyFi/
 | [STRIKON Interface Spec](docs/strikon-interface-spec.md) | Off-chain interface boundary from charger flow to `invoice.paid` |
 | [Phase 1 Spec](contracts/docs/phase1-infra-spec.md) | Current canonical spec for `DeviceRegistry` and `StationRegistry` |
 | [Phase 2 Spec](contracts/docs/phase2-transaction-spec.md) | Current canonical spec for `ChargeRouter`, `ChargeTransaction`, and `RevenueTracker` |
+| [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | `RegionSTO` and `RegionSTOFactory` prototype spec, issuance path comparison, and Revenue Attestation design. Code is implemented; final token standard and issuance ledger are policy-dependent. |
 | [Phase 4 Spec](contracts/docs/phase4-reputation-spec.md) | Current canonical spec for region-level `ReputationRegistry` snapshots |
 | [Environment Setup](docs/environment-setup.md) | Full development environment and target-L1 reference setup |
 
@@ -326,7 +327,6 @@ EnergyFi/
 
 | Document | Description |
 |:---|:---|
-| [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | On-hold issuance boundary and Revenue Attestation design |
 | [Phase 5 Spec](contracts/docs/phase5-carbon-spec.md) | Planned carbon pipeline design for future implementation |
 
 ---

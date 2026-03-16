@@ -308,7 +308,6 @@ EnergyFi/
 | [Phase 3 Spec](contracts/docs/phase3-sto-spec.md) | STO issuance + Revenue Attestation infrastructure |
 | [Phase 4 Spec](contracts/docs/phase4-carbon-spec.md) | Carbon credit pipeline (Verra VCS VM0038) |
 | [Environment Setup](docs/environment-setup.md) | Prerequisites, toolchain, network configuration |
-| [Deployment Guide](docs/deployment-guide.md) | 3-phase deployment (Dev → Testnet → Mainnet) |
 
 ---
 

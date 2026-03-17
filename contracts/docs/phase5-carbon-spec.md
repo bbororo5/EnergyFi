@@ -17,7 +17,7 @@ The goal is to:
 - group reductions into verification batches
 - connect verified batches to append-only Verra issuance references
 
-**Prerequisite:** a stable Phase 2 dataset and VVB process readiness  
+**Prerequisite:** a stable Phase 2 dataset and VVB process readiness
 **Target window:** after the carbon verification workflow is operational
 
 ---

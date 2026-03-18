@@ -30,7 +30,7 @@ cd contracts && npm install && npm run demo
 
 The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times — each run creates new sessions.
 
-> Requires Node.js 24.x and a configured `.env` (see [Environment Setup](docs/environment-setup.md))
+> Requires Node.js 24.x only. No `.env` configuration needed — testnet credentials are embedded in the script.
 
 ## Public MVP Verification
 
@@ -135,12 +135,6 @@ sequenceDiagram
 ```
 
 **Atomicity**: If the SE signature is invalid, the station is unregistered, or any check fails — the entire transaction reverts. No partial records ever exist on-chain.
-
-<div align="center">
-<img src="docs/assets/architecture.png" width="800"/>
-</div>
-
-> Canonical architecture references: [docs/README.md](docs/README.md), [contracts/docs/README.md](contracts/docs/README.md)
 ---
 
 ## Smart Contract Architecture

@@ -1,9 +1,8 @@
-# L1 Smart Contracts
+# Smart Contracts
 
-This directory contains the Solidity contracts and related tooling for the EnergyFi Avalanche L1.
+This directory contains the Solidity contracts, interfaces, tests, and deployment tooling for EnergyFi.
 
-Canonical documentation lives in [`contracts/docs/README.md`](./docs/README.md).
+If you need contract documentation, start with [`docs/README.md`](./docs/README.md).
 
-- Current implementation order and dependency graph: [`contracts/docs/implementation-roadmap.md`](./docs/implementation-roadmap.md)
-- Phase specs: [`contracts/docs/`](./docs/)
-- Historical/non-canonical material: [`contracts/docs/archive/`](./docs/archive/)
+- Canonical contract docs: [`docs/`](./docs/)
+- Historical or non-canonical notes: [`docs/archive/`](./docs/archive/)

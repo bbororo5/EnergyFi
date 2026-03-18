@@ -1,15 +1,15 @@
 # EnergyFi — Project Overview
 
-> For business context, vision, and design rationale, see [CLAUDE.md](../../CLAUDE.md).
+> For business context, vision, and design rationale, see [CLAUDE.md](../CLAUDE.md).
 
 ## 1. Scope
 
-EnergyFi = **Layer 3** (smart contracts + L1 chain config) + **Layer 4** (investor frontend) on a dedicated Avalanche L1 private chain. It receives SE-signed charging data from the STRIKON platform (Layers 1-2) and records it immutably on-chain.
+EnergyFi = **Layer 3** (smart contracts + L1 chain config) + **Layer 4** (investor mobile app) on a dedicated Avalanche L1 private chain. It receives SE-signed charging data from the STRIKON platform (Layers 1-2) and records it immutably on-chain.
 
 ```
 EnergyFi scope
-    Layer 4: Investor Interface (frontend — planned)
-    Layer 3: Avalanche L1 Private Chain (12 contracts + 1 factory)
+    Layer 4: Investor Interface (mobile app)
+    Layer 3: Avalanche L1 Private Chain (contract surface defined in contracts/docs)
     ──────────────────────────────────────────────────────────────
     Layer 2: STRIKON Platform (external — 30+ microservices)
     Layer 1: Hardware Root of Trust (external — TPM 2.0 SE)
@@ -22,34 +22,34 @@ EnergyFi scope
 | **Data** | Real-time charging session records | SE-signed data → ChargeTransaction (ERC-721) on-chain |
 | **Carbon** | VM0038 carbon reduction calculation | CarbonReduction (immutable contract) + ParameterRegistry |
 | **Registry** | Station → Charger hierarchy (all EnergyFi-owned) | StationRegistry on Avalanche L1 |
-| **Tokenization** | Per-region fractional ownership (17 regions) | RegionSTO (표준 미확정 — 발행 경로 결정 후) via RegionSTOFactory |
+| **Tokenization** | Per-region fractional ownership (17 regions) | RegionSTO via RegionSTOFactory (final token standard TBD until the issuance path is decided) |
 | **Portfolio** | Investor dashboard data | STOPortfolio + ReputationRegistry |
 | **Verification** | Carbon credit pipeline | CarbonBatch → VVB → VCUReference |
 
 ## 3. Deployment Units
 
-EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contracts, and investor frontend. Off-chain services (oracle relay, data aggregation) are managed by the STRIKON platform layer and are outside the scope of this repository.
+EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contracts, and investor mobile app. Off-chain services (oracle relay, data aggregation) are managed by the STRIKON platform layer and are outside the scope of this repository.
 
 | Unit | Name | Path | Stack | Status |
 |:---|:---|:---|:---|:---|
 | A | L1 Infrastructure | `l1-config/` | Avalanche-CLI, JSON config | Active |
 | B | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | Active |
-| C | Frontend | `frontend/` | React Native + Expo (SDK 54), TypeScript | Planned (per-region STO model) |
+| C | Mobile App | `mobile/` | React Native + Expo (SDK 54), TypeScript | Active (demo) |
 
 ## 4. Repository Structure
 
 ```
 EnergyFi/
 ├── contracts/             # Unit B: Avalanche L1 smart contracts (Hardhat 3)
-│   ├── contracts/         # 12 contracts + ChargeRouter (see contracts/docs/implementation-roadmap.md)
+│   ├── contracts/         # Essential + derived contracts (see contracts/docs/implementation-roadmap.md)
 │   ├── scripts/           # deploy.ts, live-test.ts
-│   ├── tools/             # dashboard/ (Express 웹 대시보드 + 통합 테스트 스위트)
+│   ├── tools/             # Operational helpers (non-canonical)
 │   ├── test/              # Hardhat unit tests
 │   └── hardhat.config.ts
 ├── l1-config/             # Unit A: L1 genesis & runtime config
 │   ├── genesis.json
 │   └── config.json
-├── frontend/              # Unit C: React Native + Expo SDK 54 (TypeScript, expo-router v6)
+├── mobile/                # Unit C: React Native + Expo SDK 54 (TypeScript, expo-router v6)
 ├── docs/                  # Project documentation
 └── .env.example           # Environment variable template
 ```

@@ -225,7 +225,7 @@ Local test entry points:
 - `cd contracts && npm run test:integration` — integration tests
 - `cd contracts && npm run test:all` — unit + integration
 
-Note: some existing test titles and script output are still written in Korean. The commands are runnable as-is, but the human-readable labels are not fully translated yet.
+Test titles for the local unit and integration suites are in English. Some auxiliary operational scripts may still contain Korean log text.
 
 ---
 

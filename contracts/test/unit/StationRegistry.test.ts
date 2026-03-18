@@ -72,8 +72,8 @@ describe("StationRegistry", function () {
 
   // ── Station Management ──────────────────────────────────────────────────────
 
-  describe("Station 관리", function () {
-    it("registerStation() → StationRegistered 이벤트 발행", async function () {
+  describe("station management", function () {
+    it("emits StationRegistered on registerStation()", async function () {
       const tx = await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       const receipt = await tx.wait();
       const event = findEvent(receipt, registry, "StationRegistered");
@@ -82,7 +82,7 @@ describe("StationRegistry", function () {
       expect(event.args.regionId).to.equal(REGION_SEOUL);
     });
 
-    it("충전소 등록 후 getStation() 조회", async function () {
+    it("returns the station after registration through getStation()", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       const s = await registry.getStation(STN_1);
 
@@ -91,7 +91,7 @@ describe("StationRegistry", function () {
       expect(s.active).to.equal(true);
     });
 
-    it("권한 없는 주소의 registerStation() → revert", async function () {
+    it("reverts registerStation() from an unauthorized address", async function () {
       await expectRevert(
         registry.connect(nonAdmin).registerStation(
           STN_1, REGION_SEOUL, "서울 강남"
@@ -99,23 +99,23 @@ describe("StationRegistry", function () {
       );
     });
 
-    it("regionId 없는 충전소 등록 → revert RegionRequired", async function () {
+    it("reverts with RegionRequired when registering a station without regionId", async function () {
       await expectRevertCustomError(
         registry.registerStation(STN_3, REGION_EMPTY, "서울"),
         "RegionRequired"
       );
     });
 
-    it("권한 없는 주소의 deactivateStation() → revert", async function () {
+    it("reverts deactivateStation() from an unauthorized address", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await expectRevert(registry.connect(nonAdmin).deactivateStation(STN_1));
     });
 
-    it("미등록 stationId deactivateStation() → revert StationNotFound", async function () {
+    it("reverts deactivateStation() with StationNotFound for an unknown stationId", async function () {
       await expectRevertCustomError(registry.deactivateStation(STN_1), "StationNotFound");
     });
 
-    it("deactivateStation() 후 getStationsByRegion()에서 제외됨", async function () {
+    it("removes the station from getStationsByRegion() after deactivateStation()", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
       await registry.deactivateStation(STN_3);
@@ -124,7 +124,7 @@ describe("StationRegistry", function () {
       expect(stations).to.not.include(STN_3);
     });
 
-    it("active 충전기 있는 충전소 deactivateStation() → revert HasActiveChargers", async function () {
+    it("reverts deactivateStation() with HasActiveChargers when active chargers remain", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(Wallet.createRandom()), 0);
       await registry.registerCharger(CHG_1, STN_1, 1); // L2
@@ -132,7 +132,7 @@ describe("StationRegistry", function () {
       await expectRevertCustomError(registry.deactivateStation(STN_1), "HasActiveChargers");
     });
 
-    it("active 충전기 없으면 deactivateStation() 성공", async function () {
+    it("allows deactivateStation() when no active chargers remain", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.deactivateStation(STN_1);
       const s = await registry.getStation(STN_1);
@@ -142,7 +142,7 @@ describe("StationRegistry", function () {
 
   // ── Charger Management ──────────────────────────────────────────────────────
 
-  describe("Charger 관리", function () {
+  describe("charger management", function () {
     beforeEach(async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       // Enroll SE chips for chargers (required by registerCharger)
@@ -151,7 +151,7 @@ describe("StationRegistry", function () {
       await deviceRegistry.enrollChip(CHG_2, getPublicKey64(se2), 0);
     });
 
-    it("충전기 등록 후 getChargersByStation() 조회", async function () {
+    it("returns chargers through getChargersByStation() after registration", async function () {
       await registry.registerCharger(CHG_1, STN_1, 1); // L2
       await registry.registerCharger(CHG_2, STN_1, 2); // DCFC
 
@@ -161,7 +161,7 @@ describe("StationRegistry", function () {
       expect(chargers.length).to.equal(2);
     });
 
-    it("getCharger() 필드 정확성 확인", async function () {
+    it("returns the expected fields from getCharger()", async function () {
       await registry.registerCharger(CHG_1, STN_1, 2); // DCFC
       const c = await registry.getCharger(CHG_1);
 
@@ -171,12 +171,12 @@ describe("StationRegistry", function () {
       expect(c.active).to.equal(true);
     });
 
-    it("비활성화된 충전소에 registerCharger() → revert StationNotActive", async function () {
+    it("reverts registerCharger() with StationNotActive for an inactive station", async function () {
       await registry.deactivateStation(STN_1);
       await expectRevertCustomError(registry.registerCharger(CHG_1, STN_1, 1), "StationNotActive");
     });
 
-    it("미등록 stationId에 registerCharger() → revert StationNotFound", async function () {
+    it("reverts registerCharger() with StationNotFound for an unknown stationId", async function () {
       await expectRevertCustomError(
         registry.registerCharger(CHG_1, b32("STATION-999"), 1),
         "StationNotFound"
@@ -187,12 +187,12 @@ describe("StationRegistry", function () {
       await expectRevertCustomError(registry.registerCharger(CHG_1, STN_1, 3), "InvalidChargerType");
     });
 
-    it("SE칩 미등록 chargerId → revert ChipNotActive", async function () {
+    it("reverts registerCharger() with ChipNotActive for a charger without an enrolled chip", async function () {
       const CHG_NO_CHIP = b32("CHARGER-NOCHIP");
       await expectRevertCustomError(registry.registerCharger(CHG_NO_CHIP, STN_1, 1), "ChipNotActive");
     });
 
-    it("deactivateCharger() 후 getCharger().active === false", async function () {
+    it("sets getCharger().active to false after deactivateCharger()", async function () {
       await registry.registerCharger(CHG_1, STN_1, 1);
       await registry.deactivateCharger(CHG_1);
       const c = await registry.getCharger(CHG_1);
@@ -200,7 +200,7 @@ describe("StationRegistry", function () {
     });
 
     // T05: getChargersByStation — deactivate 후 배열 반영
-    it("deactivateCharger() 후 getChargersByStation()에서 제외됨", async function () {
+    it("removes the charger from getChargersByStation() after deactivateCharger()", async function () {
       await registry.registerCharger(CHG_1, STN_1, 1);
       await registry.registerCharger(CHG_2, STN_1, 2);
       await registry.deactivateCharger(CHG_1);
@@ -210,26 +210,26 @@ describe("StationRegistry", function () {
       expect(chargers.length).to.equal(1);
     });
 
-    it("ADMIN_ROLE 없는 주소의 registerCharger() → revert", async function () {
+    it("reverts registerCharger() from an address without ADMIN_ROLE", async function () {
       await expectRevert(
         registry.connect(nonAdmin).registerCharger(CHG_1, STN_1, 1)
       );
     });
 
-    it("ADMIN_ROLE 없는 주소의 deactivateCharger() → revert", async function () {
+    it("reverts deactivateCharger() from an address without ADMIN_ROLE", async function () {
       await registry.registerCharger(CHG_1, STN_1, 1);
       await expectRevert(registry.connect(nonAdmin).deactivateCharger(CHG_1));
     });
 
-    it("미등록 chargerId deactivateCharger() → revert ChargerNotFound", async function () {
+    it("reverts deactivateCharger() with ChargerNotFound for an unknown chargerId", async function () {
       await expectRevertCustomError(registry.deactivateCharger(CHG_1), "ChargerNotFound");
     });
 
-    it("미등록 chargerId getCharger() → revert ChargerNotFound", async function () {
+    it("reverts getCharger() with ChargerNotFound for an unknown chargerId", async function () {
       await expectRevertCustomError(registry.getCharger(CHG_1), "ChargerNotFound");
     });
 
-    it("충전기 deactivate 후 deactivateStation() 성공", async function () {
+    it("allows deactivateStation() after deactivating the charger", async function () {
       await registry.registerCharger(CHG_1, STN_1, 1);
       await registry.deactivateCharger(CHG_1);
       await registry.deactivateStation(STN_1);
@@ -240,8 +240,8 @@ describe("StationRegistry", function () {
 
   // ── Region Index Queries ───────────────────────────────────────────────────
 
-  describe("지역 인덱스 조회", function () {
-    it("getStationsByRegion() — 같은 지역 충전소 모두 포함", async function () {
+  describe("region index lookups", function () {
+    it("includes all stations from the same region in getStationsByRegion()", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
 
@@ -251,7 +251,7 @@ describe("StationRegistry", function () {
       expect(stations).to.include(STN_3);
     });
 
-    it("다른 지역 충전소는 getStationsByRegion()에 포함 안 됨", async function () {
+    it("excludes stations from other regions in getStationsByRegion()", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.registerStation(STN_3, REGION_BUSAN, "부산 해운대");
 
@@ -264,12 +264,12 @@ describe("StationRegistry", function () {
   // ── isRegistered ───────────────────────────────────────────────────────────
 
   describe("isRegistered (T05)", function () {
-    it("등록된 충전소 → true", async function () {
+    it("returns true for a registered station", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       expect(await registry.isRegistered(STN_1)).to.equal(true);
     });
 
-    it("미등록 충전소 → false", async function () {
+    it("returns false for an unregistered station", async function () {
       expect(await registry.isRegistered(STN_1)).to.equal(false);
     });
   });
@@ -277,7 +277,7 @@ describe("StationRegistry", function () {
   // ── R04: Pausable ──────────────────────────────────────────────────────────
 
   describe("Pausable (R04)", function () {
-    it("admin pause() → 성공, Paused 이벤트", async function () {
+    it("allows admin pause() and emits Paused", async function () {
       const tx = await registry.pause();
       const receipt = await tx.wait();
       const event = findEvent(receipt, registry, "Paused");
@@ -294,7 +294,7 @@ describe("StationRegistry", function () {
       await expectRevert(registry.connect(nonAdmin).unpause());
     });
 
-    it("paused 상태에서 registerStation() → revert EnforcedPause", async function () {
+    it("reverts registerStation() with EnforcedPause while paused", async function () {
       await registry.pause();
       await expectRevertCustomError(
         registry.registerStation(STN_1, REGION_SEOUL, "서울 강남"),
@@ -302,7 +302,7 @@ describe("StationRegistry", function () {
       );
     });
 
-    it("paused 상태에서 registerCharger() → revert EnforcedPause", async function () {
+    it("reverts registerCharger() with EnforcedPause while paused", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(seWallet), 0);
       await registry.pause();
@@ -312,7 +312,7 @@ describe("StationRegistry", function () {
       );
     });
 
-    it("paused 상태에서 deactivateStation() → revert EnforcedPause", async function () {
+    it("reverts deactivateStation() with EnforcedPause while paused", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.pause();
       await expectRevertCustomError(
@@ -321,7 +321,7 @@ describe("StationRegistry", function () {
       );
     });
 
-    it("paused 상태에서 deactivateCharger() → revert EnforcedPause", async function () {
+    it("reverts deactivateCharger() with EnforcedPause while paused", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await deviceRegistry.enrollChip(CHG_1, getPublicKey64(seWallet), 0);
       await registry.registerCharger(CHG_1, STN_1, 1);
@@ -332,7 +332,7 @@ describe("StationRegistry", function () {
       );
     });
 
-    it("unpause() 후 registerStation() 정상 동작", async function () {
+    it("allows registerStation() again after unpause()", async function () {
       await registry.pause();
       await registry.unpause();
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
@@ -340,7 +340,7 @@ describe("StationRegistry", function () {
       expect(s.active).to.equal(true);
     });
 
-    it("paused 상태에서 view 함수 정상 동작", async function () {
+    it("keeps view functions working while paused", async function () {
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.pause();
 
@@ -355,8 +355,8 @@ describe("StationRegistry", function () {
 
   // ── T04: UUPS 업그레이드 데이터 보존 ──────────────────────────────────────
 
-  describe("UUPS 업그레이드 (T04)", function () {
-    it("admin 업그레이드 성공", async function () {
+  describe("UUPS upgrades (T04)", function () {
+    it("allows admin upgrade", async function () {
       const SRv2 = await ethers.getContractFactory("StationRegistry");
       const v2Impl = await SRv2.deploy();
       await v2Impl.waitForDeployment();
@@ -364,7 +364,7 @@ describe("StationRegistry", function () {
       await registry.upgradeToAndCall(await v2Impl.getAddress(), "0x");
     });
 
-    it("비인가 주소 업그레이드 → revert", async function () {
+    it("reverts upgrade from an unauthorized address", async function () {
       const SRv2 = await ethers.getContractFactory("StationRegistry");
       const v2Impl = await SRv2.deploy();
       await v2Impl.waitForDeployment();
@@ -374,7 +374,7 @@ describe("StationRegistry", function () {
       );
     });
 
-    it("업그레이드 후 기존 Station/Charger 데이터 보존", async function () {
+    it("preserves existing station and charger data after upgrade", async function () {
       // Setup data before upgrade
       await registry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
       await registry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
@@ -401,7 +401,7 @@ describe("StationRegistry", function () {
       expect(stationsByRegion.length).to.equal(2);
     });
 
-    it("업그레이드 후 새 registrations 정상 동작", async function () {
+    it("still allows new registrations after upgrade", async function () {
       // Upgrade
       const SRv2 = await ethers.getContractFactory("StationRegistry");
       const v2Impl = await SRv2.deploy();
@@ -416,8 +416,8 @@ describe("StationRegistry", function () {
 
   // ── R03: 초기화 보호 ──────────────────────────────────────────────────────
 
-  describe("초기화 보호 (R03)", function () {
-    it("reinitialize 불가", async function () {
+  describe("initializer protection (R03)", function () {
+    it("prevents reinitialize", async function () {
       await expectRevert(
         registry.initialize(admin.address, await deviceRegistry.getAddress())
       );

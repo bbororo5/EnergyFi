@@ -19,7 +19,7 @@ Documents in this directory should be read in three categories.
 | Phase Spec | [phase3-sto-spec.md](phase3-sto-spec.md) | STO issuance boundary + Revenue Attestation spec |
 | Phase Spec | [phase4-reputation-spec.md](phase4-reputation-spec.md) | ReputationRegistry snapshot spec |
 | Phase Spec | [phase5-carbon-spec.md](phase5-carbon-spec.md) | Carbon pipeline spec |
-| Quality Gate | [architecture-quality-attributes.md](architecture-quality-attributes.md) | Evaluation criteria for design, implementation, and review |
+| Quality Gate | [contract-quality-gates.md](contract-quality-gates.md) | Evaluation criteria for design, implementation, and review |
 | Standards Index | [erc-standards-analysis.md](erc-standards-analysis.md) | Index of applied ERC standards |
 | Standards Detail | [erc-20.md](erc-20.md), [erc-721.md](erc-721.md), [erc-165.md](erc-165.md), [erc-1822-uups.md](erc-1822-uups.md), [erc-1967.md](erc-1967.md) | Standard-by-standard explanations |
 
@@ -40,7 +40,7 @@ Documents in this directory should be read in three categories.
 ```mermaid
 graph TD
     R["implementation-roadmap.md"]
-    Q["architecture-quality-attributes.md"]
+    Q["contract-quality-gates.md"]
     S["erc-standards-analysis.md"]
 
     P1["phase1-infra-spec.md"]
@@ -82,7 +82,7 @@ graph TD
 
 1. [implementation-roadmap.md](implementation-roadmap.md)
 2. The specific phase spec you need
-3. [architecture-quality-attributes.md](architecture-quality-attributes.md)
+3. [contract-quality-gates.md](contract-quality-gates.md)
 4. If you need ERC material, continue with [erc-standards-analysis.md](erc-standards-analysis.md)
 
 ## Rules

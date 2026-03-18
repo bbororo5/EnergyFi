@@ -1,4 +1,4 @@
-# Architecture Quality Attributes
+# Contract Quality Gates
 
 ## EnergyFi — Evaluation Framework for Design, Implementation, and Code Review
 

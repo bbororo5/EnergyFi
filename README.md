@@ -220,6 +220,13 @@ Key coverage areas:
 - Station/region mapping and revenue accumulation invariants
 - RegionSTO and ReputationRegistry demo surfaces
 
+Local test entry points:
+- `cd contracts && npm test` — unit tests
+- `cd contracts && npm run test:integration` — integration tests
+- `cd contracts && npm run test:all` — unit + integration
+
+Note: some existing test titles and script output are still written in Korean. The commands are runnable as-is, but the human-readable labels are not fully translated yet.
+
 ---
 
 ## Why Avalanche?
@@ -243,8 +250,10 @@ cd EnergyFi
 # Smart Contracts
 cd contracts
 npm install
-npx hardhat compile
-npx hardhat test
+npm run compile
+npm test                     # unit tests
+npm run test:integration     # integration tests
+# or: npm run test:all       # full local contract suite
 
 # Investor Mobile App
 cd ../mobile
@@ -253,6 +262,8 @@ npx expo start                                # iOS / Android / Web
 ```
 
 > Full setup guide: [Environment Setup](docs/environment-setup.md)
+>
+> For local compile and test runs, a deployment is not required. `.env` is mainly needed for networked scripts such as live demo, deployment, and seeded testnet flows.
 
 ---
 

@@ -1,14 +1,14 @@
 /**
- * RevenueTracker 단위 테스트
+ * RevenueTracker test suite
  *
- * UUPS Proxy. StationRegistry와 연동하여 충전소별 수익 추적.
+ * UUPS proxy. Tracks station-level revenue together with StationRegistry.
  * All stations are EnergyFi-owned — no CPO on-chain.
  *
- * R04: Pausable — pause/unpause, whenNotPaused on recordRevenue/claimStation.
+ * R04: Pausable coverage — pause/unpause and whenNotPaused on recordRevenue/claimStation.
  * R05: Bridge rotation — updateBridgeAddress().
- * T01: 데이터 정합성 교차 검증 (지역 수익 = 소속 충전소 수익 합).
- * T02: 월경계 정산 독립성.
- * T05: View 함수 커버리지 강화.
+ * T01: cross-checking data consistency (region revenue = sum of member-station revenue).
+ * T02: month-boundary settlement independence.
+ * T05: expanded view-function coverage.
  */
 
 import hre from "hardhat";
@@ -77,13 +77,13 @@ describe("RevenueTracker", function () {
     );
 
     // Setup infrastructure — all stations are EnergyFi-owned
-    await stationRegistry.registerStation(STN_1, REGION_SEOUL, "서울 강남");
-    await stationRegistry.registerStation(STN_2, REGION_SEOUL, "서울 서초");
-    await stationRegistry.registerStation(STN_3, REGION_SEOUL, "서울 종로");
-    await stationRegistry.registerStation(STN_4, REGION_BUSAN, "부산 해운대");
+    await stationRegistry.registerStation(STN_1, REGION_SEOUL, "Seoul Gangnam");
+    await stationRegistry.registerStation(STN_2, REGION_SEOUL, "Seoul Seocho");
+    await stationRegistry.registerStation(STN_3, REGION_SEOUL, "Seoul Jongno");
+    await stationRegistry.registerStation(STN_4, REGION_BUSAN, "Busan Haeundae");
   });
 
-  // ── recordRevenue 성공 ─────────────────────────────────────────────────────
+  // ── recordRevenue success ──────────────────────────────────────────────────
 
   describe("recordRevenue success", function () {
     it("accumulates revenue correctly", async function () {
@@ -112,13 +112,13 @@ describe("RevenueTracker", function () {
       expect(await rt.getStationRevenuePeriod(STN_1, PERIOD_2)).to.equal(7000n);
     });
 
-    // B-1: 이벤트 파라미터 검증
+    // B-1: event parameter validation
     it("emits RevenueRecorded with the expected parameters", async function () {
       const tx = await rt.recordRevenue(STN_1, 5000n, PERIOD);
       const receipt = await tx.wait();
 
       const event = findEvent(receipt!, rt, "RevenueRecorded");
-      expect(event, "RevenueRecorded 이벤트가 emit되어야 한다").to.not.be.null;
+      expect(event, "RevenueRecorded event should be emitted").to.not.be.null;
       expect(event!.args.stationId).to.equal(STN_1);
       expect(event!.args.distributableKrw).to.equal(5000n);
       expect(event!.args.accumulated).to.equal(5000n);
@@ -137,7 +137,7 @@ describe("RevenueTracker", function () {
       expect(event2!.args.accumulated).to.equal(8000n); // 5000 + 3000
     });
 
-    // B-3: 비순차 월 기록 (A-1 _monthlyIndex 수정 검증)
+    // B-3: non-sequential month writes (validates the _monthlyIndex fix)
     it("handles non-sequential month writes such as month 7 -> month 6 -> month 7", async function () {
       // Record July first
       await rt.recordRevenue(STN_1, 3000n, PERIOD_2);
@@ -190,7 +190,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── recordRevenue 실패 ─────────────────────────────────────────────────────
+  // ── recordRevenue failures ─────────────────────────────────────────────────
 
   describe("recordRevenue failures", function () {
     it("reverts with StationNotRegistered for an unknown stationId", async function () {
@@ -215,7 +215,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── claimStation 성공 ─────────────────────────────────────────────────────
+  // ── claimStation success ───────────────────────────────────────────────────
 
   describe("claimStation success", function () {
     beforeEach(async function () {
@@ -232,7 +232,7 @@ describe("RevenueTracker", function () {
       const [, , pend1] = await rt.getStationRevenue(STN_1);
       expect(pend1).to.equal(0n);
 
-      // STN_2는 영향 없음
+      // STN_2 remains unaffected
       const [, , pend2] = await rt.getStationRevenue(STN_2);
       expect(pend2).to.equal(3000n);
     });
@@ -269,7 +269,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── claimStation 실패 ─────────────────────────────────────────────────────
+  // ── claimStation failures ──────────────────────────────────────────────────
 
   describe("claimStation failures", function () {
     it("reverts with StationNotRegistered for an unknown stationId", async function () {
@@ -307,7 +307,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── View 함수 ──────────────────────────────────────────────────────────────
+  // ── view functions ─────────────────────────────────────────────────────────
 
   describe("view functions", function () {
     beforeEach(async function () {
@@ -332,7 +332,7 @@ describe("RevenueTracker", function () {
       expect(amount).to.equal(0n);
     });
 
-    // T05: getMonthlyHistory — 다중 월 기록 후 배열 길이, 항목 검증
+    // T05: verify getMonthlyHistory length and entries after multi-month writes
     it("verifies getMonthlyHistory item count and entries after multi-month writes (T05)", async function () {
       await rt.recordRevenue(STN_1, 2000n, PERIOD_2);
 
@@ -352,7 +352,7 @@ describe("RevenueTracker", function () {
       expect(period2Entry!.amount).to.equal(2000n);
     });
 
-    // T05: getSettlementHistory — 다중 정산 후 배열 길이, 항목 검증
+    // T05: verify getSettlementHistory length and entries after multiple settlements
     it("verifies getSettlementHistory item count and entries after multiple settlements (T05)", async function () {
       await rt.claimStation(STN_1, PERIOD);
       await rt.recordRevenue(STN_1, 2000n, PERIOD_2);
@@ -368,10 +368,10 @@ describe("RevenueTracker", function () {
       expect(history[1].settledAt > 0n).to.be.true;
     });
 
-    // B-6: 미존재 데이터 조회
+    // B-6: missing-data lookups
     it("returns 0,0,0 from getStationRevenue() for a station with no recorded revenue", async function () {
       const STN_5 = b32("STATION-005");
-      await stationRegistry.registerStation(STN_5, REGION_BUSAN, "부산 기장");
+      await stationRegistry.registerStation(STN_5, REGION_BUSAN, "Busan Gijang");
 
       const [acc, set, pend] = await rt.getStationRevenue(STN_5);
       expect(acc).to.equal(0n);
@@ -391,7 +391,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── 페이지네이션 View 함수 ──────────────────────────────────────────────────
+  // ── paginated view functions ───────────────────────────────────────────────
 
   describe("paginated view functions", function () {
     beforeEach(async function () {
@@ -417,7 +417,7 @@ describe("RevenueTracker", function () {
       expect(processed2).to.equal(1n);
       expect(hasMore2).to.equal(false);
 
-      // 합계 = 전체와 동일
+      // Sum must match the full-range value
       expect(pend1 + pend2).to.equal(18000n);
     });
 
@@ -437,7 +437,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── T01: 데이터 정합성 교차 검증 ──────────────────────────────────────────
+  // ── T01: cross-checking data consistency ───────────────────────────────────
 
   describe("cross-checking data consistency (T01)", function () {
     it("matches region revenue to the sum of pending revenue for member stations", async function () {
@@ -472,7 +472,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── T02: 월경계 정산 독립성 ──────────────────────────────────────────────
+  // ── T02: month-boundary settlement independence ────────────────────────────
 
   describe("month-boundary settlement independence (T02)", function () {
     it("keeps prior settlement unchanged when new-month revenue is added after claimStation", async function () {
@@ -602,7 +602,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── B-5: 정산 후 View 정합성 ──────────────────────────────────────────────
+  // ── B-5: post-settlement view consistency ─────────────────────────────────
 
   describe("view consistency after settlement", function () {
     it("returns settled = accumulated and pending = 0 after claimStation", async function () {
@@ -656,7 +656,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── claimRegion 성공 ─────────────────────────────────────────────────────
+  // ── claimRegion success ────────────────────────────────────────────────────
 
   describe("claimRegion success", function () {
     beforeEach(async function () {
@@ -720,7 +720,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── claimRegion 실패 ─────────────────────────────────────────────────────
+  // ── claimRegion failures ───────────────────────────────────────────────────
 
   describe("claimRegion failures", function () {
     it("reverts for an unauthorized caller", async function () {
@@ -757,7 +757,7 @@ describe("RevenueTracker", function () {
     });
   });
 
-  // ── claimRegion: period는 라벨 (필터 아님) ──────────────────────────────
+  // ── claimRegion: period acts as a label, not a filter ─────────────────────
 
   describe("claimRegion period as a label", function () {
     it("settles all pending revenue regardless of the recorded source period", async function () {
@@ -916,7 +916,7 @@ describe("RevenueTracker", function () {
       );
     });
 
-    // B-2: 업그레이드 후 기존 데이터 보존
+    // B-2: preserve existing data after upgrade
     it("preserves existing revenue data after upgrade", async function () {
       // Record revenue and claim before upgrade
       await rt.recordRevenue(STN_1, 5000n, PERIOD);

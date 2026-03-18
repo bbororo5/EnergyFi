@@ -1,16 +1,16 @@
 /**
- * DeviceRegistry 통합 테스트
+ * DeviceRegistry test suite
  *
  * Hardhat 3 + hardhat-ethers v4 API:
  *   ethers = (await hre.network.connect()).ethers
  *
- * R02: UUPS 전환 — constructor → initialize(admin), deployUUPSProxy 헬퍼 사용.
- * R04: Pausable — pause/unpause, whenNotPaused 적용 확인.
- * T04: UUPS 업그레이드 데이터 보존.
- * T05: View 함수 커버리지 강화.
+ * R02: UUPS migration — constructor -> initialize(admin), using the deployUUPSProxy helper.
+ * R04: Pausable coverage — pause/unpause and whenNotPaused behavior.
+ * T04: UUPS upgrade data preservation.
+ * T05: Expanded view-function coverage.
  *
- * P-256 (secp256r1) 테스트는 RIP-7212 precompile이 필요하므로 Hardhat in-memory에서는 skip.
- * energyfi-l1-testnet 네트워크에서는 통과: npx hardhat test --network energyfi-l1-testnet
+ * P-256 (secp256r1) tests require the RIP-7212 precompile and are therefore skipped on Hardhat in-memory EVM.
+ * They pass on the energyfi-l1-testnet network: npx hardhat test --network energyfi-l1-testnet
  */
 
 import hre from "hardhat";
@@ -259,7 +259,7 @@ describe("DeviceRegistry", function () {
       expect(await deviceRegistry.getChargerByPubkey(fakeHash)).to.equal(ZeroHash);
     });
 
-    // T05: revokeChip 후 reverse lookup → bytes32(0)
+    // T05: reverse lookup returns bytes32(0) after revokeChip()
     it("returns bytes32(0) from reverse lookup after revokeChip()", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
@@ -273,7 +273,7 @@ describe("DeviceRegistry", function () {
   // ── getChipRecord ───────────────────────────────────────────────────────────
 
   describe("getChipRecord", function () {
-    // T05: 모든 필드 검증 (publicKey, publicKeyHash, algorithm, enrolledAt, active)
+    // T05: validate all fields (publicKey, publicKeyHash, algorithm, enrolledAt, active)
     it("returns all expected fields from getChipRecord() after enrollment", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
@@ -288,7 +288,7 @@ describe("DeviceRegistry", function () {
       expect(active).to.equal(true);
     });
 
-    // T05: revoke 후 active = false
+    // T05: active becomes false after revoke
     it("sets getChipRecord().active to false after revokeChip()", async function () {
       const pub64 = getPublicKey64(wallet1);
       await deviceRegistry.enrollChip(CHARGER_1, pub64, SECP256K1);
@@ -368,7 +368,7 @@ describe("DeviceRegistry", function () {
     });
   });
 
-  // ── T04: UUPS 업그레이드 데이터 보존 ──────────────────────────────────────
+  // ── T04: UUPS upgrade data preservation ────────────────────────────────────
 
   describe("UUPS upgrades (T04)", function () {
     it("allows admin upgrade", async function () {
@@ -442,7 +442,7 @@ describe("DeviceRegistry", function () {
     });
   });
 
-  // ── R02: 초기화 보호 ──────────────────────────────────────────────────────
+  // ── R02: initializer protection ────────────────────────────────────────────
 
   describe("initializer protection (R02)", function () {
     it("prevents reinitialize", async function () {

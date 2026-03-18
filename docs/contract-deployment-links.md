@@ -29,31 +29,8 @@ The contract below is deployed on the same chain, but is not yet wired into the 
 |:---|:---|:---|:---|
 | RegionSTOFactory | `0x1D7a808E68f890431Da1492F11219f069E008116` | [open](https://explorer-test.avax.network/efy/address/0x1D7a808E68f890431Da1492F11219f069E008116) | `eth_getCode != 0x`, `getRegionCount() = 0` |
 
-## 3. Proof Method
-
-### Explorer proof
-
-Each link above opens the address on the Avalanche test explorer.
-
-### JSON-RPC proof
-
-The following checks were performed directly against the public RPC:
-
-```bash
-curl -s -X POST https://subnets.avax.network/efy/testnet/rpc \
-  -H 'content-type: application/json' \
-  --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
-
-curl -s -X POST https://subnets.avax.network/efy/testnet/rpc \
-  -H 'content-type: application/json' \
-  --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0x681dCb012cC66ea2f6BF2dC41876A3bb52b1F153","latest"],"id":1}'
-```
-
-Interpretation:
-
-- `eth_chainId = 0xfa3a` confirms the expected chain (`64058`)
-- `eth_getCode != 0x` confirms that the address is a deployed contract, not an EOA or empty account
-
-## 4. Review Note
+## 3. Review Note
 
 For public MVP review, this file should be treated as the canonical contract evidence set. It intentionally follows the addresses wired into the live site rather than older local deployment artifacts.
+
+For step-by-step validation procedures, see [judge-quick-start.md](./judge-quick-start.md).

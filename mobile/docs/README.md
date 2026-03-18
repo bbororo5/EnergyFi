@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`mobile/docs/` contains the UX, screen, and data-consumption documentation for the investor mobile app.  
+`mobile/docs/` contains the UX, screen, and data-consumption documentation for the investor mobile app.
 It is not the canonical source for smart-contract or business-policy decisions. For contract authority, always prioritize `contracts/docs/` and root-level `docs/`.
 
 ## Current Docs

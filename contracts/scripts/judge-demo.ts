@@ -4,13 +4,14 @@
  * Processes 3 live EV charging sessions on the Avalanche L1 testnet
  * and prints explorer links so judges can verify on-chain.
  *
- * Usage:  cd contracts && npm run demo
+ * Zero configuration required — testnet credentials are embedded.
+ * This is a zero-gas testnet; the native token (EFI) has no economic value.
+ *
+ * Usage:  cd contracts && npm install && npm run demo
  */
-import hre from "hardhat";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import {
+  Contract,
+  JsonRpcProvider,
   Wallet,
   encodeBytes32String,
   hexlify,
@@ -19,14 +20,41 @@ import {
   toUtf8Bytes,
 } from "ethers";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// ─── Testnet Configuration (zero-gas, no economic value) ─────────────────────
+
+const RPC_URL = "https://subnets.avax.network/efy/testnet/rpc";
+const EXPECTED_CHAIN_ID = 64058n;
+const BRIDGE_KEY =
+  "0x6b70ae3b66cbfc19f03cf7f0dbb49476ef1cea1c35152f8929c9a608c656a030";
+
+const CONTRACTS = {
+  ChargeRouter: "0x8Fae69Bf1Bc4e1c987508a5fC6Cc0f65BaC829E7",
+  ChargeTransaction: "0x743907BE700c527950D912ec2fe35D3e701D1286",
+  RevenueTracker: "0x3D23900e2AFF32363d129c2237e606efb00C9777",
+};
+
+// ─── Minimal ABIs (only the functions this script calls) ─────────────────────
+
+const ROUTER_ABI = [
+  "function processCharge(tuple(bytes32 sessionId, bytes32 chargerId, uint8 chargerType, uint256 energyKwh, uint256 startTimestamp, uint256 endTimestamp, uint8 vehicleCategory, bytes4 gridRegionCode, bytes32 stationId, uint256 distributableKrw, bytes seSignature) session, uint256 period) external returns (uint256)",
+  "function bridgeAddress() view returns (address)",
+];
+
+const CHARGE_TX_ABI = [
+  "function totalSessions() view returns (uint256)",
+];
+
+const REVENUE_ABI = [
+  "function getRegionRevenue(bytes4 regionId) view returns (uint256)",
+  "function claimRegion(bytes4 regionId, uint256 period_yyyyMM) external returns (uint256 totalClaimed, uint256 stationCount)",
+  "function getRegionAttestation(bytes4 regionId, uint256 period_yyyyMM) view returns (tuple(bytes4 regionId, uint256 period_yyyyMM, uint256 distributableKrw, uint256 stationCount, uint256 finalizedAt))",
+];
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const EXPLORER = "https://explorer-test.avax.network/efy";
 const MVP_URL = "https://energyfi-mobile-demo.vercel.app";
-const EXPECTED_CHAIN_ID = 64058n;
-const CURRENT_PERIOD = 202603n;
+const CURRENT_PERIOD = 202604n;
 
 // ─── ANSI Colors ─────────────────────────────────────────────────────────────
 
@@ -44,7 +72,7 @@ const C = {
   white: "\x1b[37m",
 };
 
-// ─── Crypto helpers (from seed-demo.ts) ──────────────────────────────────────
+// ─── Crypto helpers ──────────────────────────────────────────────────────────
 
 function regionBytes4(code: string): `0x${string}` {
   const hex = Buffer.from(code, "ascii").toString("hex").padEnd(8, "0");
@@ -81,48 +109,6 @@ function signSession(
 
 function judgeSessionId(runTs: number, index: number): `0x${string}` {
   return keccak256(toUtf8Bytes(`judge-demo:${runTs}:${index}`)) as `0x${string}`;
-}
-
-// ─── Deployment loader (from seed-demo.ts) ───────────────────────────────────
-
-interface DeploymentAddresses {
-  DeviceRegistry: string;
-  StationRegistry: string;
-  ChargeTransaction: string;
-  RevenueTracker: string;
-  ChargeRouter: string;
-}
-
-function loadDeployments(network: string): DeploymentAddresses {
-  const deploymentsPath = path.resolve(__dirname, "../deployments.json");
-  if (!fs.existsSync(deploymentsPath)) {
-    throw new Error(
-      "deployments.json not found. Deploy contracts first: npm run deploy:full:testnet",
-    );
-  }
-  const all = JSON.parse(fs.readFileSync(deploymentsPath, "utf8")) as Record<
-    string,
-    Record<string, string>
-  >;
-  const values = all[network];
-  if (
-    !values?.DeviceRegistry ||
-    !values?.StationRegistry ||
-    !values?.ChargeTransaction ||
-    !values?.RevenueTracker ||
-    !values?.ChargeRouter
-  ) {
-    throw new Error(
-      `Missing deployment addresses for network "${network}" in deployments.json`,
-    );
-  }
-  return {
-    DeviceRegistry: values.DeviceRegistry,
-    StationRegistry: values.StationRegistry,
-    ChargeTransaction: values.ChargeTransaction,
-    RevenueTracker: values.RevenueTracker,
-    ChargeRouter: values.ChargeRouter,
-  };
 }
 
 // ─── Demo session templates ──────────────────────────────────────────────────
@@ -173,14 +159,14 @@ const DEMO_SESSIONS: SessionTemplate[] = [
 
 // ─── Display helpers ─────────────────────────────────────────────────────────
 
-function printBanner(network: string, signerAddress: string) {
+function printBanner(signerAddress: string) {
   console.log(`
-${C.cyan}╔════════════════════════════════════════════════════════════════════╗
-║                                                                    ║
-║   ${C.bold}EnergyFi — Judge Demo${C.reset}${C.cyan}                                          ║
-║   Watch live EV charging data hit the Avalanche blockchain         ║
-║                                                                    ║
-╚════════════════════════════════════════════════════════════════════╝${C.reset}
+${C.cyan}\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+\u2551                                                                    \u2551
+\u2551   ${C.bold}EnergyFi \u2014 Judge Demo${C.reset}${C.cyan}                                          \u2551
+\u2551   Watch live EV charging data hit the Avalanche blockchain         \u2551
+\u2551                                                                    \u2551
+\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d${C.reset}
 
   ${C.dim}Network${C.reset}  : ${C.white}EnergyFi L1 Testnet (Chain ID ${EXPECTED_CHAIN_ID.toString()})${C.reset}
   ${C.dim}Explorer${C.reset} : ${C.blue}${C.underline}${EXPLORER}${C.reset}
@@ -190,7 +176,7 @@ ${C.cyan}╔══════════════════════�
 
 function printBefore(totalSessions: bigint, regionRevenue: bigint) {
   console.log(
-    `${C.yellow}─── BEFORE ────────────────────────────────────────────────────────${C.reset}`,
+    `${C.yellow}\u2500\u2500\u2500 BEFORE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
   );
   console.log(
     `  Total sessions on-chain : ${C.bold}${totalSessions.toString()}${C.reset}`,
@@ -203,7 +189,7 @@ function printBefore(totalSessions: bigint, regionRevenue: bigint) {
 
 function printProcessingHeader() {
   console.log(
-    `${C.yellow}─── Processing 3 charge sessions ───────────────────────────────────${C.reset}`,
+    `${C.yellow}\u2500\u2500\u2500 Processing 3 charge sessions \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
   );
   console.log();
 }
@@ -218,9 +204,9 @@ function printSessionResult(
   const chargerShort = template.chargerLabel.split("-").pop();
 
   console.log(
-    `  ${C.cyan}[${index + 1}/3]${C.reset} Station ${C.bold}${template.stationLabel}${C.reset} · Charger ${chargerShort} (${template.chargerTypeName}) · ${energyDisplay} kWh · ${revenueDisplay} KRW`,
+    `  ${C.cyan}[${index + 1}/3]${C.reset} Station ${C.bold}${template.stationLabel}${C.reset} \u00b7 Charger ${chargerShort} (${template.chargerTypeName}) \u00b7 ${energyDisplay} kWh \u00b7 ${revenueDisplay} KRW`,
   );
-  console.log(`        ${C.green}✓${C.reset} ${C.dim}${txHash}${C.reset}`);
+  console.log(`        ${C.green}\u2713${C.reset} ${C.dim}${txHash}${C.reset}`);
   console.log(
     `        ${C.blue}${C.underline}${EXPLORER}/tx/${txHash}${C.reset}`,
   );
@@ -229,7 +215,7 @@ function printSessionResult(
 
 function printAfter(totalSessions: bigint, regionRevenue: bigint) {
   console.log(
-    `${C.yellow}─── AFTER ─────────────────────────────────────────────────────────${C.reset}`,
+    `${C.yellow}\u2500\u2500\u2500 AFTER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
   );
   console.log(
     `  Total sessions on-chain : ${C.bold}${totalSessions.toString()}${C.reset}`,
@@ -253,18 +239,18 @@ function printSummary(
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
   console.log(
-    `${C.yellow}─── RESULT ────────────────────────────────────────────────────────${C.reset}`,
+    `${C.yellow}\u2500\u2500\u2500 RESULT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
   );
   console.log(
-    `  Sessions : ${totalBefore.toString()} → ${C.green}${C.bold}${totalAfter.toString()}${C.reset} ${C.green}(+${sessionDelta.toString()})${C.reset}`,
+    `  Sessions : ${totalBefore.toString()} \u2192 ${C.green}${C.bold}${totalAfter.toString()}${C.reset} ${C.green}(+${sessionDelta.toString()})${C.reset}`,
   );
   console.log(
-    `  Revenue  : ${Number(revenueBefore).toLocaleString()} → ${C.green}${C.bold}${Number(revenueAfter).toLocaleString()} KRW${C.reset} ${C.green}(+${Number(revenueDelta).toLocaleString()})${C.reset}`,
+    `  Revenue  : ${Number(revenueBefore).toLocaleString()} \u2192 ${C.green}${C.bold}${Number(revenueAfter).toLocaleString()} KRW${C.reset} ${C.green}(+${Number(revenueDelta).toLocaleString()})${C.reset}`,
   );
 
   console.log();
   console.log(
-    `${C.yellow}─── VERIFY ON-CHAIN ───────────────────────────────────────────────${C.reset}`,
+    `${C.yellow}\u2500\u2500\u2500 VERIFY ON-CHAIN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
   );
   for (const [i, hash] of txHashes.entries()) {
     console.log(
@@ -279,7 +265,7 @@ function printSummary(
     `  ${C.dim}Live MVP${C.reset} : ${C.blue}${C.underline}${MVP_URL}${C.reset}`,
   );
   console.log();
-  console.log(`  ${C.green}✓${C.reset} Done in ${elapsed}s`);
+  console.log(`  ${C.green}\u2713${C.reset} Done in ${elapsed}s`);
   console.log();
 }
 
@@ -289,55 +275,45 @@ async function main() {
   const startTime = Date.now();
   const runTs = Date.now();
 
-  // Step 1 — Connect
-  const conn = await hre.network.connect();
-  const ethers = conn.ethers;
-  const network = conn.networkName;
-
-  const [signer] = await ethers.getSigners();
+  // Step 1 — Connect directly (no Hardhat, no .env required)
+  const provider = new JsonRpcProvider(RPC_URL);
+  const signer = new Wallet(BRIDGE_KEY, provider);
   const signerAddress = await signer.getAddress();
 
   // Verify chain
-  const chainId = (await ethers.provider.getNetwork()).chainId;
-  if (chainId !== EXPECTED_CHAIN_ID) {
+  const network = await provider.getNetwork();
+  if (network.chainId !== EXPECTED_CHAIN_ID) {
     console.error(
-      `${C.red}✗ Expected chain ID ${EXPECTED_CHAIN_ID.toString()}, got ${chainId.toString()}.${C.reset}`,
+      `${C.red}\u2717 Expected chain ID ${EXPECTED_CHAIN_ID.toString()}, got ${network.chainId.toString()}.${C.reset}`,
     );
-    console.error(
-      `  Check ENERGYFI_L1_TESTNET_RPC and ENERGYFI_L1_TESTNET_CHAIN_ID in .env`,
-    );
+    console.error(`  The EnergyFi L1 testnet may be temporarily unavailable.`);
     process.exit(1);
   }
 
-  // Load addresses
-  const addrs = loadDeployments(network);
-
-  // Instantiate contracts
-  const chargeRouter = await ethers.getContractAt(
-    "ChargeRouter",
-    addrs.ChargeRouter,
+  // Instantiate contracts with inline ABIs
+  const chargeRouter = new Contract(CONTRACTS.ChargeRouter, ROUTER_ABI, signer);
+  const chargeTransaction = new Contract(
+    CONTRACTS.ChargeTransaction,
+    CHARGE_TX_ABI,
+    provider,
   );
-  const chargeTransaction = await ethers.getContractAt(
-    "ChargeTransaction",
-    addrs.ChargeTransaction,
-  );
-  const revenueTracker = await ethers.getContractAt(
-    "RevenueTracker",
-    addrs.RevenueTracker,
+  const revenueTracker = new Contract(
+    CONTRACTS.RevenueTracker,
+    REVENUE_ABI,
+    signer,
   );
 
   // Verify bridge
   const bridgeAddress = await chargeRouter.bridgeAddress();
   if (bridgeAddress.toLowerCase() !== signerAddress.toLowerCase()) {
     console.error(
-      `${C.red}✗ Signer ${signerAddress} is not the bridge wallet (${bridgeAddress}).${C.reset}`,
+      `${C.red}\u2717 Embedded signer is not the bridge wallet. Demo configuration may be outdated.${C.reset}`,
     );
-    console.error(`  Check DEPLOYER_PRIVATE_KEY in .env`);
     process.exit(1);
   }
 
   // Step 0 — Banner (after verification succeeds)
-  printBanner(network, signerAddress);
+  printBanner(signerAddress);
 
   // Step 2 — BEFORE snapshot
   const regionId = regionBytes4("KR11");
@@ -391,18 +367,49 @@ async function main() {
       const reason =
         err?.reason || err?.shortMessage || err?.message || "Unknown error";
       console.log(
-        `  ${C.red}[${i + 1}/3] ✗ Failed: ${reason}${C.reset}`,
+        `  ${C.red}[${i + 1}/3] \u2717 Failed: ${reason}${C.reset}`,
       );
       console.log();
     }
   }
 
-  // Step 4 — AFTER snapshot
+  // Step 4 — AFTER snapshot (before attestation, so pending delta is visible)
   const totalAfter = await chargeTransaction.totalSessions();
   const revenueAfter = await revenueTracker.getRegionRevenue(regionId);
   printAfter(totalAfter, revenueAfter);
 
-  // Step 5 — Summary
+  // Step 5 — Finalize revenue attestation (so the Live MVP hero updates)
+  if (txHashes.length > 0) {
+    try {
+      const existing = await revenueTracker.getRegionAttestation(regionId, CURRENT_PERIOD);
+      if (existing.finalizedAt === 0n) {
+        const claimTx = await revenueTracker.claimRegion(regionId, CURRENT_PERIOD);
+        await claimTx.wait();
+        console.log(
+          `${C.yellow}\u2500\u2500\u2500 Revenue Attestation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
+        );
+        console.log(
+          `  ${C.green}\u2713${C.reset} Published attestation for period ${C.bold}${CURRENT_PERIOD.toString()}${C.reset}`,
+        );
+        console.log(
+          `  ${C.dim}Revenue finalized on-chain \u2192 Live MVP hero will reflect the new amount${C.reset}`,
+        );
+        console.log();
+      } else {
+        console.log(
+          `${C.yellow}\u2500\u2500\u2500 Revenue Attestation \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500${C.reset}`,
+        );
+        console.log(
+          `  ${C.dim}\u2713 Period ${CURRENT_PERIOD.toString()} already finalized \u2014 sessions still recorded on-chain${C.reset}`,
+        );
+        console.log();
+      }
+    } catch {
+      // claimRegion may fail if already finalized or other reason — non-critical
+    }
+  }
+
+  // Step 6 — Summary
   printSummary(
     totalBefore,
     totalAfter,
@@ -414,10 +421,14 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(`\n${C.red}✗ Demo failed:${C.reset} ${err.message}`);
-  if (err.message.includes("could not detect network")) {
+  console.error(`\n${C.red}\u2717 Demo failed:${C.reset} ${err.message}`);
+  if (
+    err.message.includes("could not detect network") ||
+    err.message.includes("ECONNREFUSED") ||
+    err.message.includes("fetch failed")
+  ) {
     console.error(
-      `  Cannot connect to EnergyFi L1. Check your network and .env configuration.`,
+      `  Cannot connect to EnergyFi L1 testnet. Please check your internet connection.`,
     );
   }
   process.exit(1);

@@ -1,12 +1,12 @@
 # EnergyFi — Judge Quick Start
 
-This page is the fastest way for technical judges to validate the EnergyFi MVP without asking for repository access.
+This page is the fastest way to validate the public EnergyFi MVP.
 
 ## 1. Public Materials
 
-- Public repository: [https://github.com/Seon-ung/EnergyFi](https://github.com/Seon-ung/EnergyFi)
 - Live MVP: [https://energyfi-mobile-demo.vercel.app](https://energyfi-mobile-demo.vercel.app)
 - Contract deployment evidence: [contract-deployment-links.md](./contract-deployment-links.md)
+- README entry point: [../README.md](../README.md)
 
 ## 2. Network To Inspect
 
@@ -69,7 +69,7 @@ Expected shape:
 {"result":"0x60806040...","id":1,"jsonrpc":"2.0"}
 ```
 
-## 5. Current Public MVP Source Of Truth
+## 5. Current Public MVP Source of Truth
 
 For the public demo that judges can access, the active contract wiring is taken from the live MVP environment configuration in `mobile/.env`.
 
@@ -83,12 +83,12 @@ As of March 10, 2026, direct RPC reads from the public MVP contract set returned
 - `RevenueTracker.getRegionRevenue(KR11) = 13627`
 - `StationRegistry.getStationsByRegion(KR11).length = 2`
 - `ReputationRegistry.getRegionSnapshotPeriods(KR11, MONTHLY) = [202602, 202603]`
-- `ChargeRouter.bridgeAddress() = 0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD`
-- `ReputationRegistry.bridgeAddress() = 0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD`
+- `ChargeRouter.bridgeAddress()` returns a configured bridge wallet
+- `ReputationRegistry.bridgeAddress()` returns a configured bridge wallet
 
-## 7. Judge Recommendation
+## 7. Recommended Review Order
 
-For technical review, use the following order:
+For a quick technical review, use the following order:
 
 1. Open the live MVP.
 2. Open the contract address list in [contract-deployment-links.md](./contract-deployment-links.md).

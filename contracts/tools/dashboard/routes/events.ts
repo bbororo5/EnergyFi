@@ -5,8 +5,8 @@
 
 import { Router } from "express";
 import type { Response } from "express";
-import type { ContractCtx } from "../server.js";
-import { safeDecodeB32 } from "../lib/utils.js";
+import type { ContractCtx } from "../../live/context.js";
+import { safeDecodeB32 } from "../../live/lib/utils.js";
 
 const sseClients: Set<Response> = new Set();
 

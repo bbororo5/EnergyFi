@@ -4,15 +4,15 @@
  */
 
 import { Router } from "express";
-import type { ContractCtx } from "../server.js";
+import type { ContractCtx } from "../../live/context.js";
 import {
   encodeBytes32String,
   Wallet,
   getBytes,
   hexlify,
 } from "ethers";
-import { regionBytes4 } from "../lib/utils.js";
-import { ensureBulkData } from "../lib/bulk-setup.js";
+import { regionBytes4 } from "../../live/lib/utils.js";
+import { ensureBulkData } from "../../live/lib/bulk-setup.js";
 
 const ChargerType = { "완속7kW": 0, "완속11kW": 1, "완속22kW": 2 } as const;
 

@@ -19,15 +19,15 @@ Avalanche L1 smart contracts deployed on a single private chain (Chain ID 270626
 ## Commands
 
 ```bash
-npm run compile          # solc 0.8.20
-npm run test             # Hardhat tests
-npm run clean            # Clean artifacts
-npm run deploy             # Essential surface to EnergyFi L1 testnet
-npm run deploy:full:testnet  # Essential + mobile demo read surface to AvaCloud L1
-npm run deploy:reputation  # Deploy only ReputationRegistry to EnergyFi L1 testnet
-npm run seed:reputation    # Publish demo monthly region snapshots to ReputationRegistry
-npm run test:live        # Run live integration tests on EnergyFi L1 testnet
-npm run dashboard        # Launch web dashboard connected to EnergyFi L1 testnet
+npm run compile                 # solc 0.8.20
+npm run test                    # Hardhat tests
+npm run clean                   # Clean artifacts
+npm run deploy:essential:testnet  # Phase 1-2 essential surface to EnergyFi L1 testnet
+npm run deploy:surface:testnet    # Essential + demo read surface to EnergyFi L1 testnet
+npm run seed:reputation:testnet   # Publish monthly region snapshots to ReputationRegistry
+npm run seed:demo:testnet         # Populate deterministic public demo data
+npm run verify:public:testnet     # Process 3 public demo charging sessions on the live testnet
+npm run dashboard:testnet         # Launch the dashboard against EnergyFi L1 testnet
 ```
 
 ## Hardhat 3 Specifics
@@ -117,7 +117,7 @@ ChargeTransaction + RevenueTracker + StationRegistry + STRIKON ops data
 
 ### AvaCloud Demo Deploy
 
-- `deploy:full:testnet` is the demo-oriented deployment path.
+- `deploy:surface:testnet` is the demo-oriented deployment path.
 - Required root `.env` variables:
   - `DEPLOYER_PRIVATE_KEY`
   - `ENERGYFI_L1_TESTNET_RPC`

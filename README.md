@@ -25,7 +25,7 @@
 Mint 3 EV charging sessions on our live Avalanche L1 and verify them on the explorer:
 
 ```bash
-cd contracts && npm install && npm run demo
+cd contracts && npm install && npm run verify:public:testnet
 ```
 
 The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times — each run creates new sessions.
@@ -283,8 +283,10 @@ EnergyFi/
 │   ├── test/
 │   │   ├── unit/               #   Contract unit tests
 │   │   └── integration/        #   Cross-contract integration tests
-│   ├── scripts/                #   Deployment & seeding scripts
-│   └── tools/dashboard/        #   Express web dashboard + CLI
+│   ├── scripts/                #   Deploy, seed, and public verification scripts
+│   └── tools/
+│       ├── live/               #   Shared live-network verification engine
+│       └── dashboard/          #   Express web dashboard on top of live tooling
 ├── mobile/                     # React Native + Expo SDK 54 (TypeScript)
 │   ├── app/                    #   expo-router screens
 │   ├── components/             #   UI building blocks

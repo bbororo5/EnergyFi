@@ -42,8 +42,10 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 EnergyFi/
 ├── contracts/             # Unit B: Avalanche L1 smart contracts (Hardhat 3)
 │   ├── contracts/         # Essential + derived contracts (see contracts/docs/implementation-roadmap.md)
-│   ├── scripts/           # deploy.ts, live-test.ts
-│   ├── tools/             # Operational helpers (non-canonical)
+│   ├── scripts/           # deploy/, seed/, verify/ entrypoints
+│   ├── tools/             # Non-canonical live verification + dashboard helpers
+│   │   ├── live/          # shared live-network execution core
+│   │   └── dashboard/     # Express UI and HTTP routes
 │   ├── test/              # Hardhat unit tests
 │   └── hardhat.config.ts
 ├── l1-config/             # Unit A: L1 genesis & runtime config

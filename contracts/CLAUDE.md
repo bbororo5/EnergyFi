@@ -26,7 +26,7 @@ npm run deploy:essential:testnet  # Phase 1-2 essential surface to EnergyFi L1 t
 npm run deploy:surface:testnet    # Essential + demo read surface to EnergyFi L1 testnet
 npm run seed:reputation:testnet   # Publish monthly region snapshots to ReputationRegistry
 npm run seed:demo:testnet         # Populate deterministic public demo data
-npm run verify:public:testnet     # Process 3 public demo charging sessions on the live testnet
+npm run judge:testnet             # Process 3 public demo charging sessions on the live testnet
 npm run dashboard:testnet         # Launch the dashboard against EnergyFi L1 testnet
 ```
 

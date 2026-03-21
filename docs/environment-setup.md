@@ -38,22 +38,19 @@ curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts
 avalanche --version
 # AvalancheGo is auto-installed by the CLI
 
-# Create and deploy local subnet
+# Optional reference flow for local subnet bring-up
 avalanche blockchain create energyfitest --test-defaults --evm --latest
 avalanche blockchain deploy energyfitest --local
-
-# Update .env with the RPC URL from deploy output
-# ENERGYFI_L1_LOCAL_RPC=http://127.0.0.1:9654/ext/bc/<BlockchainID>/rpc
 ```
 
-> For full details on local subnet configuration, anti-patterns, and troubleshooting, see **[Local Subnet Guide](local-subnet-guide.md)**.
+> For full details on local subnet configuration, anti-patterns, and troubleshooting, see **[Local Subnet Guide](local-subnet-guide.md)**. The canonical npm contract CLI documented in this repository targets `energyfi-l1-testnet`; local subnet work is reference-only for now.
 
 ### 2.4 Development Environments
 
 | Environment | Purpose | Network | Deploy Command |
 |:---|:---|:---|:---|
 | **Hardhat EVM** | Unit tests and fast oracle validation | `localhost` (8545) | — |
-| **Local Subnet** | Integration tests and E2E | `energyfi-l1-local` | `npm run deploy:local` |
+| **Local Subnet** | Reference-only infrastructure bring-up | external Avalanche local chain | No canonical npm deploy alias |
 
 ### 2.5 Clone & Environment Variables
 ```bash
@@ -61,7 +58,7 @@ git clone <repo-url> && cd EnergyFi
 cp .env.example .env
 # Edit .env:
 #   DEPLOYER_PRIVATE_KEY    — wallet used for contract deployment and oracle signing
-#   ENERGYFI_L1_LOCAL_RPC   — local Avalanche-CLI subnet RPC URL
+#   ENERGYFI_L1_TESTNET_RPC — EnergyFi L1 testnet RPC URL for the supported npm CLI surface
 ```
 
 ### 2.6 Install Dependencies

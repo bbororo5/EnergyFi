@@ -29,12 +29,9 @@ avalanche blockchain deploy energyfitest --local
 # 4. Fund the deployer from the ewoq test account
 #    (see Section 5 below)
 
-# 5. Deploy contracts
-cd contracts && npm run deploy:local
-
-# 6. Run tests
-npm test              # Unit tests (in-memory EVM, ~14s)
-npm run test:live     # Live integration tests (local subnet, ~230s)
+# 5. Contract deployment automation for local subnet is not part of the
+#    canonical npm CLI surface right now. Use this guide as infrastructure
+#    reference only and run contract scripts manually if you need local experiments.
 ```
 
 ---
@@ -100,7 +97,7 @@ The ewoq account is a well-known Avalanche local test account pre-funded by `--t
 | Field | Value |
 |:---|:---|
 | Address | `0x8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC` |
-| Private Key | `REDACTED_LOCAL_TEST_PRIVATE_KEY` |
+| Private Key | `<retrieve locally from your Avalanche local network instead of storing it in docs>` |
 | Balance | ~1,000,000 EFI |
 
 ### Transfer Script
@@ -109,12 +106,12 @@ The ewoq account is a well-known Avalanche local test account pre-funded by `--t
 const { ethers } = require("ethers");
 const provider = new ethers.JsonRpcProvider(process.env.ENERGYFI_L1_LOCAL_RPC);
 const ewoq = new ethers.Wallet(
-  "REDACTED_LOCAL_TEST_PRIVATE_KEY",
+  process.env.AVALANCHE_LOCAL_EWOQ_PRIVATE_KEY,
   provider
 );
 
 const tx = await ewoq.sendTransaction({
-  to: "0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD", // deployer
+  to: "<your-deployer-address>",
   value: ethers.parseEther("10000"),
 });
 await tx.wait();
@@ -190,7 +187,7 @@ avalanche blockchain create energyfitest --test-defaults --evm --latest
 avalanche blockchain deploy energyfitest --local
 # → Update .env with new RPC URL
 # → Fund deployer from ewoq
-# → Redeploy contracts: cd contracts && npm run deploy:local
+# → Redeploy contracts manually if needed after updating your local RPC wiring
 ```
 
 ---
@@ -200,7 +197,7 @@ avalanche blockchain deploy energyfitest --local
 | Environment | Command | EVM Level | P-256 (RIP-7212) | Speed |
 |:---|:---|:---|:---|:---|
 | Hardhat in-memory | `npm test` | Cancun | Not supported (skipped) | ~14s |
-| Local subnet | `npm run test:live` | Cancun | Requires custom genesis | ~230s |
+| Local subnet | Manual experimentation only | Cancun | Requires custom genesis | Variable |
 
 ### P-256 Precompile (RIP-7212) — Known Limitation
 

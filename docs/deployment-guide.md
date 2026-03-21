@@ -20,7 +20,6 @@ cp .env.example .env
 # Fill in:
 #   DEPLOYER_PRIVATE_KEY        — wallet for contract deployment
 #   ENERGYFI_L1_TESTNET_RPC     — Testnet RPC (after Unit A)
-#   ENERGYFI_L1_MAINNET_RPC     — Mainnet RPC (Production phase)
 #   ENERGYFI_ADMIN_ADDRESS      — DEFAULT_ADMIN_ROLE recipient for deployed proxies
 #   ENERGYFI_BRIDGE_ADDRESS     — ChargeRouter bridge wallet
 #   ENERGYFI_REPUTATION_BRIDGE_ADDRESS — ReputationRegistry oracle wallet
@@ -39,11 +38,11 @@ EnergyFi L1 infrastructure progresses through 3 phases. All phases use the same 
 
 | Phase | Environment | Infrastructure | Validators | `.env` Variable | Deploy Command |
 |:---|:---|:---|:---|:---|:---|
-| **Development** | Testnet (Fuji) | Avalanche-CLI | CLI-managed | `ENERGYFI_L1_TESTNET_RPC` | `npm run deploy:testnet` |
-| **Hackathon** | Testnet (Fuji) | AvaCloud Testnet Starter | AvaCloud 2 nodes | `ENERGYFI_L1_TESTNET_RPC` | `npm run deploy:testnet` |
-| **Production** | Mainnet | AvaCloud Mainnet | Self-managed + External | `ENERGYFI_L1_MAINNET_RPC` | `npm run deploy:mainnet` |
+| **Development** | Testnet (Fuji) | Avalanche-CLI | CLI-managed | `ENERGYFI_L1_TESTNET_RPC` | `npm run deploy:essential:testnet` |
+| **Hackathon** | Testnet (Fuji) | AvaCloud Testnet Starter | AvaCloud 2 nodes | `ENERGYFI_L1_TESTNET_RPC` | `npm run deploy:surface:testnet` |
+| **Production** | Mainnet | AvaCloud Mainnet | Self-managed + External | Mainnet RPC TBD | Not yet scripted |
 
-> **Testnet → Mainnet transition:** Change `.env` RPC URL from `ENERGYFI_L1_TESTNET_RPC` to `ENERGYFI_L1_MAINNET_RPC` and redeploy contracts with `npm run deploy:mainnet`.
+> **Mainnet note:** Mainnet deployment wiring is intentionally not part of the supported npm CLI surface yet. This guide only documents the canonical testnet commands that currently exist in the repository.
 
 ### 3.2 Phase 1: Development (Avalanche-CLI + Fuji)
 
@@ -87,7 +86,7 @@ For hackathon submission, the L1 is deployed via [AvaCloud](https://avacloud.io)
 
 # 4. Deploy contracts for the demo surface
 cd contracts
-npm run deploy:full:testnet
+npm run deploy:surface:testnet
 ```
 
 > **Note:** The same `genesis.json` (Chain ID 270626, zero-gas) works for both Avalanche-CLI and AvaCloud deployments. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC` regardless of infrastructure provider.
@@ -110,10 +109,9 @@ For production launch (June 2026~), the L1 is deployed via AvaCloud Mainnet with
 #    ENERGYFI_L1_MAINNET_RPC=<RPC URL provided by the AvaCloud console>
 
 # 4. Deploy contracts
-#    Production uses the same full-surface deployment script after
-#    `hardhat.config.ts` is extended with the `energyfi-l1-mainnet` network.
-#    Mainnet deployment wiring is intentionally deferred until AvaCloud
-#    mainnet RPC and validator topology are finalized.
+#    Mainnet contract deployment is intentionally deferred until a supported
+#    `energyfi-l1-mainnet` Hardhat network and validator topology are finalized.
+#    There is no canonical npm deployment command for mainnet in this repository yet.
 ```
 
 **Validator structure in production:**
@@ -156,8 +154,8 @@ npm run test
 npm run test:integration
 
 # Deploy to target environment:
-npm run deploy:testnet       # Essential surface only
-npm run deploy:full:testnet  # Essential + mobile demo read surface
+npm run deploy:essential:testnet  # Essential surface only
+npm run deploy:surface:testnet    # Essential + mobile demo read surface
 ```
 
 > **Note:** `hardhat.config.ts` loads `.env` from the project root (`../.env`), not from `contracts/`. Environment variables are centrally managed in the root `.env` file.
@@ -178,13 +176,13 @@ The AvaCloud demo path writes:
 - `DeviceRegistry`, `StationRegistry`, `ChargeTransaction`, `RevenueTracker`, `ChargeRouter`
 - `ReputationRegistry`, `RegionSTOImpl`, `RegionSTOFactory`
 
-`deploy:full:testnet` assumes:
+`deploy:surface:testnet` assumes:
 - `RIP-7212 (0x100)` is enabled on the target L1
 - `ENERGYFI_ADMIN_ADDRESS`, `ENERGYFI_BRIDGE_ADDRESS`, `ENERGYFI_REPUTATION_BRIDGE_ADDRESS` are all present
 - no tranche issuance or seed data is performed during deployment
 
 Seed data and tranche issuance are separate post-deploy steps.
-`deploy:full:testnet` intentionally stops after contract deployment and address recording.
+`deploy:surface:testnet` intentionally stops after contract deployment and address recording.
 
 As the phased contract surface is implemented, deployment scripts and addresses will be updated:
 ```

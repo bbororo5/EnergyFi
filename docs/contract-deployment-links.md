@@ -2,7 +2,7 @@
 
 This document separates two committed evidence sets so reviewers can see which addresses come from which code path:
 
-- the current judge-facing review flow in `contracts/scripts/verify/public-demo.ts`
+- the current judge-facing review flow in `contracts/scripts/verify/judge-demo.ts`
 - the repository-managed deployment artifact in `contracts/deployments.json`
 
 ## Network

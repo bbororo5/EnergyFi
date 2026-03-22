@@ -30,12 +30,14 @@ cd contracts && npm install && npm run judge:testnet
 
 The script processes 3 charging sessions through the full pipeline (SE signature → ChargeRouter → mint + revenue tracking), then prints explorer links for each transaction. Run it multiple times. Each run creates new sessions on the review network hardcoded in the script.
 
+It prints the increase in `KR11` region total pending revenue. The Home hero in the live MVP shows the demo investor's current pending share across holdings, so those numbers are expected to differ.
+
 > Requires Node.js 24.x only. No `.env` configuration needed — testnet credentials are embedded in the script.
 
 ## Public MVP Verification
 
 - Live MVP: [https://energyfi-mobile-demo.vercel.app](https://energyfi-mobile-demo.vercel.app)
-- Quick review guide: [docs/judge-quick-start.md](./docs/judge-quick-start.md)
+- Short review checklist: [docs/judge-quick-start.md](./docs/judge-quick-start.md)
 - Contract deployment evidence: [docs/contract-deployment-links.md](./docs/contract-deployment-links.md)
 
 Current judge-facing review network:

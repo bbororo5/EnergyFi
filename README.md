@@ -44,7 +44,7 @@ Current judge-facing review network:
 - RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
 - Explorer: [https://explorer-test.avax.network/efy](https://explorer-test.avax.network/efy)
 
-This review network is defined in [contracts/scripts/verify/public-demo.ts](./contracts/scripts/verify/public-demo.ts). It is separate from the repository's long-term target L1 configuration in `l1-config/`.
+This review network is defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts). It is separate from the repository's long-term target L1 configuration in `l1-config/`.
 
 ## What is EnergyFi?
 
@@ -83,7 +83,7 @@ flowchart TB
 
 **Layer 3 — Platform**: STRIKON, a production EV charging platform with 30+ Go microservices, handles charger management (OCPP 1.6/2.1), billing, payment processing, and settlement. Only after a payment is fully settled does it emit an `invoice.paid` event.
 
-**Layer 4 — Blockchain**: EnergyFi's target Avalanche L1 configuration is defined in [l1-config/genesis.json](./l1-config/genesis.json) with Chain ID `270626` and zero-gas economics. The current public judge flow above runs on a separate review network (`64058`) defined in [contracts/scripts/verify/public-demo.ts](./contracts/scripts/verify/public-demo.ts).
+**Layer 4 — Blockchain**: EnergyFi's target Avalanche L1 configuration is defined in [l1-config/genesis.json](./l1-config/genesis.json) with Chain ID `270626` and zero-gas economics. The current public judge flow above runs on a separate review network (`64058`) defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts).
 
 ### Bookend Signature Model
 

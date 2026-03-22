@@ -10,7 +10,7 @@ pragma solidity ^0.8.20;
  * only structured metrics for operational trust, revenue rhythm, and site mix.
  *
  * Source specification:
- *   - contracts/docs/phase3-reputation-spec.md
+ *   - contracts/docs/phase4-reputation-spec.md
  */
 interface IReputationRegistry {
     // ─────────────────────────────────────────────────────────────────────────

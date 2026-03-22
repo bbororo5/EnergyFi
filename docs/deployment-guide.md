@@ -34,7 +34,7 @@ cd contracts && npm install
 
 ### 3.1 Phase Overview
 
-EnergyFi L1 infrastructure progresses through 3 phases. All phases use the same `genesis.json` (Chain ID 270626, zero-gas). Only the RPC URL and infrastructure provider differ.
+EnergyFi L1 infrastructure progresses through 3 phases. The target chain configuration in `l1-config/genesis.json` uses Chain ID `270626` and zero-gas economics. The repository's public judge-review flow is separate and is documented in [judge-quick-start.md](./judge-quick-start.md).
 
 | Phase | Environment | Infrastructure | Validators | `.env` Variable | Deploy Command |
 |:---|:---|:---|:---|:---|:---|
@@ -66,7 +66,7 @@ Verify the chain is running:
 ```bash
 curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
   -H "Content-Type: application/json" $ENERGYFI_L1_TESTNET_RPC
-# Expected: {"result":"0x42122"}  (chainId 270626)
+# Expected: {"result":"0x42122"}  (chainId 270626 from `l1-config/genesis.json`)
 ```
 
 ### 3.3 Phase 2: Hackathon Submission (AvaCloud Testnet)
@@ -89,7 +89,7 @@ cd contracts
 npm run deploy:surface:testnet
 ```
 
-> **Note:** The same `genesis.json` (Chain ID 270626, zero-gas) works for both Avalanche-CLI and AvaCloud deployments. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC` regardless of infrastructure provider.
+> **Note:** The same `genesis.json` (Chain ID `270626`, zero-gas) works for both Avalanche-CLI and AvaCloud deployments. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC`, and only enforces a chain ID if `ENERGYFI_L1_TESTNET_CHAIN_ID` is explicitly set in the environment.
 
 > **Development → Hackathon transition:** Replace `ENERGYFI_L1_TESTNET_RPC` in `.env` with the AvaCloud-provided URL. Contracts must be redeployed on the new chain.
 
@@ -162,14 +162,7 @@ npm run deploy:surface:testnet    # Essential + mobile demo read surface
 
 > **Deployer funding:** The deployer wallet configured in your local environment must have EFI balance on the target chain before deployment. Fund that address from the Core wallet via AvaCloud console or Core Wallet app.
 
-### Phase 1 Contracts (2026.03, Testnet)
-
-| Contract | Address |
-|:---|:---|
-| DeviceRegistry | `0xcE3d3c32a0DC659f5166d41003F4538E87E91d50` |
-| StationRegistry | `0x17Df6a809BAe3249fC07eB4EEFb3e2b282Ad4959` |
-
-Deployed on **2026.03.03** to `energyfi-l1-testnet` (Chain ID 270626).
+### Deployment Artifacts
 
 Deployment produces `contracts/deployments.json` with addresses per network.
 The AvaCloud demo path writes:
@@ -184,30 +177,10 @@ The AvaCloud demo path writes:
 Seed data and tranche issuance are separate post-deploy steps.
 `deploy:surface:testnet` intentionally stops after contract deployment and address recording.
 
-As the phased contract surface is implemented, deployment scripts and addresses will be updated:
-```
-# Phase 1 (Essential — implemented in the repository, testnet deployment in progress)
-DEVICE_REGISTRY_ADDRESS=0x...
-STATION_REGISTRY_ADDRESS=0x...
+Treat the following files as the source of truth instead of copying address snapshots into this guide:
 
-# Phase 2 (Essential — after Phase 1 rollout)
-CHARGE_TRANSACTION_ADDRESS=0x...
-REVENUE_TRACKER_ADDRESS=0x...
-
-# Phase 3 (Derived — STO, after the issuance path is finalized)
-CCIP_REVENUE_SENDER_ADDRESS=0x...
-STO_PORTFOLIO_ADDRESS=0x...
-REGION_STO_FACTORY_ADDRESS=0x...
-
-# Phase 4 (Derived — Reputation, optional)
-REPUTATION_REGISTRY_ADDRESS=0x...
-
-# Phase 5 (Derived — Carbon)
-PARAMETER_REGISTRY_ADDRESS=0x...
-CARBON_REDUCTION_ADDRESS=0x...
-CARBON_BATCH_ADDRESS=0x...
-VCU_REFERENCE_ADDRESS=0x...
-```
+- [contracts/deployments.json](../contracts/deployments.json) for the repo-managed deployment artifact
+- [contracts/scripts/verify/public-demo.ts](../contracts/scripts/verify/public-demo.ts) for the current judge-review network
 
 ## 5. [Unit C] Mobile App
 
@@ -225,8 +198,8 @@ Mobile UX and screen documents are maintained under `mobile/docs/`.
 
 ```
 [1]  .env.example → .env (all keys populated)
-[2]  Unit A: L1 chain running (RPC responds to eth_chainId with 0x42122)
-[3]  Unit B: L1 contracts deployed (addresses saved to .env)
+[2]  Unit A: L1 chain running (RPC responds to the expected `eth_chainId` for the target environment)
+[3]  Unit B: L1 contracts deployed (addresses saved to `contracts/deployments.json`)
 [4]  Unit C: Frontend deployed (pending reimplementation)
 ```
 
@@ -243,9 +216,9 @@ Mobile UX and screen documents are maintained under `mobile/docs/`.
 
 | Network | Chain ID | RPC | Explorer |
 |:---|:---|:---|:---|
-| EnergyFi L1 Testnet | 270626 | `https://subnets.avax.network/energyfi/testnet/rpc` (AvaCloud) | `https://explorer-test.avax.network/energyfi` |
+| EnergyFi L1 Target Testnet | 270626 | `ENERGYFI_L1_TESTNET_RPC` | environment-specific |
 | EnergyFi L1 Mainnet | 270626 | `ENERGYFI_L1_MAINNET_RPC` (AvaCloud Mainnet, not configured yet) | TBD |
 | Avalanche Fuji C-Chain | 43113 | `https://api.avax-test.network/ext/bc/C/rpc` | [testnet.snowtrace.io](https://testnet.snowtrace.io) |
 | Avalanche Mainnet | 43114 | `https://api.avax.network/ext/bc/C/rpc` | [snowtrace.io](https://snowtrace.io) |
 
-> **AvaCloud testnet status (March 2026):** Chain ID `270626` is confirmed, blocks are being produced, the node region is Seoul (Validator 2, RPC 2), and the explorer indexer is in Tokyo. The environment is currently running on a five-day Testnet Starter trial.
+> The live judge-review environment currently uses a different RPC and chain ID. See [judge-quick-start.md](./judge-quick-start.md) for that separate reviewer path.

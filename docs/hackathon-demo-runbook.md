@@ -9,10 +9,10 @@ Copy [.env.example](/Users/jeonseon-ung/Documents/github/EnergyFi/.env.example) 
 ```bash
 DEPLOYER_PRIVATE_KEY=0x...
 ENERGYFI_L1_TESTNET_RPC=https://...
-ENERGYFI_L1_TESTNET_CHAIN_ID=59012
+ENERGYFI_L1_TESTNET_CHAIN_ID=<set only if you want Hardhat to enforce a specific chain ID>
 ```
 
-For the currently deployed AvaCloud demo chain on March 10, 2026, the live RPC reports `chainId = 59012`. If AvaCloud rotates the test chain later, update this value to whatever `eth_chainId` returns.
+`ENERGYFI_L1_TESTNET_CHAIN_ID` is optional in the current Hardhat configuration. If you set it, use whatever `eth_chainId` the target RPC actually returns.
 
 For `scripts/seed/demo.ts` (`npm run seed:demo:testnet`), the signer behind `DEPLOYER_PRIVATE_KEY` must satisfy all of these on the deployed contracts:
 
@@ -50,7 +50,7 @@ Copy [mobile/.env.example](/Users/jeonseon-ung/Documents/github/EnergyFi/mobile/
 
 ```bash
 EXPO_PUBLIC_ENERGYFI_RPC_URL=https://...
-EXPO_PUBLIC_ENERGYFI_CHAIN_ID=59012
+EXPO_PUBLIC_ENERGYFI_CHAIN_ID=<target RPC chain ID>
 EXPO_PUBLIC_CHARGE_TRANSACTION_ADDRESS=0x...
 EXPO_PUBLIC_REVENUE_TRACKER_ADDRESS=0x...
 EXPO_PUBLIC_STATION_REGISTRY_ADDRESS=0x...
@@ -63,7 +63,7 @@ Address source:
 
 - [contracts/deployments.json](/Users/jeonseon-ung/Documents/github/EnergyFi/contracts/deployments.json) under `energyfi-l1-testnet`
 
-Keep `EXPO_PUBLIC_REGION_STO_FACTORY_ADDRESS` at zero address for the hackathon demo so the investor app reads issuance as intentionally not live.
+`mobile/constants/contracts.ts` contains repo fallback defaults. For this runbook, override them explicitly with `mobile/.env` values taken from the target deployment artifact.
 
 ## 4. Run Mobile
 

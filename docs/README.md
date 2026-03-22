@@ -17,6 +17,8 @@
 |:---|:---|
 | [`../contracts/docs/`](../contracts/docs/) | Contract-layer canonical specs |
 | [`../mobile/docs/README.md`](../mobile/docs/README.md) | Index of mobile UX and screen-design documents |
+| [`judge-quick-start.md`](judge-quick-start.md) | Judge-facing verification flow derived from committed code |
+| [`contract-deployment-links.md`](contract-deployment-links.md) | Contract evidence set for the judge flow and repo deployment artifact |
 | [`archive/`](archive/) | Historical material not used as current design authority |
 
 ## Cross-Directory Graph

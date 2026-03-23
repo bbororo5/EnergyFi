@@ -26,6 +26,9 @@ export default function PortfolioScreen() {
       <CommonHeader
         title="Analytics"
         onNotificationPress={() => router.push('/(tabs)/account/notifications')}
+        onMorePress={() => router.push('/(tabs)/account/more')}
+        showUserIdentity
+        userDisplayName="Demo Investor"
       />
 
       <ScrollView
@@ -37,7 +40,7 @@ export default function PortfolioScreen() {
           <View style={styles.heroTop}>
             <View>
               <Text style={styles.heroEyebrow}>Evidence Desk</Text>
-              <Text style={styles.heroTitle}>Why the network should be read this way</Text>
+              <Text numberOfLines={1} style={styles.heroTitle}>Read the network</Text>
             </View>
             <Badge label="Guest Safe" variant="info" dot />
           </View>
@@ -62,7 +65,6 @@ export default function PortfolioScreen() {
         ) : null}
 
         <SectionHeader
-          eyebrow="SETTLEMENT & REVENUE PROOF"
           title="Current proof of value"
           icon={<DatabaseZap size={18} color={colors.sky400} />}
         />
@@ -82,7 +84,6 @@ export default function PortfolioScreen() {
         </View>
 
         <SectionHeader
-          eyebrow="OPERATIONAL INTEGRITY"
           title="Coverage and hardware trust"
           icon={<ShieldCheck size={18} color={colors.emerald400} />}
         />
@@ -137,7 +138,6 @@ export default function PortfolioScreen() {
         </SurfaceCard>
 
         <SectionHeader
-          eyebrow="REGION EVIDENCE"
           title="Per-region proof cards"
           icon={<Layers3 size={18} color={colors.indigo400} />}
         />
@@ -148,13 +148,12 @@ export default function PortfolioScreen() {
             region={region}
             expanded={expandedRegion === region.code}
             onToggle={() => setExpandedRegion(prev => prev === region.code ? null : region.code)}
-            onDetail={() => router.push(`/(tabs)/portfolio/${region.code}`)}
+            onDetail={() => router.push(`/region/${region.code}`)}
           />
         ))}
 
         <SectionHeader
-          eyebrow="ATTENTION"
-          title="Items that need explanation"
+          title="Items needing context"
           icon={<CircleAlert size={18} color={colors.warning} />}
         />
 

@@ -76,7 +76,8 @@ npm run web
 ## 5. Demo Expectations
 
 - `Home`
-  - 6-point monthly revenue history
+  - hero value shows `Current month revenue` for the demo investor when RegionSTO holdings are present
+  - published monthly chart follows the target testnet's live attestation periods; on the current public testnet it publishes through `Apr 2026`
   - 4 recent live-feed sessions
   - non-empty impact summary and region carousel
 - `Explore`
@@ -84,7 +85,7 @@ npm run web
   - no Fuji-specific UI copy
 - `Analytics`
   - 100+ total sessions
-  - latest finalized period = `Feb 2026`
+  - latest published period follows the live target testnet; on the current public testnet `KR11` publishes through `Apr 2026`
   - `KR29`, `KR49` show pending-only settlement fallback
   - chip coverage warning and issuance-not-live attention visible
 

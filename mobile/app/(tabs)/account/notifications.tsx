@@ -3,7 +3,8 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, CheckCircle2, TrendingUp, Info } from 'lucide-react-native';
 import { colors, typography, radius } from '@/constants/theme';
-import { notifications, Notification } from '@/data/notifications';
+import { type Notification } from '@/data/notifications';
+import { useDemoNotifications } from '@/hooks/use-demo-notifications';
 
 const typeConfig = {
   success: { icon: CheckCircle2, bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', color: colors.emerald400 },
@@ -39,6 +40,7 @@ function NotificationItem({ item }: { item: Notification }) {
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
+  const { notifications, isLoading } = useDemoNotifications();
 
   return (
     <View style={styles.container}>
@@ -58,6 +60,16 @@ export default function NotificationsScreen() {
         renderItem={({ item }) => <NotificationItem item={item} />}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 96 }]}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={(
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyTitle}>{isLoading ? 'Loading on-chain updates' : 'No updates yet'}</Text>
+            <Text style={styles.emptyText}>
+              {isLoading
+                ? 'EnergyFi is reading the latest sessions, settlements, and tranche activity.'
+                : 'New live sessions and issuance updates will appear here automatically.'}
+            </Text>
+          </View>
+        )}
       />
     </View>
   );
@@ -115,4 +127,22 @@ const styles = StyleSheet.create({
   unreadRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   unreadDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary },
   unreadText: { fontSize: 10, fontWeight: '700', color: colors.primary, letterSpacing: 1.2, textTransform: 'uppercase' },
+  emptyWrap: {
+    paddingTop: 48,
+    alignItems: 'center',
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  emptyText: {
+    maxWidth: 280,
+    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
 });

@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  sectionTitle: { ...typography.h4, color: colors.textPrimary, marginBottom: 8 },
+  sectionTitle: { ...typography.sectionTitle, color: colors.textPrimary, marginBottom: 6 },
   sectionSubtitle: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginBottom: 16 },
   sectionDesc: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, lineHeight: 20 },
   revenueList: { gap: 12 },
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   stoLabel: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 },
   stoValue: { fontSize: 14, fontWeight: '700' },
-  faqTitle: { ...typography.h4, color: colors.textPrimary, paddingHorizontal: 4 },
+  faqTitle: { ...typography.sectionTitle, color: colors.textPrimary },
   faqContainer: {
     backgroundColor: 'rgba(22,27,38,0.4)',
     borderRadius: radius['4xl'],

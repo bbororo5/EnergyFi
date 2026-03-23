@@ -16,7 +16,7 @@ import "../interfaces/ops/IReputationRegistry.sol";
  * Frontends read the stored snapshots directly and compose human narratives
  * off-chain.
  *
- * @dev Phase 3 derived contract. UUPS upgradeable.
+ * @dev Phase 4 derived contract. UUPS upgradeable.
  */
 contract ReputationRegistry is
     Initializable,

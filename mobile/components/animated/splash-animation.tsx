@@ -64,7 +64,7 @@ export function SplashAnimation({ onComplete }: SplashAnimationProps) {
       </Animated.View>
 
       <Animated.View style={[styles.textWrap, textStyle]}>
-        <Text style={styles.title}>ENERGYFI</Text>
+        <Text style={styles.title}>WINGISDE</Text>
         <Animated.View style={[styles.line, lineStyle]} />
       </Animated.View>
     </Animated.View>

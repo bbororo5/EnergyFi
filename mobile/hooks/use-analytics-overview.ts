@@ -5,6 +5,7 @@ import {
   energyfiChain,
   energyfiRpcUrl,
   chargeTransactionAddress,
+  demoInvestorAddress,
   deviceRegistryAddress,
   hasLiveRegionStoFactory,
   hasLiveReputationRegistry,
@@ -61,6 +62,13 @@ export interface RegionSettlementProof {
   attestationHistory: RevenueAttestation[];
 }
 
+export interface RegionTrancheSummary {
+  trancheId: number;
+  tokenAmount: bigint;
+  issuedAt: bigint;
+  stationCount: number;
+}
+
 export interface RegionEvidenceSummary {
   code: string;
   regionId: `0x${string}`;
@@ -72,6 +80,10 @@ export interface RegionEvidenceSummary {
   coverage: RegionOperationalCoverage;
   stoAddress: `0x${string}` | null;
   trancheCount: number;
+  totalSupply: bigint;
+  demoBalance: bigint;
+  ownedShareBps: number | null;
+  latestTranche: RegionTrancheSummary | null;
   latestTrancheActiveStations: { activeCount: number; totalCount: number } | null;
   attention: string[];
 }
@@ -126,6 +138,21 @@ export function formatPercentFromBps(value: bigint | null) {
     return 'N/A';
   }
   return `${(Number(value) / 100).toFixed(1)}%`;
+}
+
+export function calculateOwnedShareBps(balance: bigint, totalSupply: bigint) {
+  if (totalSupply <= 0n) {
+    return null;
+  }
+  return Number((balance * 10_000n) / totalSupply);
+}
+
+export function applyOwnedShare(value: bigint, ownedShareBps: number | null) {
+  if (ownedShareBps == null) {
+    return 0n;
+  }
+
+  return (value * BigInt(ownedShareBps)) / 10_000n;
 }
 
 export function formatPeakWindow(start: bigint | null, end: bigint | null) {
@@ -348,6 +375,10 @@ async function readStoReadiness(regionId: `0x${string}`) {
     return {
       stoAddress: null,
       trancheCount: 0,
+      totalSupply: 0n,
+      demoBalance: 0n,
+      ownedShareBps: null,
+      latestTranche: null,
       latestTrancheActiveStations: null,
     };
   }
@@ -364,6 +395,10 @@ async function readStoReadiness(regionId: `0x${string}`) {
       return {
         stoAddress: null,
         trancheCount: 0,
+        totalSupply: 0n,
+        demoBalance: 0n,
+        ownedShareBps: null,
+        latestTranche: null,
         latestTrancheActiveStations: null,
       };
     }
@@ -374,19 +409,51 @@ async function readStoReadiness(regionId: `0x${string}`) {
       functionName: 'getTrancheCount',
     });
     const trancheCount = Number(trancheCountRaw);
-
-    const latestTrancheActiveStations = trancheCount > 0
-      ? await analyticsClient.readContract({
-          address: stoAddress,
-          abi: regionStoAbi,
-          functionName: 'getTrancheActiveStations',
-          args: [BigInt(trancheCount)],
-        })
-      : null;
+    const [totalSupply, demoBalance, latestTrancheRaw, latestTrancheActiveStations] = await Promise.all([
+      analyticsClient.readContract({
+        address: stoAddress,
+        abi: regionStoAbi,
+        functionName: 'totalSupply',
+      }),
+      analyticsClient.readContract({
+        address: stoAddress,
+        abi: regionStoAbi,
+        functionName: 'balanceOf',
+        args: [demoInvestorAddress],
+      }),
+      trancheCount > 0
+        ? analyticsClient.readContract({
+            address: stoAddress,
+            abi: regionStoAbi,
+            functionName: 'getTranche',
+            args: [BigInt(trancheCount)],
+          })
+        : Promise.resolve(null),
+      trancheCount > 0
+        ? analyticsClient.readContract({
+            address: stoAddress,
+            abi: regionStoAbi,
+            functionName: 'getTrancheActiveStations',
+            args: [BigInt(trancheCount)],
+          })
+        : Promise.resolve(null),
+    ]);
+    const ownedShareBps = calculateOwnedShareBps(demoBalance as bigint, totalSupply as bigint);
 
     return {
       stoAddress,
       trancheCount,
+      totalSupply: totalSupply as bigint,
+      demoBalance: demoBalance as bigint,
+      ownedShareBps,
+      latestTranche: latestTrancheRaw
+        ? {
+            trancheId: Number(latestTrancheRaw.trancheId),
+            tokenAmount: latestTrancheRaw.tokenAmount,
+            issuedAt: latestTrancheRaw.issuedAt,
+            stationCount: latestTrancheRaw.stationIds.length,
+          }
+        : null,
       latestTrancheActiveStations: latestTrancheActiveStations
         ? {
             activeCount: Number(latestTrancheActiveStations[0]),
@@ -398,6 +465,10 @@ async function readStoReadiness(regionId: `0x${string}`) {
     return {
       stoAddress: null,
       trancheCount: 0,
+      totalSupply: 0n,
+      demoBalance: 0n,
+      ownedShareBps: null,
+      latestTranche: null,
       latestTrancheActiveStations: null,
     };
   }
@@ -456,6 +527,10 @@ async function readRegionSummary(entry: RegionCatalogEntry): Promise<RegionEvide
     previousSnapshot: snapshotData.previousSnapshot,
     stoAddress: stoReadiness.stoAddress,
     trancheCount: stoReadiness.trancheCount,
+    totalSupply: stoReadiness.totalSupply,
+    demoBalance: stoReadiness.demoBalance,
+    ownedShareBps: stoReadiness.ownedShareBps,
+    latestTranche: stoReadiness.latestTranche,
     latestTrancheActiveStations: stoReadiness.latestTrancheActiveStations,
     attention,
   };
@@ -494,7 +569,7 @@ export function useAnalyticsOverview() {
       }
 
       const publishedRegions = regions.filter((region) => region.snapshot).length;
-      const liveStoRegions = regions.filter((region) => region.stoAddress).length;
+      const liveStoRegions = regions.filter((region) => region.stoAddress && region.trancheCount > 0).length;
       const totalPendingRevenueKrw = regions.reduce((sum, region) => sum + region.settlement.pendingRevenueKrw, 0n);
       const latestAttestationPeriod = regions
         .map((region) => region.settlement.latestAttestation?.period_yyyyMM ?? 0n)

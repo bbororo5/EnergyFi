@@ -1,16 +1,23 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { CheckCircle2, Clock3, Info, TrendingUp } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { colors, radius, shadows, typography } from '@/constants/theme';
 import type { Notification } from '@/data/notifications';
+
+interface AnchorRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 interface NotificationPopoverProps {
   visible: boolean;
   notifications: Notification[];
   unreadCount: number;
-  top: number;
-  right: number;
+  anchorRect: AnchorRect | null;
   onClose: () => void;
   onViewAll?: () => void;
 }
@@ -40,14 +47,55 @@ export function NotificationPopover({
   visible,
   notifications,
   unreadCount,
-  top,
-  right,
+  anchorRect,
   onClose,
   onViewAll,
 }: NotificationPopoverProps) {
-  if (!visible) {
+  const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  if (!visible || !anchorRect) {
     return null;
   }
+
+  const horizontalMargin = 12;
+  const preferredWidth = 320;
+  const sheetWidth = Math.min(preferredWidth, windowWidth - horizontalMargin * 2);
+  const anchorCenterX = anchorRect.x + anchorRect.width / 2;
+  const idealRightInset = 42;
+  const idealLeft = anchorCenterX - sheetWidth + idealRightInset;
+  const left = Math.min(
+    Math.max(idealLeft, horizontalMargin),
+    Math.max(horizontalMargin, windowWidth - sheetWidth - horizontalMargin),
+  );
+  const top = Math.max(insets.top + 8, anchorRect.y + anchorRect.height + 12);
+  const maxHeight = Math.max(240, windowHeight - top - insets.bottom - 12);
+  const anchorOffsetX = Math.max(32, Math.min(sheetWidth - 32, anchorCenterX - left));
+  const tailSize = 14;
+  const tailLeft = anchorOffsetX - tailSize / 2;
+  const entryScale = 0.82;
+  const centerX = sheetWidth / 2;
+  const startTranslateX = (anchorOffsetX - centerX) * (1 - entryScale);
+  const startTranslateY = -12;
+  const popoverEnter = ZoomIn
+    .duration(220)
+    .withInitialValues({
+      opacity: 0,
+      transform: [
+        { translateX: startTranslateX },
+        { translateY: startTranslateY },
+        { scale: entryScale },
+      ],
+    });
+  const popoverExit = ZoomOut
+    .duration(150)
+    .withInitialValues({
+      transform: [
+        { translateX: 0 },
+        { translateY: 0 },
+        { scale: 1 },
+      ],
+    });
 
   return (
     <Modal
@@ -62,11 +110,11 @@ export function NotificationPopover({
       </Pressable>
 
       <Animated.View
-        entering={ZoomIn.duration(220)}
-        exiting={ZoomOut.duration(150)}
-        style={[styles.sheet, { top, right }]}
+        entering={popoverEnter}
+        exiting={popoverExit}
+        style={[styles.sheet, { top, left, width: sheetWidth, maxHeight }]}
       >
-        <View style={styles.tail} />
+        <View style={[styles.tail, { left: tailLeft }]} />
         <View style={styles.glow} />
 
         <View style={styles.header}>
@@ -119,7 +167,6 @@ const styles = StyleSheet.create({
   },
   sheet: {
     position: 'absolute',
-    width: 320,
     borderRadius: 32,
     padding: 20,
     backgroundColor: 'rgba(22,27,38,0.96)',
@@ -131,7 +178,6 @@ const styles = StyleSheet.create({
   tail: {
     position: 'absolute',
     top: -7,
-    right: 24,
     width: 14,
     height: 14,
     backgroundColor: 'rgba(22,27,38,0.96)',

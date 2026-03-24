@@ -1,7 +1,7 @@
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { Text, ScrollView, StyleSheet, RefreshControl, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CommonHeader } from '@/components/navigation/common-header';
+import { TabScreenLayout } from '@/components/layout/tab-screen-layout';
 import { SurfaceCard } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SmoothDigit } from '@/components/animated/smooth-digit';
@@ -22,15 +22,7 @@ export default function HomeScreen() {
   const heroSubLabel = dashboard?.heroSubLabel ?? 'Reading on-chain revenue facts...';
 
   return (
-    <View style={styles.container}>
-      <CommonHeader
-        title="Home"
-        onNotificationPress={() => router.push('/(tabs)/account/notifications')}
-        onMorePress={() => router.push('/(tabs)/account/more')}
-        showUserIdentity
-        userDisplayName="Demo Investor"
-      />
-
+    <TabScreenLayout title="Home">
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
@@ -75,22 +67,18 @@ export default function HomeScreen() {
         <PortfolioCarousel
           cards={dashboard?.regionCards ?? []}
           isLoading={isLoading}
-          onPortfolioPress={(id) => router.push(`/(tabs)/portfolio/${id}`)}
+          onPortfolioPress={(id) => router.push(`/region/${id}`)}
         />
 
         <ImpactSection impact={dashboard?.impact ?? null} isLoading={isLoading} />
 
         <LiveFeed sessions={dashboard?.liveSessions ?? []} />
       </ScrollView>
-    </View>
+    </TabScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.backgroundDeep,
-  },
   scroll: {
     paddingHorizontal: 20,
     gap: 24,

@@ -1,4 +1,4 @@
-import { Tabs, router } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Grid2x2 as GridIcon, Layers, Activity, Wallet } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,7 +52,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="portfolio"
+        name="analytics"
         options={{
           title: 'Analytics',
           tabBarIcon: ({ color, focused }) => (
@@ -63,7 +63,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="account"
+        name="portfolio"
         options={{
           title: 'Portfolio',
           tabBarIcon: ({ color, focused }) => (
@@ -71,12 +71,6 @@ export default function TabLayout() {
               <Wallet size={22} color={color} strokeWidth={focused ? 2.5 : 2} />
             </View>
           ),
-        }}
-        listeners={{
-          tabPress: (event) => {
-            event.preventDefault();
-            router.replace('/(tabs)/account');
-          },
         }}
       />
     </Tabs>

@@ -32,30 +32,34 @@ export const reputationRegistryAddress = (
 export const hasLiveReputationRegistry = reputationRegistryAddress !== zeroAddress;
 
 export const chargeTransactionAddress = (
-  process.env.EXPO_PUBLIC_CHARGE_TRANSACTION_ADDRESS ?? '0xad54760b6c7Af14a39d6C16B2c94E03883e78156'
+  process.env.EXPO_PUBLIC_CHARGE_TRANSACTION_ADDRESS ?? '0x743907BE700c527950D912ec2fe35D3e701D1286'
 ) as Address;
 
 export const revenueTrackerAddress = (
-  process.env.EXPO_PUBLIC_REVENUE_TRACKER_ADDRESS ?? '0x295574ED07FB2901376FEa6D21b98F81c80dD6AC'
+  process.env.EXPO_PUBLIC_REVENUE_TRACKER_ADDRESS ?? '0x3D23900e2AFF32363d129c2237e606efb00C9777'
 ) as Address;
 
 export const chargeRouterAddress = (
-  process.env.EXPO_PUBLIC_CHARGE_ROUTER_ADDRESS ?? '0xFc78C4e202A5a681864d6D3E80a58F3B14DbAEa8'
+  process.env.EXPO_PUBLIC_CHARGE_ROUTER_ADDRESS ?? '0x8Fae69Bf1Bc4e1c987508a5fC6Cc0f65BaC829E7'
 ) as Address;
 
 export const stationRegistryAddress = (
-  process.env.EXPO_PUBLIC_STATION_REGISTRY_ADDRESS ?? '0xADCfD47925F526a8abf51bE745B68d18D33952f9'
+  process.env.EXPO_PUBLIC_STATION_REGISTRY_ADDRESS ?? '0x7755040f6B6032eF126DA24eE5aC33BC366DFb7f'
 ) as Address;
 
 export const deviceRegistryAddress = (
-  process.env.EXPO_PUBLIC_DEVICE_REGISTRY_ADDRESS ?? '0x17Df6a809BAe3249fC07eB4EEFb3e2b282Ad4959'
+  process.env.EXPO_PUBLIC_DEVICE_REGISTRY_ADDRESS ?? '0x08c36c0C0e249F8dcfA891997Ee95808C6150C13'
 ) as Address;
 
 export const regionStoFactoryAddress = (
-  process.env.EXPO_PUBLIC_REGION_STO_FACTORY_ADDRESS ?? zeroAddress
+  process.env.EXPO_PUBLIC_REGION_STO_FACTORY_ADDRESS ?? '0x2524e8cFBeBd81afFe25C38BCb82226427c22abB'
 ) as Address;
 
 export const hasLiveRegionStoFactory = regionStoFactoryAddress !== zeroAddress;
+
+export const demoInvestorAddress = (
+  process.env.EXPO_PUBLIC_DEMO_INVESTOR_ADDRESS ?? '0x2b70CA5884943917b5D8b7b6dA8643e12aCE4E18'
+) as Address;
 
 export const demoOperatorAddress = (
   process.env.EXPO_PUBLIC_DEMO_OPERATOR_ADDRESS ?? '0xBdDFc6fdF2F28cBb67eadeCdB0165a15741387aD'

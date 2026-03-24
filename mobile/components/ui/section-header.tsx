@@ -2,18 +2,18 @@ import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { colors, typography } from '@/constants/theme';
 
 interface SectionHeaderProps {
+  /** Deprecated: section headers are title-only. */
   eyebrow?: string;
   title: string;
   icon?: React.ReactNode;
   style?: ViewStyle;
 }
 
-export function SectionHeader({ eyebrow, title, icon, style }: SectionHeaderProps) {
+export function SectionHeader({ title, icon, style }: SectionHeaderProps) {
   return (
     <View style={[styles.container, style]}>
-      <View>
-        {eyebrow && <Text style={styles.eyebrow}>{eyebrow}</Text>}
-        <Text style={styles.title}>{title}</Text>
+      <View style={styles.textWrap}>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.title}>{title}</Text>
       </View>
       {icon && <View style={styles.iconCircle}>{icon}</View>}
     </View>
@@ -25,15 +25,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  eyebrow: {
-    ...typography.micro,
-    color: colors.textMuted,
-    marginBottom: 2,
+  textWrap: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 12,
   },
   title: {
-    ...typography.h4,
+    ...typography.sectionTitle,
     color: colors.textPrimary,
   },
   iconCircle: {

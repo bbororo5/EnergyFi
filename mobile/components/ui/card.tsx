@@ -1,5 +1,5 @@
 import { View, StyleSheet, ViewStyle } from 'react-native';
-import { radius, shadows } from '@/constants/theme';
+import { layout, radius, shadows } from '@/constants/theme';
 
 interface SurfaceCardProps {
   children: React.ReactNode;
@@ -24,6 +24,6 @@ const styles = StyleSheet.create({
     ...shadows.md,
   },
   padded: {
-    padding: 20,
+    padding: layout.contentInset,
   },
 });

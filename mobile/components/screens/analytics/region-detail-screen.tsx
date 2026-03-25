@@ -15,7 +15,7 @@ import {
   formatPeakWindow,
   formatPercentFromBps,
   formatPeriodLabel,
-} from '@/hooks/use-analytics-overview';
+} from '@/lib/domain/analytics';
 import { useRegionAnalytics } from '@/hooks/use-region-analytics';
 
 function getSectionIntro(title: string) {

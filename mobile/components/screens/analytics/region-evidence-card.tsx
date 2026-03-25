@@ -9,7 +9,7 @@ import {
   formatPercentFromBps,
   siteTypeLabel,
   type RegionEvidenceSummary,
-} from '@/hooks/use-analytics-overview';
+} from '@/lib/domain/analytics';
 
 interface RegionEvidenceCardProps {
   region: RegionEvidenceSummary;

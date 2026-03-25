@@ -1,62 +1,61 @@
-import { useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useEffect, useState } from 'react';
+import { LayoutChangeEvent, View, Text, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, Ellipsis, UserRound } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { brandAssets } from '@/constants/assets';
 import { colors, typography, radius } from '@/constants/theme';
-import { NotificationPopover } from '@/components/navigation/notification-popover';
-import { useDemoNotifications } from '@/hooks/use-demo-notifications';
-
-interface AnchorRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import type { AnchorRect } from '@/components/navigation/anchored-popover';
 
 interface CommonHeaderProps {
   title?: string;
-  onNotificationPress?: () => void;
+  onBellPress?: () => void;
   onMorePress?: () => void;
-  showNotificationBadge?: boolean;
   showUserIdentity?: boolean;
   userDisplayName?: string;
   leftElement?: React.ReactNode;
+  unreadCount?: number;
+  bellActive?: boolean;
+  onBellAnchorChange?: (rect: AnchorRect | null) => void;
 }
 
 export function CommonHeader({
   title = 'EnergyFi',
-  onNotificationPress,
+  onBellPress,
   onMorePress,
-  showNotificationBadge = true,
   showUserIdentity = false,
   userDisplayName = 'Demo Investor',
   leftElement,
+  unreadCount = 0,
+  bellActive = false,
+  onBellAnchorChange,
 }: CommonHeaderProps) {
   const insets = useSafeAreaInsets();
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [bellAnchor, setBellAnchor] = useState<AnchorRect | null>(null);
-  const bellWrapRef = useRef<View | null>(null);
-  const { notifications, unreadCount } = useDemoNotifications();
-  const previewNotifications = useMemo(() => notifications.slice(0, 3), [notifications]);
+  const [actionsLayout, setActionsLayout] = useState<AnchorRect | null>(null);
+  const [bellLayout, setBellLayout] = useState<AnchorRect | null>(null);
 
-  const measureBellAnchor = () => {
-    bellWrapRef.current?.measureInWindow((x, y, width, height) => {
-      if (width > 0 && height > 0) {
-        setBellAnchor({ x, y, width, height });
-      }
+  useEffect(() => {
+    if (!actionsLayout || !bellLayout) {
+      onBellAnchorChange?.(null);
+      return;
+    }
+
+    onBellAnchorChange?.({
+      x: actionsLayout.x + bellLayout.x,
+      y: actionsLayout.y + bellLayout.y,
+      width: bellLayout.width,
+      height: bellLayout.height,
     });
+  }, [actionsLayout, bellLayout, onBellAnchorChange]);
+
+  const handleActionsLayout = (event: LayoutChangeEvent) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setActionsLayout({ x, y, width, height });
   };
 
-  const handleBellPress = () => {
-    measureBellAnchor();
-    setIsPopoverOpen((prev) => !prev);
-  };
-
-  const handleViewAll = () => {
-    setIsPopoverOpen(false);
-    onNotificationPress?.();
+  const handleBellLayout = (event: LayoutChangeEvent) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setBellLayout({ x, y, width, height });
   };
 
   return (
@@ -67,8 +66,8 @@ export function CommonHeader({
         )}
         <Text numberOfLines={1} style={styles.title}>{title}</Text>
       </View>
-      {(showUserIdentity || onNotificationPress || onMorePress) ? (
-        <View style={styles.actions}>
+      {(showUserIdentity || onBellPress || onMorePress) ? (
+        <View style={styles.actions} onLayout={handleActionsLayout}>
           {showUserIdentity ? (
             <View style={styles.userPill}>
               <UserRound size={14} color={colors.sky400} strokeWidth={2.2} />
@@ -76,25 +75,12 @@ export function CommonHeader({
             </View>
           ) : null}
 
-          {onNotificationPress ? (
-            <View
-              ref={bellWrapRef}
-              collapsable={false}
-              onLayout={measureBellAnchor}
-              style={styles.notificationWrap}
-            >
-              <Pressable style={[styles.iconButton, isPopoverOpen && styles.iconButtonActive]} onPress={handleBellPress}>
-                <Bell size={20} color={isPopoverOpen ? colors.sky400 : colors.textSecondary} strokeWidth={2.2} />
+          {onBellPress ? (
+            <View onLayout={handleBellLayout} style={styles.notificationWrap}>
+              <Pressable style={[styles.iconButton, bellActive && styles.iconButtonActive]} onPress={onBellPress}>
+                <Bell size={20} color={bellActive ? colors.sky400 : colors.textSecondary} strokeWidth={2.2} />
               </Pressable>
-              {showNotificationBadge && unreadCount > 0 ? <View style={styles.badge} /> : null}
-              <NotificationPopover
-                visible={isPopoverOpen}
-                notifications={previewNotifications}
-                unreadCount={unreadCount}
-                anchorRect={bellAnchor}
-                onClose={() => setIsPopoverOpen(false)}
-                onViewAll={handleViewAll}
-              />
+              {unreadCount > 0 ? <View style={styles.badge} /> : null}
             </View>
           ) : null}
 

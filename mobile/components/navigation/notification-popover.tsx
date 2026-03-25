@@ -1,23 +1,17 @@
-import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import { StyleSheet, Text, View } from 'react-native';
 import { CheckCircle2, Clock3, Info, TrendingUp } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
-import { colors, radius, shadows, typography } from '@/constants/theme';
+import { colors, radius, typography } from '@/constants/theme';
 import type { Notification } from '@/data/notifications';
-
-interface AnchorRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import { AnchoredPopover, type AnchorRect } from '@/components/navigation/anchored-popover';
 
 interface NotificationPopoverProps {
   visible: boolean;
   notifications: Notification[];
   unreadCount: number;
   anchorRect: AnchorRect | null;
+  containerWidth: number;
+  containerHeight: number;
   onClose: () => void;
   onViewAll?: () => void;
 }
@@ -48,73 +42,24 @@ export function NotificationPopover({
   notifications,
   unreadCount,
   anchorRect,
+  containerWidth,
+  containerHeight,
   onClose,
   onViewAll,
 }: NotificationPopoverProps) {
-  const insets = useSafeAreaInsets();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-
   if (!visible || !anchorRect) {
     return null;
   }
 
-  const horizontalMargin = 12;
-  const preferredWidth = 320;
-  const sheetWidth = Math.min(preferredWidth, windowWidth - horizontalMargin * 2);
-  const anchorCenterX = anchorRect.x + anchorRect.width / 2;
-  const idealRightInset = 42;
-  const idealLeft = anchorCenterX - sheetWidth + idealRightInset;
-  const left = Math.min(
-    Math.max(idealLeft, horizontalMargin),
-    Math.max(horizontalMargin, windowWidth - sheetWidth - horizontalMargin),
-  );
-  const top = Math.max(insets.top + 8, anchorRect.y + anchorRect.height + 12);
-  const maxHeight = Math.max(240, windowHeight - top - insets.bottom - 12);
-  const anchorOffsetX = Math.max(32, Math.min(sheetWidth - 32, anchorCenterX - left));
-  const tailSize = 14;
-  const tailLeft = anchorOffsetX - tailSize / 2;
-  const entryScale = 0.82;
-  const centerX = sheetWidth / 2;
-  const startTranslateX = (anchorOffsetX - centerX) * (1 - entryScale);
-  const startTranslateY = -12;
-  const popoverEnter = ZoomIn
-    .duration(220)
-    .withInitialValues({
-      opacity: 0,
-      transform: [
-        { translateX: startTranslateX },
-        { translateY: startTranslateY },
-        { scale: entryScale },
-      ],
-    });
-  const popoverExit = ZoomOut
-    .duration(150)
-    .withInitialValues({
-      transform: [
-        { translateX: 0 },
-        { translateY: 0 },
-        { scale: 1 },
-      ],
-    });
-
   return (
-    <Modal
-      visible
-      transparent
-      animationType="none"
-      statusBarTranslucent
-      onRequestClose={onClose}
+    <AnchoredPopover
+      visible={visible}
+      anchorRect={anchorRect}
+      containerWidth={containerWidth}
+      containerHeight={containerHeight}
+      onClose={onClose}
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Animated.View entering={FadeIn.duration(160)} exiting={FadeOut.duration(120)} style={styles.backdropFill} />
-      </Pressable>
-
-      <Animated.View
-        entering={popoverEnter}
-        exiting={popoverExit}
-        style={[styles.sheet, { top, left, width: sheetWidth, maxHeight }]}
-      >
-        <View style={[styles.tail, { left: tailLeft }]} />
+      <View style={styles.sheet}>
         <View style={styles.glow} />
 
         <View style={styles.header}>
@@ -152,39 +97,17 @@ export function NotificationPopover({
         {onViewAll ? (
           <Button title="View All Updates" variant="ghost" onPress={onViewAll} style={styles.button} />
         ) : null}
-      </Animated.View>
-    </Modal>
+      </View>
+    </AnchoredPopover>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  backdropFill: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.18)',
-  },
   sheet: {
-    position: 'absolute',
     borderRadius: 32,
     padding: 20,
     backgroundColor: 'rgba(22,27,38,0.96)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    overflow: 'hidden',
-    ...shadows.xl,
-  },
-  tail: {
-    position: 'absolute',
-    top: -7,
-    width: 14,
-    height: 14,
-    backgroundColor: 'rgba(22,27,38,0.96)',
-    borderLeftWidth: 1,
-    borderTopWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    transform: [{ rotate: '45deg' }],
+    minHeight: 180,
   },
   glow: {
     position: 'absolute',

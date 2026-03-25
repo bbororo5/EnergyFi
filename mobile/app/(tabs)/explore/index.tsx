@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Compass, Search, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CommonHeader } from '@/components/navigation/common-header';
+import { TabScreenLayout } from '@/components/layout/tab-screen-layout';
 import { SurfaceCard } from '@/components/ui/card';
 import { SectionHeader } from '@/components/ui/section-header';
 import { FilterChips } from '@/components/screens/explore/filter-chips';
@@ -47,17 +47,9 @@ export default function ExploreScreen() {
   }, [activeFilter, deferredSearch, stories]);
 
   return (
-    <View style={styles.container}>
+    <TabScreenLayout title="Explore">
       <View style={styles.backgroundGlowTop} />
       <View style={styles.backgroundGlowBottom} />
-
-      <CommonHeader
-        title="Explore"
-        onNotificationPress={() => router.push('/(tabs)/account/notifications')}
-        onMorePress={() => router.push('/(tabs)/account/more')}
-        showUserIdentity
-        userDisplayName="Demo Investor"
-      />
 
       <FlatList
         data={filteredStories}
@@ -160,7 +152,7 @@ export default function ExploreScreen() {
         )}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </TabScreenLayout>
   );
 }
 

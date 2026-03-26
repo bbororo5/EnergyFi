@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Zap } from 'lucide-react-native';
-import { colors, radius, shadows, typography } from '@/constants/theme';
+import { colors, radius, shadows } from '@/constants/theme';
 import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from '@/components/ui/section-header';
 import type { LiveSession } from '@/hooks/use-live-network-data';
 
 interface LiveFeedProps {
@@ -13,10 +14,10 @@ export function LiveFeed({ sessions }: LiveFeedProps) {
   if (sessions.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <Text numberOfLines={1} style={styles.sectionTitle}>Live network revenue</Text>
-          <Badge label="REAL-TIME" variant="live" dot />
-        </View>
+        <SectionHeader
+          title="Live network revenue"
+          rightElement={<Badge label="REAL-TIME" variant="live" dot />}
+        />
         <View style={styles.emptyCard}>
           <Text style={styles.emptyText}>No charging sessions have been recorded on-chain yet.</Text>
         </View>
@@ -26,10 +27,10 @@ export function LiveFeed({ sessions }: LiveFeedProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text numberOfLines={1} style={styles.sectionTitle}>Live network revenue</Text>
-        <Badge label="REAL-TIME" variant="live" dot />
-      </View>
+      <SectionHeader
+        title="Live network revenue"
+        rightElement={<Badge label="REAL-TIME" variant="live" dot />}
+      />
       {sessions.map((session, i) => (
         <Animated.View
           key={session.id}
@@ -61,16 +62,6 @@ export function LiveFeed({ sessions }: LiveFeedProps) {
 
 const styles = StyleSheet.create({
   container: { gap: 8 },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    ...typography.sectionTitle,
-    color: colors.textPrimary,
-  },
   item: {
     flexDirection: 'column',
     justifyContent: 'center',

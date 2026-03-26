@@ -5,7 +5,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { LineChart } from 'react-native-gifted-charts';
 import { Badge } from '@/components/ui/badge';
 import { FlipCard } from '@/components/animated/flip-card';
-import { colors, radius, typography } from '@/constants/theme';
+import { SectionHeader } from '@/components/ui/section-header';
+import { colors, radius } from '@/constants/theme';
 import type { HomeRegionCardData } from '@/hooks/use-home-dashboard';
 
 function CardFront({ card, onFlip }: { card: HomeRegionCardData; onFlip: () => void }) {
@@ -130,10 +131,10 @@ export function PortfolioCarousel({ cards, isLoading = false, onPortfolioPress }
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text numberOfLines={1} style={styles.sectionTitle}>Current top regions</Text>
-        <Badge label="ON-CHAIN" variant="live" dot />
-      </View>
+      <SectionHeader
+        title="Current top regions"
+        rightElement={<Badge label="ON-CHAIN" variant="live" dot />}
+      />
 
       {isLoading ? (
         <View style={styles.placeholderWrap}>
@@ -173,16 +174,6 @@ const styles = StyleSheet.create({
   container: {
     gap: 10,
     marginTop: 12,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    ...typography.sectionTitle,
-    color: colors.textPrimary,
   },
   carouselWrap: {
     marginHorizontal: -20,

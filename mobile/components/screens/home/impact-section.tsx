@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Leaf, Wind, Zap } from 'lucide-react-native';
 import { Badge } from '@/components/ui/badge';
-import { colors, radius, shadows, typography } from '@/constants/theme';
+import { SectionHeader } from '@/components/ui/section-header';
+import { colors, radius, shadows } from '@/constants/theme';
 import type { HomeImpactSummary } from '@/hooks/use-home-dashboard';
 
 interface ImpactSectionProps {
@@ -30,10 +31,10 @@ export function ImpactSection({ impact, isLoading = false }: ImpactSectionProps)
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text numberOfLines={1} style={styles.sectionTitle}>Real-world impact</Text>
-        <Badge label="ESTIMATED" variant="success" icon={Leaf} />
-      </View>
+      <SectionHeader
+        title="Real-world impact"
+        rightElement={<Badge label="ESTIMATED" variant="success" icon={Leaf} />}
+      />
 
       {isLoading ? (
         <View style={styles.emptyCard}>
@@ -72,16 +73,6 @@ export function ImpactSection({ impact, isLoading = false }: ImpactSectionProps)
 const styles = StyleSheet.create({
   container: {
     gap: 10,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    ...typography.sectionTitle,
-    color: colors.textPrimary,
   },
   grid: {
     flexDirection: 'row',

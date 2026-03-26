@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 import { colors } from '@/constants/theme';
-import { formatKrwShort } from '@/hooks/use-analytics-overview';
+import { formatKrwShort } from '@/lib/domain/analytics';
 import type { HomeHeroPoint } from '@/hooks/use-home-dashboard';
 
 interface HeroRevenueChartProps {

@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { demoInvestorAddress } from '@/constants/contracts';
 import {
-  type AnalyticsOverview,
-  formatPeriodLabel,
   applyOwnedShare,
   calculateOwnedShareBps,
+  formatPeriodLabel,
+  type AnalyticsOverview,
   type RegionEvidenceSummary,
   type RevenueAttestation,
-  useAnalyticsOverview,
-} from '@/hooks/use-analytics-overview';
+} from '@/lib/domain/analytics';
+import { useAnalyticsOverview } from '@/hooks/use-analytics-overview';
 
 const payoutDateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',

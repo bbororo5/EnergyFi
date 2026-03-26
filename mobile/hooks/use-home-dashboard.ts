@@ -2,13 +2,13 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { createPublicClient, http } from 'viem';
 import { regionCatalog } from '@/data/regions';
 import {
-  type AnalyticsOverview,
   applyOwnedShare,
   formatKrwShort,
   formatPeakWindow,
   formatPeriodLabel,
-  useAnalyticsOverview,
-} from '@/hooks/use-analytics-overview';
+  type AnalyticsOverview,
+} from '@/lib/domain/analytics';
+import { useAnalyticsOverview } from '@/hooks/use-analytics-overview';
 import {
   energyfiChain,
   energyfiRpcUrl,

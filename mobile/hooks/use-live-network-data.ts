@@ -49,7 +49,7 @@ export function useLiveNetworkData() {
   const [monthlyGain, setMonthlyGain] = useState(345120);
   const [lastTx, setLastTx] = useState<number | null>(null);
   const [liveSessions, setLiveSessions] = useState<LiveSession[]>(initialSessions);
-  const [earningsData, setEarningsData] = useState(initialEarningsData);
+  const [earningsData] = useState(initialEarningsData);
 
   const actualRef = useRef(15450000);
   const monthlyRef = useRef(345120);

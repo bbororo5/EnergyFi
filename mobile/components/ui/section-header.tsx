@@ -6,16 +6,17 @@ interface SectionHeaderProps {
   eyebrow?: string;
   title: string;
   icon?: React.ReactNode;
+  rightElement?: React.ReactNode;
   style?: ViewStyle;
 }
 
-export function SectionHeader({ title, icon, style }: SectionHeaderProps) {
+export function SectionHeader({ title, icon, rightElement, style }: SectionHeaderProps) {
   return (
     <View style={[styles.container, style]}>
       <View style={styles.textWrap}>
         <Text numberOfLines={1} ellipsizeMode="tail" style={styles.title}>{title}</Text>
       </View>
-      {icon && <View style={styles.iconCircle}>{icon}</View>}
+      {rightElement ?? (icon ? <View style={styles.iconCircle}>{icon}</View> : null)}
     </View>
   );
 }

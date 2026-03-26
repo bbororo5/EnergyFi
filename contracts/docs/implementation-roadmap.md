@@ -255,7 +255,7 @@ For the policy source of truth, also read [../../AGENTS.md](../../AGENTS.md) and
 
 | Risk | Why it matters | Mitigation |
 |:---|:---|:---|
-| **RIP-7212 not enabled** | SE signature verification fails | enable the precompile in `l1-config/genesis.json` before Phase 2 deployment |
+| **RIP-7212 not enabled** | SE signature verification fails | enable the precompile in the target L1 genesis config before Phase 2 deployment |
 | **Bridge misconfiguration** | charging writes may fail or bypass the intended path | keep `ChargeRouter` as the single Bridge-facing entry point and verify addresses during deployment |
 | **Premature STO standard lock-in** | regulation or counterparty requirements may invalidate the chosen design | keep Phase 3 token logic on hold until the issuance path is finalized |
 | **Cross-document drift** | roadmap, root docs, and phase specs may diverge | treat this roadmap and the phase specs as canonical; keep root docs summary-only |

@@ -14,7 +14,6 @@ It is not the canonical source for smart-contract or business-policy decisions. 
 | [explore-redesign-spec.md](explore-redesign-spec.md) | Explore UX redesign direction |
 | [design-system-rules.md](design-system-rules.md) | Shared UI copy and section-title rules for the mobile app |
 | [d1-persona-scenario.md](d1-persona-scenario.md) | User scenarios and JTBD framing |
-| [rn-migration-baseline.md](rn-migration-baseline.md) | React Native / Expo migration baseline |
 
 ## Dependency Rule
 

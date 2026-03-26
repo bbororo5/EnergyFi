@@ -6,7 +6,7 @@ This document covers the deployment units, their execution procedures, and the p
 
 | Unit | Name | Path | Stack | Depends On | Status |
 |:---|:---|:---|:---|:---|:---|
-| **A** | L1 Infrastructure | `l1-config/` | Avalanche-CLI / AvaCloud | AvalancheGo node | Active |
+| **A** | L1 Infrastructure | external/private config workspace | Avalanche-CLI / AvaCloud | AvalancheGo node | Being rewritten |
 | **B** | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | **Unit A** running | Active |
 | **C** | Mobile App | `mobile/` | React Native + Expo (SDK 54), TypeScript | **Unit B** deployed | Active (demo) |
 
@@ -34,7 +34,7 @@ cd contracts && npm install
 
 ### 3.1 Phase Overview
 
-EnergyFi L1 infrastructure progresses through 3 phases. The target chain configuration in `l1-config/genesis.json` uses Chain ID `270626` and zero-gas economics. The repository's public judge-review flow is separate and is documented in [judge-quick-start.md](./judge-quick-start.md).
+EnergyFi L1 infrastructure progresses through 3 phases. The long-term target chain uses Chain ID `270626` and zero-gas economics. Its canonical genesis/runtime config is currently being rewritten and is not committed in this repo snapshot. The repository's public judge-review flow is separate and is documented in [judge-quick-start.md](./judge-quick-start.md).
 
 | Phase | Environment | Infrastructure | Validators | `.env` Variable | Deploy Command |
 |:---|:---|:---|:---|:---|:---|
@@ -51,8 +51,8 @@ Local development using Avalanche-CLI to create and manage the L1 on Fuji testne
 ```bash
 # Ensure Fuji AVAX is available (see docs/03_Environment_Setup.md)
 
-# Create L1 from genesis config
-avalanche blockchain create energyfi-l1 --genesis l1-config/genesis.json
+# Create L1 from a canonical target genesis config
+avalanche blockchain create energyfi-l1 --genesis <path-to-target-genesis.json>
 
 # Deploy to Fuji testnet
 avalanche blockchain deploy energyfi-l1 --fuji
@@ -66,7 +66,7 @@ Verify the chain is running:
 ```bash
 curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
   -H "Content-Type: application/json" $ENERGYFI_L1_TESTNET_RPC
-# Expected: {"result":"0x42122"}  (chainId 270626 from `l1-config/genesis.json`)
+# Expected: {"result":"0x42122"}  (chainId 270626 from the target genesis config)
 ```
 
 ### 3.3 Phase 2: Hackathon Submission (AvaCloud Testnet)
@@ -77,7 +77,7 @@ For hackathon submission, the L1 is deployed via [AvaCloud](https://avacloud.io)
 # 1. Subscribe to AvaCloud Testnet Starter plan (https://console.avacloud.io)
 
 # 2. Create an L1 in the AvaCloud console
-#    - Upload l1-config/genesis.json (same file as CLI deployment)
+#    - Upload the canonical target genesis config (same file used in CLI deployment)
 #    - Select Fuji testnet
 #    - AvaCloud provisions 2 validator nodes automatically
 
@@ -89,7 +89,7 @@ cd contracts
 npm run deploy:surface:testnet
 ```
 
-> **Note:** The same `genesis.json` (Chain ID `270626`, zero-gas) works for both Avalanche-CLI and AvaCloud deployments. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC`, and only enforces a chain ID if `ENERGYFI_L1_TESTNET_CHAIN_ID` is explicitly set in the environment.
+> **Note:** The same target genesis config (Chain ID `270626`, zero-gas) should work for both Avalanche-CLI and AvaCloud deployments once it is rewritten and reintroduced. The Hardhat `energyfi-l1-testnet` network reads `ENERGYFI_L1_TESTNET_RPC`, and only enforces a chain ID if `ENERGYFI_L1_TESTNET_CHAIN_ID` is explicitly set in the environment.
 
 > **Development → Hackathon transition:** Replace `ENERGYFI_L1_TESTNET_RPC` in `.env` with the AvaCloud-provided URL. Contracts must be redeployed on the new chain.
 
@@ -101,7 +101,7 @@ For production launch (June 2026~), the L1 is deployed via AvaCloud Mainnet with
 # 1. Subscribe to AvaCloud Mainnet plan (https://console.avacloud.io)
 
 # 2. Create an L1 in the AvaCloud console
-#    - Upload l1-config/genesis.json (same file)
+#    - Upload the canonical target genesis config
 #    - Select Mainnet
 #    - Configure validator nodes (company-operated, separate regions)
 

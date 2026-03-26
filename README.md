@@ -46,7 +46,7 @@ Current judge-facing review network:
 - RPC: [https://subnets.avax.network/efy/testnet/rpc](https://subnets.avax.network/efy/testnet/rpc)
 - Explorer: [https://explorer-test.avax.network/efy](https://explorer-test.avax.network/efy)
 
-This review network is defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts). It is separate from the repository's long-term target L1 configuration in `l1-config/`.
+This review network is defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts). It is separate from the repository's long-term target L1 configuration, which is being rewritten and is not committed in this repo snapshot.
 
 ## What is EnergyFi?
 
@@ -85,7 +85,7 @@ flowchart TB
 
 **Layer 3 — Platform**: STRIKON, a production EV charging platform with 30+ Go microservices, handles charger management (OCPP 1.6/2.1), billing, payment processing, and settlement. Only after a payment is fully settled does it emit an `invoice.paid` event.
 
-**Layer 4 — Blockchain**: EnergyFi's target Avalanche L1 configuration is defined in [l1-config/genesis.json](./l1-config/genesis.json) with Chain ID `270626` and zero-gas economics. The current public judge flow above runs on a separate review network (`64058`) defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts).
+**Layer 4 — Blockchain**: EnergyFi's long-term target is a dedicated Avalanche L1 with Chain ID `270626` and zero-gas economics. The canonical target-chain config is currently being rewritten and is not committed in this repo snapshot. The current public judge flow above runs on a separate review network (`64058`) defined in [contracts/scripts/verify/judge-demo.ts](./contracts/scripts/verify/judge-demo.ts).
 
 ### Bookend Signature Model
 
@@ -193,7 +193,7 @@ flowchart TD
 - **Soulbound ERC-721**: Charging sessions are immutable evidence, not tradeable assets. Minted to `address(this)`, transfers disabled.
 - **UUPS Proxy**: All contracts are upgradeable via UUPS pattern for post-deployment bug fixes and regulatory adaptation.
 - **`BridgeGuarded` base contract**: The Bridge wallet (AWS KMS HSM) is the sole trusted entry point from STRIKON. `onlyBridge` modifier on all write operations.
-- **Zero-gas target L1**: `l1-config/genesis.json` defines Chain ID `270626`. The current judge-facing review flow uses a separate review chain (`64058`) so reviewers can run `judge:testnet` without reproducing the full deployment environment.
+- **Zero-gas target L1**: EnergyFi's long-term target chain uses Chain ID `270626`. The canonical target-chain config is currently being rewritten and is not committed in this repo snapshot. The current judge-facing review flow uses a separate review chain (`64058`) so reviewers can run `judge:testnet` without reproducing the full deployment environment.
 
 ---
 
@@ -297,9 +297,6 @@ EnergyFi/
 │   ├── app/                    #   expo-router screens
 │   ├── components/             #   UI building blocks
 │   └── hooks/                  #   Data/view hooks
-├── l1-config/                  # L1 chain configuration
-│   ├── genesis.json            #   Chain ID 270626, zero-gas, RIP-7212
-│   └── config.json
 └── docs/                       # Architecture & specification documents
 ```
 

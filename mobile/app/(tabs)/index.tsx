@@ -11,6 +11,7 @@ import { LiveFeed } from '@/components/screens/home/live-feed';
 import { HeroRevenueChart } from '@/components/screens/home/hero-revenue-chart';
 import { colors } from '@/constants/theme';
 import { useHomeDashboard } from '@/hooks/use-home-dashboard';
+import { appRoutes } from '@/lib/navigation/routes';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -67,7 +68,7 @@ export default function HomeScreen() {
         <PortfolioCarousel
           cards={dashboard?.regionCards ?? []}
           isLoading={isLoading}
-          onPortfolioPress={(id) => router.push(`/region/${id}`)}
+          onPortfolioPress={(id) => router.push(appRoutes.regionDetail(id))}
         />
 
         <ImpactSection impact={dashboard?.impact ?? null} isLoading={isLoading} />

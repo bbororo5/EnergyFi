@@ -31,6 +31,9 @@ export default function LearnScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back to more options"
+          accessibilityHint="Returns to the previous more options screen"
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}
         >
@@ -100,6 +103,9 @@ export default function LearnScreen() {
             <View key={index}>
               {index > 0 && <View style={styles.faqDivider} />}
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={item.question}
+                accessibilityHint={expandedFaq === index ? 'Collapses this answer' : 'Expands this answer'}
                 style={styles.faqQuestion}
                 onPress={() => setExpandedFaq(expandedFaq === index ? null : index)}
               >

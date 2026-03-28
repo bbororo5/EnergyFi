@@ -41,6 +41,9 @@ export default function AlertsSettingsScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back to more options"
+          accessibilityHint="Returns to the previous more options screen"
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}
         >

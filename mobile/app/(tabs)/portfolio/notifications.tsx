@@ -47,6 +47,9 @@ export default function NotificationsScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Text style={styles.headerTitle}>Notifications</Text>
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close notifications"
+          accessibilityHint="Returns to the previous portfolio screen"
           onPress={() => router.back()}
           style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}
         >

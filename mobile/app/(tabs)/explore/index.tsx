@@ -12,6 +12,7 @@ import { RegionStoryCard } from '@/components/screens/explore/region-story-card'
 import { colors, radius } from '@/constants/theme';
 import { hasLiveReputationRegistry } from '@/constants/contracts';
 import { useRegionStories, type ExploreFilterValue } from '@/hooks/use-region-stories';
+import { appRoutes } from '@/lib/navigation/routes';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function ExploreScreen() {
@@ -135,7 +136,7 @@ export default function ExploreScreen() {
           <Animated.View entering={FadeInDown.delay(80 + index * 28).duration(320)}>
             <RegionStoryCard
               story={item}
-              onPress={item.published ? () => router.push(`/region/${item.code}`) : undefined}
+              onPress={item.published ? () => router.push(appRoutes.regionDetail(item.code)) : undefined}
             />
           </Animated.View>
         )}

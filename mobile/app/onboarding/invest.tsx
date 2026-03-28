@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ExternalLink } from 'lucide-react-native';
 import { colors, typography } from '@/constants/theme';
 import { OnboardingFrame } from '@/components/screens/onboarding/onboarding-frame';
+import { appRoutes } from '@/lib/navigation/routes';
 
 const steps = [
   { num: '1', color: colors.primary, title: 'Review Region Data', desc: 'Browse charging and revenue evidence in EnergyFi' },
@@ -13,7 +14,7 @@ const steps = [
 
 export default function InvestScreen() {
   return (
-    <OnboardingFrame step={3} buttonTitle="Continue to Login" onPress={() => router.replace('/login')}>
+    <OnboardingFrame step={3} buttonTitle="Continue to Login" onPress={() => router.replace(appRoutes.login)}>
       <View style={styles.iconBadge}>
         <ExternalLink size={30} color={colors.white} strokeWidth={2} />
       </View>

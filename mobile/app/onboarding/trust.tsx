@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { HardDrive, Clock, ShieldCheck, AlertCircle } from 'lucide-react-native';
 import { colors, typography, radius } from '@/constants/theme';
 import { OnboardingFrame } from '@/components/screens/onboarding/onboarding-frame';
+import { appRoutes } from '@/lib/navigation/routes';
 
 const features = [
   { icon: HardDrive, color: colors.accent, title: 'Hardware Verified', desc: 'SE chip signatures anchor session trust' },
@@ -13,7 +14,7 @@ const features = [
 
 export default function TrustScreen() {
   return (
-    <OnboardingFrame step={2} buttonTitle="Continue" onPress={() => router.push('/onboarding/invest')}>
+    <OnboardingFrame step={2} buttonTitle="Continue" onPress={() => router.push(appRoutes.onboardingInvest)}>
       <View style={styles.top}>
         <Text style={styles.heading}>Trust & Transparency</Text>
         <Text style={styles.subtitle}>EnergyFi shows hardware, settlement, and operational context before any investment decision.</Text>

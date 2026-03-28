@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Activity, TrendingUp, ShieldCheck } from 'lucide-react-native';
 import { colors, typography, radius } from '@/constants/theme';
 import { OnboardingFrame } from '@/components/screens/onboarding/onboarding-frame';
+import { appRoutes } from '@/lib/navigation/routes';
 
 const features = [
   { icon: Activity, color: colors.primary, title: 'Charging Activity', desc: 'See recently recorded charging sessions' },
@@ -13,7 +14,7 @@ const features = [
 
 export default function FeaturesScreen() {
   return (
-    <OnboardingFrame step={1} buttonTitle="Continue" onPress={() => router.push('/onboarding/trust')}>
+    <OnboardingFrame step={1} buttonTitle="Continue" onPress={() => router.push(appRoutes.onboardingTrust)}>
       <View style={styles.top}>
         <Text style={styles.heading}>Live Network Evidence</Text>
         <Text style={styles.subtitle}>

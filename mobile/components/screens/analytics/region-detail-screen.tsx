@@ -59,7 +59,13 @@ export function RegionDetailScreen() {
     return (
       <View style={styles.container}>
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            accessibilityHint="Returns to the previous screen"
+            onPress={() => router.back()}
+            style={styles.backBtn}
+          >
             <ChevronLeft size={20} color={colors.white} strokeWidth={2.5} />
           </Pressable>
           <Text style={styles.headerTitle}>Analytics Detail</Text>
@@ -91,6 +97,9 @@ export function RegionDetailScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Returns to the previous screen"
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backBtn, pressed && styles.backBtnPressed]}
         >

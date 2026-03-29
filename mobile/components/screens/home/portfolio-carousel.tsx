@@ -22,7 +22,13 @@ function CardFront({ card, onFlip }: { card: HomeRegionCardData; onFlip: () => v
   }));
 
   return (
-    <Pressable onPress={onFlip} style={({ pressed }) => [styles.front, pressed && styles.cardPressed]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${card.name} region summary`}
+      accessibilityHint="Flips the card to show a short operational brief"
+      onPress={onFlip}
+      style={({ pressed }) => [styles.front, pressed && styles.cardPressed]}
+    >
       <View style={styles.frontTopBar}>
         <View style={styles.regionBadge}>
           <View style={styles.regionDot} />
@@ -90,7 +96,13 @@ function CardBack({ card, onPress, onFlip }: { card: HomeRegionCardData; onPress
   const backSummaryItems = card.backSummaryItems || [];
 
   return (
-    <Pressable onPress={onFlip} style={({ pressed }) => [styles.back, pressed && styles.cardPressed]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Close ${card.name} region summary`}
+      accessibilityHint="Returns to the front of the region card"
+      onPress={onFlip}
+      style={({ pressed }) => [styles.back, pressed && styles.cardPressed]}
+    >
       <View style={styles.backHeader}>
         <Text style={styles.backTitle}>Region Evidence</Text>
         <Layers3 size={18} color={colors.textMuted} />
@@ -105,7 +117,13 @@ function CardBack({ card, onPress, onFlip }: { card: HomeRegionCardData; onPress
         ))}
       </View>
 
-      <Pressable onPress={(e) => { e.stopPropagation(); onPress?.(); }} style={styles.exploreBtn}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${card.name} analytics`}
+        accessibilityHint="Opens the detailed analytics screen for this region"
+        onPress={(e) => { e.stopPropagation(); onPress?.(); }}
+        style={styles.exploreBtn}
+      >
         <Text style={styles.exploreBtnText}>OPEN ANALYTICS</Text>
       </Pressable>
     </Pressable>

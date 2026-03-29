@@ -3,7 +3,7 @@ import { Leaf, Wind, Zap } from 'lucide-react-native';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/ui/section-header';
 import { colors, radius, shadows } from '@/constants/theme';
-import type { HomeImpactSummary } from '@/hooks/use-home-dashboard';
+import type { HomeImpactSummary } from '@/lib/domain/home-dashboard';
 
 interface ImpactSectionProps {
   impact: HomeImpactSummary | null;

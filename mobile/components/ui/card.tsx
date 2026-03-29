@@ -1,9 +1,9 @@
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { layout, radius, shadows } from '@/constants/theme';
 
 interface SurfaceCardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padded?: boolean;
 }
 

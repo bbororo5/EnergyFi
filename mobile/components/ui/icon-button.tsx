@@ -1,17 +1,35 @@
-import { Pressable, StyleSheet, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, type AccessibilityState, type StyleProp, type ViewStyle } from 'react-native';
 import { radius } from '@/constants/theme';
 
 interface IconButtonProps {
   icon: React.ReactNode;
   onPress: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   size?: number;
+  accessibilityLabel: string;
+  accessibilityHint?: string;
+  accessibilityState?: AccessibilityState;
+  testID?: string;
 }
 
-export function IconButton({ icon, onPress, style, size = 40 }: IconButtonProps) {
+export function IconButton({
+  icon,
+  onPress,
+  style,
+  size = 40,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityState,
+  testID,
+}: IconButtonProps) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={accessibilityState}
+      testID={testID}
       style={({ pressed }) => [
         styles.button,
         { width: size, height: size, borderRadius: size > 40 ? radius.xl : radius.lg },

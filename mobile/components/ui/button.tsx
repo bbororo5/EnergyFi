@@ -10,6 +10,8 @@ interface ButtonProps {
   icon?: React.ReactNode;
   disabled?: boolean;
   style?: ViewStyle;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const variantStyles: Record<Variant, { container: ViewStyle; text: TextStyle }> = {
@@ -51,13 +53,25 @@ const variantStyles: Record<Variant, { container: ViewStyle; text: TextStyle }> 
   },
 };
 
-export function Button({ title, onPress, variant = 'primary', icon, disabled, style }: ButtonProps) {
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  icon,
+  disabled,
+  style,
+  accessibilityLabel,
+  accessibilityHint,
+}: ButtonProps) {
   const v = variantStyles[variant];
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityHint={accessibilityHint}
       style={({ pressed }) => [
         styles.base,
         v.container,

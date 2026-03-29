@@ -58,6 +58,7 @@ export function NotificationPopover({
       containerWidth={containerWidth}
       containerHeight={containerHeight}
       onClose={onClose}
+      placement="bottom-end"
     >
       <View style={styles.sheet}>
         <View style={styles.glow} />
@@ -95,7 +96,13 @@ export function NotificationPopover({
         </View>
 
         {onViewAll ? (
-          <Button title="View All Updates" variant="ghost" onPress={onViewAll} style={styles.button} />
+          <Button
+            title="View All Updates"
+            variant="ghost"
+            onPress={onViewAll}
+            accessibilityHint="Opens the full notifications inbox"
+            style={styles.button}
+          />
         ) : null}
       </View>
     </AnchoredPopover>

@@ -29,9 +29,9 @@ The script output shows `KR11` region total pending revenue. The Home hero in th
 If deeper validation is needed, confirm that a deployed contract returns non-empty bytecode:
 
 ```bash
-curl -s -X POST https://subnets.avax.network/efy/testnet/rpc \
+curl -s -X POST https://subnets.avax.network/enf/testnet/rpc \
   -H 'content-type: application/json' \
-  --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0x743907BE700c527950D912ec2fe35D3e701D1286","latest"],"id":1}'
+  --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["0x3c1d0E0572b00D67d6E4e8f7381C7960eB0ADDC3","latest"],"id":1}'
 ```
 
 Expected shape:

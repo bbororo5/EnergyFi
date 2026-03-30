@@ -4,10 +4,10 @@
 
 | Document | Role |
 |:---|:---|
-| [architecture.md](architecture.md) | System-wide structure and layer explanation |
-| [project-overview.md](project-overview.md) | Repository scope and deployment-unit summary |
-| [deployment-guide.md](deployment-guide.md) | Deployment guide for the L1, contracts, and mobile app |
-| [environment-setup.md](environment-setup.md) | Development environment setup |
+| [architecture.md](architecture.md) | Top-level architecture narrative and current implementation/planning boundary map |
+| [project-overview.md](project-overview.md) | Repository scope, deployment units, and current surface summary |
+| [deployment-guide.md](deployment-guide.md) | Deployment guide for the target L1, contracts, and mobile app |
+| [environment-setup.md](environment-setup.md) | Full development environment and target-L1 reference setup |
 | [platform-policies.md](platform-policies.md) | Summary of top-level policies |
 | [strikon-interface-spec.md](strikon-interface-spec.md) | STRIKON → EnergyFi data boundary |
 

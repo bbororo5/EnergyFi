@@ -4,7 +4,7 @@
 
 ## 1. Scope
 
-EnergyFi = **Layer 3** (smart contracts) + **Layer 4** (investor mobile app) on a dedicated Avalanche L1 private chain. The target L1 config is being rewritten and is not currently committed in this repo snapshot. EnergyFi receives SE-signed charging data from the STRIKON platform (Layers 1-2) and records it immutably on-chain.
+EnergyFi = **Layer 3** (smart contracts) + **Layer 4** (investor mobile app) on a dedicated Avalanche L1 private chain (Chain ID `59823`, zero-gas). EnergyFi receives SE-signed charging data from the STRIKON platform (Layers 1-2) and records it immutably on-chain.
 
 ```
 EnergyFi scope
@@ -19,12 +19,12 @@ EnergyFi scope
 
 | Layer | What | How |
 |:---|:---|:---|
-| **Data** | Real-time charging session records | SE-signed data → ChargeTransaction (ERC-721) on-chain |
-| **Carbon** | VM0038 carbon reduction calculation | CarbonReduction (immutable contract) + ParameterRegistry |
+| **Data** | Settled charging session records | SE-signed data -> ChargeRouter -> ChargeTransaction (ERC-721) on-chain |
+| **Revenue** | Station and region revenue aggregation | RevenueTracker over StationRegistry-linked settlement data |
 | **Registry** | Station → Charger hierarchy (all EnergyFi-owned) | StationRegistry on Avalanche L1 |
-| **Tokenization** | Per-region fractional ownership (17 regions) | RegionSTO via RegionSTOFactory (final token standard TBD until the issuance path is decided) |
-| **Portfolio** | Investor dashboard data | STOPortfolio + ReputationRegistry |
-| **Verification** | Carbon credit pipeline | CarbonBatch → VVB → VCUReference |
+| **Operations** | Region-level reputation snapshots for client surfaces | ReputationRegistry |
+| **Tokenization** | Per-region STO prototype surface | RegionSTO via RegionSTOFactory (final issuance path still undecided) |
+| **Future carbon** | Carbon credit evidence pipeline | Planned Phase 5 contracts, not implemented in this repo snapshot |
 
 ## 3. Deployment Units
 
@@ -32,7 +32,7 @@ EnergyFi manages **3 deployment units**: L1 chain infrastructure, smart contract
 
 | Unit | Name | Path | Stack | Status |
 |:---|:---|:---|:---|:---|
-| A | L1 Infrastructure | external/private config workspace | Avalanche-CLI, JSON config | Being rewritten |
+| A | L1 Infrastructure | AvaCloud (Fuji) | Avalanche-CLI / AvaCloud | Active (testnet) |
 | B | L1 Smart Contracts | `contracts/` | Solidity, Hardhat 3 | Active |
 | C | Mobile App | `mobile/` | React Native + Expo (SDK 54), TypeScript | Active (demo) |
 
@@ -66,3 +66,26 @@ EnergyFi/
 | Web3 | ethers.js | ^6.14.0 |
 | Language | TypeScript | ^5.7.0 |
 | Blockchain | Avalanche | L1 Private Chain (zero-gas, BFT consensus) |
+
+## 6. Current Surface vs Planned Surface
+
+### Currently implemented in code
+
+- `DeviceRegistry`
+- `StationRegistry`
+- `ChargeRouter`
+- `ChargeTransaction`
+- `RevenueTracker`
+- `ReputationRegistry`
+- `RegionSTO` and `RegionSTOFactory` as a prototype/demo issuance surface
+
+### Planned but not implemented in this repo snapshot
+
+- `CCIPRevenueSender`
+- `STOPortfolio`
+- `ParameterRegistry`
+- `CarbonReduction`
+- `CarbonBatch`
+- `VCUReference`
+
+For exact contract authority, use [`../contracts/docs/README.md`](../contracts/docs/README.md) and the relevant phase specs rather than treating this overview as the contract source of truth.

@@ -4,7 +4,7 @@ Inherits all rules from [root CLAUDE.md](../CLAUDE.md). The following are additi
 
 ## Scope
 
-Avalanche L1 smart contracts deployed on a single private chain (Chain ID 270626, zero-gas). The exact contract surface evolves by phase; treat `contracts/docs/implementation-roadmap.md` as the canonical map.
+Avalanche L1 smart contracts deployed on a single private chain (Chain ID 59823, zero-gas). The exact contract surface evolves by phase; treat `contracts/docs/implementation-roadmap.md` as the canonical map.
 
 ## Key Rules
 

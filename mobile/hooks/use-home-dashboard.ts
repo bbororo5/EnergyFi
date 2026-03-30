@@ -1,6 +1,5 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPublicClient, http } from 'viem';
-import { regionCatalog } from '@/data/regions';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   applyOwnedShare,
   formatKrwShort,
@@ -8,42 +7,15 @@ import {
   formatPeriodLabel,
   type AnalyticsOverview,
 } from '@/lib/domain/analytics';
-import { useAnalyticsOverview } from '@/hooks/use-analytics-overview';
-import {
-  energyfiChain,
-  energyfiRpcUrl,
-  chargeTransactionAddress,
-  stationRegistryAddress,
-} from '@/constants/contracts';
-import { chargeTransactionAbi, stationRegistryAbi } from '@/lib/analytics-contracts';
-import {
-  buildDemoInvestorPortfolio,
-  type DemoInvestorPortfolioSummary,
-} from '@/hooks/use-demo-investor-portfolio';
+import { useAnalyticsOverviewQuery } from '@/hooks/use-analytics-overview';
+import { buildDemoInvestorPortfolio, type DemoInvestorPortfolioSummary } from '@/lib/domain/demo-investor-portfolio';
 import {
   buildDemoInvestorOverlay,
   fetchOwnershipOverlay,
   type OwnershipOverlay,
 } from '@/lib/home-ownership';
-
-const homeClient = createPublicClient({
-  chain: energyfiChain,
-  transport: http(energyfiRpcUrl),
-});
-
-type ChargeSession = {
-  sessionId: `0x${string}`;
-  chargerId: `0x${string}`;
-  chargerType: number;
-  energyKwh: bigint;
-  startTimestamp: bigint;
-  endTimestamp: bigint;
-  vehicleCategory: number;
-  gridRegionCode: `0x${string}`;
-  stationId: `0x${string}`;
-  distributableKrw: bigint;
-  seSignature: `0x${string}`;
-};
+import { fetchHomeSessionDerivedData } from '@/lib/chain/home-session-derived';
+import type { HomeImpactSummary, HomeLiveSession } from '@/lib/domain/home-dashboard';
 
 export interface HomeHeroPoint {
   label: string;
@@ -83,23 +55,6 @@ export interface HomeRegionCardData {
   chartData: HomeRegionChartBar[];
 }
 
-export interface HomeImpactSummary {
-  estimatedCo2Kg: number;
-  deliveredEnergyKwh: number;
-  treeEquivalent: number;
-  methodologyLabel: string;
-}
-
-export interface HomeLiveSession {
-  id: string;
-  station: string;
-  regionName: string;
-  kwh: string;
-  revenue: number;
-  time: string;
-  deviceType: string;
-}
-
 export interface HomeDashboardData {
   heroLabel: string;
   heroSubLabel: string;
@@ -122,18 +77,6 @@ export interface HomeDashboardState {
   isImpactLoading: boolean;
   errorMessage: string | null;
   refresh: () => void;
-}
-
-const ICE_KG_CO2_PER_KM = 0.192;
-const EV_KWH_PER_KM = 0.18;
-const MATURE_TREE_KG_CO2_PER_YEAR = 21;
-
-function chunk<T>(items: T[], size: number) {
-  const chunks: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
-  return chunks;
 }
 
 function formatWholePercent(value: number | null) {
@@ -169,51 +112,6 @@ function shiftPeriod(period: bigint, deltaMonths: number) {
 
 function buildRecentPeriods(anchorPeriod: bigint, count = 6) {
   return Array.from({ length: count }, (_, index) => shiftPeriod(anchorPeriod, index - (count - 1)));
-}
-
-function formatRelativeTime(timestamp: bigint) {
-  const diffSeconds = Math.max(0, Math.round(Date.now() / 1000 - Number(timestamp)));
-  if (diffSeconds < 60) {
-    return 'Just now';
-  }
-  if (diffSeconds < 3600) {
-    return `${Math.round(diffSeconds / 60)}m ago`;
-  }
-  if (diffSeconds < 86400) {
-    return `${Math.round(diffSeconds / 3600)}h ago`;
-  }
-  return `${Math.round(diffSeconds / 86400)}d ago`;
-}
-
-function resolveRegionName(regionId: `0x${string}`) {
-  return regionCatalog.find((entry) => entry.regionId.toLowerCase() === regionId.toLowerCase())?.name ?? regionId;
-}
-
-async function readAllSessions(totalSessions: number) {
-  if (totalSessions <= 0) {
-    return [] as ChargeSession[];
-  }
-
-  const tokenIds = Array.from({ length: totalSessions }, (_, index) => BigInt(index + 1));
-  const batches = chunk(tokenIds, 25);
-  const sessions: ChargeSession[] = [];
-
-  for (const batch of batches) {
-    const nextSessions = await Promise.all(
-      batch.map((tokenId) => (
-        homeClient.readContract({
-          address: chargeTransactionAddress,
-          abi: chargeTransactionAbi,
-          functionName: 'getSession',
-          args: [tokenId],
-        })
-      )),
-    ) as ChargeSession[];
-
-    sessions.push(...nextSessions);
-  }
-
-  return sessions;
 }
 
 function buildInvestorHeroSeries(portfolio: DemoInvestorPortfolioSummary): HomeHeroPoint[] {
@@ -419,129 +317,18 @@ function buildRegionCards(overview: AnalyticsOverview): HomeRegionCardData[] {
     });
 }
 
-function buildImpactSummary(sessions: ChargeSession[]) {
-  if (sessions.length === 0) {
-    return null;
-  }
-
-  const deliveredEnergyKwh = sessions.reduce((sum, session) => sum + Number(session.energyKwh) / 100, 0);
-  const estimatedCo2Kg = deliveredEnergyKwh * (ICE_KG_CO2_PER_KM / EV_KWH_PER_KM);
-  const treeEquivalent = Math.max(1, Math.round(estimatedCo2Kg / MATURE_TREE_KG_CO2_PER_YEAR));
-
-  return {
-    estimatedCo2Kg,
-    deliveredEnergyKwh,
-    treeEquivalent,
-    methodologyLabel: 'Estimated versus ICE using 0.18 kWh/km EV and 0.192 kg CO2/km gasoline baseline.',
-  };
-}
-
-async function buildLiveSessions(sessions: ChargeSession[]) {
-  const latestSessions = [...sessions].slice(-4).reverse();
-  if (latestSessions.length === 0) {
-    return [] as HomeLiveSession[];
-  }
-
-  const stationRecords = await Promise.all(
-    latestSessions.map(async (session) => {
-      try {
-        return await homeClient.readContract({
-          address: stationRegistryAddress,
-          abi: stationRegistryAbi,
-          functionName: 'getStation',
-          args: [session.stationId],
-        });
-      } catch {
-        return null;
-      }
-    }),
-  );
-
-  return latestSessions.map((session, index) => {
-    const stationRecord = stationRecords[index];
-    const regionName = resolveRegionName(session.gridRegionCode);
-    return {
-      id: `${session.sessionId}-${index}`,
-      station: stationRecord?.location || regionName,
-      regionName,
-      kwh: (Number(session.energyKwh) / 100).toFixed(1),
-      revenue: Number(session.distributableKrw),
-      time: formatRelativeTime(session.endTimestamp),
-      deviceType: Number(session.chargerType) === 2 ? 'DC Fast' : 'AC Slow',
-    };
-  });
-}
-
 export function useHomeDashboard(): HomeDashboardState {
-  const { overview, isLoading: overviewLoading, isRefreshing: overviewRefreshing, errorMessage, refresh: refreshOverview } = useAnalyticsOverview();
-  const [ownershipFallback, setOwnershipFallback] = useState<OwnershipOverlay | null>(null);
-  const [impact, setImpact] = useState<HomeImpactSummary | null>(null);
-  const [liveSessions, setLiveSessions] = useState<HomeLiveSession[]>([]);
-  const [feedLoading, setFeedLoading] = useState(true);
-  const [reloadToken, setReloadToken] = useState(0);
-  const mountedRef = useRef(true);
-
-  useEffect(() => () => {
-    mountedRef.current = false;
-  }, []);
-
-  const loadOverlay = useCallback(async () => {
-    const overlay = await fetchOwnershipOverlay();
-    if (mountedRef.current) {
-      setOwnershipFallback(overlay);
-    }
-  }, []);
-
-  const loadSessionDerivedData = useCallback(async () => {
-    setFeedLoading(true);
-
-    try {
-      const totalSessionsRaw = await homeClient.readContract({
-        address: chargeTransactionAddress,
-        abi: chargeTransactionAbi,
-        functionName: 'totalSessions',
-      });
-
-      const totalSessions = Number(totalSessionsRaw);
-      const sessions = await readAllSessions(totalSessions);
-      const [impactSummary, nextLiveSessions] = await Promise.all([
-        Promise.resolve(buildImpactSummary(sessions)),
-        buildLiveSessions(sessions),
-      ]);
-
-      if (!mountedRef.current) {
-        return;
-      }
-
-      startTransition(() => {
-        setImpact(impactSummary);
-        setLiveSessions(nextLiveSessions);
-      });
-    } catch (error) {
-      console.warn('Failed to load Home session-derived data', error);
-      if (mountedRef.current) {
-        setImpact(null);
-        setLiveSessions([]);
-      }
-    } finally {
-      if (mountedRef.current) {
-        setFeedLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadOverlay();
-  }, [loadOverlay, reloadToken]);
-
-  useEffect(() => {
-    void loadSessionDerivedData();
-    const interval = setInterval(() => {
-      void loadSessionDerivedData();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [loadSessionDerivedData, reloadToken]);
+  const { overview, isLoading: overviewLoading, isRefreshing: overviewRefreshing, errorMessage, refresh: refreshOverview } = useAnalyticsOverviewQuery();
+  const ownershipQuery = useQuery({
+    queryKey: ['home-ownership-overlay'],
+    queryFn: fetchOwnershipOverlay,
+    staleTime: Infinity,
+  });
+  const sessionDerivedQuery = useQuery({
+    queryKey: ['home-live-sessions'],
+    queryFn: fetchHomeSessionDerivedData,
+    refetchInterval: 30_000,
+  });
 
   const dashboard = useMemo<HomeDashboardData | null>(() => {
     if (!overview) {
@@ -558,7 +345,7 @@ export function useHomeDashboard(): HomeDashboardState {
           heldRegionCount: investorPortfolio.heldRegions,
           totalTokenUnits: investorPortfolio.totalTokenUnits,
         })
-      : ownershipFallback;
+      : ownershipQuery.data ?? null;
 
     if (!ownershipOverlay) {
       return null;
@@ -582,26 +369,27 @@ export function useHomeDashboard(): HomeDashboardState {
       latestPublishedValueLabel: latestPublishedPoint ? formatKrwShort(latestPublishedPoint.rawKrw) : 'Awaiting',
       ownershipOverlay,
       regionCards: buildRegionCards(overview),
-      impact,
-      liveSessions,
+      impact: sessionDerivedQuery.data?.impact ?? null,
+      liveSessions: sessionDerivedQuery.data?.liveSessions ?? [],
     };
-  }, [impact, liveSessions, overview, ownershipFallback]);
+  }, [overview, ownershipQuery.data, sessionDerivedQuery.data]);
 
   const refresh = useCallback(() => {
     refreshOverview();
-    setReloadToken((value) => value + 1);
-  }, [refreshOverview]);
+    void ownershipQuery.refetch();
+    void sessionDerivedQuery.refetch();
+  }, [ownershipQuery, refreshOverview, sessionDerivedQuery]);
 
   const hasRegionCards = (dashboard?.regionCards.length ?? 0) > 0;
-  const isInitialLoading = dashboard == null && (overviewLoading || ownershipFallback == null || !overview);
+  const isInitialLoading = dashboard == null && (overviewLoading || ownershipQuery.isPending || !overview);
   const isRegionCardsLoading = isInitialLoading && !hasRegionCards;
-  const isImpactLoading = (isInitialLoading || feedLoading) && !impact;
+  const isImpactLoading = (isInitialLoading || sessionDerivedQuery.isPending) && !sessionDerivedQuery.data?.impact;
 
   return {
     dashboard,
     isLoading: isInitialLoading,
     isRefreshing: overviewRefreshing,
-    isFeedLoading: feedLoading,
+    isFeedLoading: sessionDerivedQuery.isPending || sessionDerivedQuery.isRefetching,
     isRegionCardsLoading,
     isImpactLoading,
     errorMessage,

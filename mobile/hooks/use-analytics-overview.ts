@@ -1,14 +1,10 @@
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { regionCatalog, type RegionCatalogEntry } from '@/data/regions';
 import {
   buildAttention,
   calculateOwnedShareBps,
-  formatKrwShort,
-  formatPeakWindow,
-  formatPercentFromBps,
   formatPeriodLabel,
-  siteTypeLabel,
-  buildSettlementHistoryChart,
   type AnalyticsOverview,
   type RegionEvidenceSummary,
   type RevenueAttestation,
@@ -20,16 +16,6 @@ import {
   readStoReadiness,
   readTotalSessions,
 } from '@/lib/chain/analytics';
-
-export {
-  buildSettlementHistoryChart,
-  calculateOwnedShareBps,
-  formatKrwShort,
-  formatPeakWindow,
-  formatPercentFromBps,
-  formatPeriodLabel,
-  siteTypeLabel,
-};
 
 export type {
   AnalyticsOverview,
@@ -107,77 +93,39 @@ function buildOverview(totalSessions: number | null, regions: RegionEvidenceSumm
   };
 }
 
-export function useAnalyticsOverview() {
-  const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const mountedRef = useRef(true);
+export async function fetchAnalyticsOverview() {
+  const [totalSessions, regions] = await Promise.all([
+    readTotalSessions(),
+    Promise.all(regionCatalog.map(readRegionSummary)),
+  ]);
 
-  useEffect(() => () => {
-    mountedRef.current = false;
-  }, []);
+  return buildOverview(totalSessions, regions);
+}
 
-  const loadOverview = useCallback(async (refresh = false) => {
-    if (!mountedRef.current) {
-      return;
-    }
+export const analyticsOverviewQueryKey = ['analytics-overview'] as const;
 
-    if (refresh) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
+export function analyticsOverviewQueryOptions() {
+  return queryOptions({
+    queryKey: analyticsOverviewQueryKey,
+    queryFn: fetchAnalyticsOverview,
+    refetchInterval: 60_000,
+  });
+}
 
-    try {
-      const [totalSessions, regions] = await Promise.all([
-        readTotalSessions(),
-        Promise.all(regionCatalog.map(readRegionSummary)),
-      ]);
+export function useAnalyticsOverviewQuery() {
+  const query = useQuery(analyticsOverviewQueryOptions());
 
-      if (!mountedRef.current) {
-        return;
-      }
-
-      const nextOverview = buildOverview(totalSessions, regions);
-
-      startTransition(() => {
-        if (!mountedRef.current) {
-          return;
-        }
-        setOverview(nextOverview);
-        setErrorMessage(null);
-      });
-    } catch (error) {
-      console.warn('Failed to load analytics overview', error);
-
-      if (mountedRef.current) {
-        setErrorMessage('Analytics evidence could not be fully loaded. Neutral fallbacks are shown where needed.');
-      }
-    } finally {
-      if (mountedRef.current) {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadOverview();
-    const interval = setInterval(() => {
-      void loadOverview();
-    }, 60000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [loadOverview]);
+  const refresh = useCallback(() => {
+    void query.refetch();
+  }, [query]);
 
   return {
-    overview,
-    isLoading,
-    isRefreshing,
-    errorMessage,
-    refresh: () => void loadOverview(true),
+    overview: query.data ?? null,
+    isLoading: query.isPending,
+    isRefreshing: query.isRefetching,
+    errorMessage: query.error ? 'Analytics evidence could not be fully loaded. Neutral fallbacks are shown where needed.' : null,
+    refresh,
   };
 }
+
+export const useAnalyticsOverview = useAnalyticsOverviewQuery;

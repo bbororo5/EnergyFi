@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distDir = path.resolve(__dirname, '..', 'dist');
-const rpcTarget = process.env.ENERGYFI_WEB_RPC_TARGET ?? 'https://subnets.avax.network/efy/testnet/rpc';
+const rpcTarget = process.env.ENERGYFI_WEB_RPC_TARGET ?? 'https://subnets.avax.network/enf/testnet/rpc';
 const host = process.env.HOST ?? '127.0.0.1';
 const port = Number.parseInt(process.env.PORT ?? '8090', 10);
 

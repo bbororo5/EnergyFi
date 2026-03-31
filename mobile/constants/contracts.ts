@@ -10,8 +10,8 @@ const webRpcProxyUrl = browserOrigin && webRpcProxyPath
   : null;
 
 export const energyfiRpcUrl = webRpcProxyUrl ?? process.env.EXPO_PUBLIC_ENERGYFI_RPC_URL ?? 'http://127.0.0.1:8545';
-const parsedEnergyfiChainId = Number.parseInt(process.env.EXPO_PUBLIC_ENERGYFI_CHAIN_ID ?? '270626', 10);
-export const energyfiChainId = Number.isNaN(parsedEnergyfiChainId) ? 270626 : parsedEnergyfiChainId;
+const parsedEnergyfiChainId = Number.parseInt(process.env.EXPO_PUBLIC_ENERGYFI_CHAIN_ID ?? '59823', 10);
+export const energyfiChainId = Number.isNaN(parsedEnergyfiChainId) ? 59823 : parsedEnergyfiChainId;
 
 export const energyfiChain: Chain = defineChain({
   id: energyfiChainId,
@@ -32,27 +32,27 @@ export const reputationRegistryAddress = (
 export const hasLiveReputationRegistry = reputationRegistryAddress !== zeroAddress;
 
 export const chargeTransactionAddress = (
-  process.env.EXPO_PUBLIC_CHARGE_TRANSACTION_ADDRESS ?? '0x743907BE700c527950D912ec2fe35D3e701D1286'
+  process.env.EXPO_PUBLIC_CHARGE_TRANSACTION_ADDRESS ?? '0x3c1d0E0572b00D67d6E4e8f7381C7960eB0ADDC3'
 ) as Address;
 
 export const revenueTrackerAddress = (
-  process.env.EXPO_PUBLIC_REVENUE_TRACKER_ADDRESS ?? '0x3D23900e2AFF32363d129c2237e606efb00C9777'
+  process.env.EXPO_PUBLIC_REVENUE_TRACKER_ADDRESS ?? '0x693F237E5e15884A19cC81bA584F0535Bb9b3D02'
 ) as Address;
 
 export const chargeRouterAddress = (
-  process.env.EXPO_PUBLIC_CHARGE_ROUTER_ADDRESS ?? '0x8Fae69Bf1Bc4e1c987508a5fC6Cc0f65BaC829E7'
+  process.env.EXPO_PUBLIC_CHARGE_ROUTER_ADDRESS ?? '0xACb74aAA9D8f479c72780849BCEd1c43F0AfB3F7'
 ) as Address;
 
 export const stationRegistryAddress = (
-  process.env.EXPO_PUBLIC_STATION_REGISTRY_ADDRESS ?? '0x7755040f6B6032eF126DA24eE5aC33BC366DFb7f'
+  process.env.EXPO_PUBLIC_STATION_REGISTRY_ADDRESS ?? '0x462fA3589f3483FD19885b6996F72142CBaB85DB'
 ) as Address;
 
 export const deviceRegistryAddress = (
-  process.env.EXPO_PUBLIC_DEVICE_REGISTRY_ADDRESS ?? '0x08c36c0C0e249F8dcfA891997Ee95808C6150C13'
+  process.env.EXPO_PUBLIC_DEVICE_REGISTRY_ADDRESS ?? '0x2b7c0388F71797724666B609Ca09131b14B6Cc1b'
 ) as Address;
 
 export const regionStoFactoryAddress = (
-  process.env.EXPO_PUBLIC_REGION_STO_FACTORY_ADDRESS ?? '0x2524e8cFBeBd81afFe25C38BCb82226427c22abB'
+  process.env.EXPO_PUBLIC_REGION_STO_FACTORY_ADDRESS ?? '0xC954bAb6db0b83e33b5B753c966B08Cafe904076'
 ) as Address;
 
 export const hasLiveRegionStoFactory = regionStoFactoryAddress !== zeroAddress;
